@@ -3,7 +3,6 @@ set -e
 
 echo "Esperando a MySQL en db:3306..."
 
-# Esperar hasta 60 segundos (30 intentos x 2s)
 for i in $(seq 1 30); do
   if wget --no-verbose --tries=1 --spider http://db:3306 2>/dev/null; then
     echo "MySQL listo!"
