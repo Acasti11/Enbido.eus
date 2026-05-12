@@ -21,8 +21,6 @@
 
 ## 1. Estructura del Proyecto
 
-```
-----
 
 ```
 Typescript_prueba/                 ← Raíz del proyecto
@@ -102,10 +100,7 @@ Typescript_prueba/                 ← Raíz del proyecto
     └── init/
           └── 01-schema.sql           ← Script inicialización DB
 ```
-
 ---
-
-```
 ## 2. Backend - Spring Boot
 
 ### 2.1 Tecnologías
