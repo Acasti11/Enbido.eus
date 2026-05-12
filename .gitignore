@@ -1,0 +1,32 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+.m2/
+
+# Node
+node_modules/
+npm-debug.log
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+.dockerignore
+
+# Env (NUNCA subas credenciales)
+
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
