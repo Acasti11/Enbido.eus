@@ -1,0 +1,70 @@
+services:
+  db:
+    build: ./db
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: docker.io/maven:3.9-eclipse-temurin-21
+
+    working_dir: /workspace/backend
+
+    volumes:
+      - .:/workspace:Z
+      - maven_cache:/root/.m2
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_PROFILES_ACTIVE: dev
+
+    command: mvn spring-boot:run
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - db
+
+  frontend:
+    image: docker.io/node:20-alpine
+
+    working_dir: /workspace/frontend
+
+    volumes:
+      - .:/workspace:Z
+      - frontend_node_modules:/workspace/frontend/node_modules
+
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+
+    command: sh -c "npm install && npm start"
+
+    ports:
+      - "8081:5173"
+
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+  maven_cache:
+  frontend_node_modules:
