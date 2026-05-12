@@ -22,6 +22,8 @@
 ## 1. Estructura del Proyecto
 
 ```
+----
+
 ```
 Typescript_prueba/                 ← Raíz del proyecto
 ├── .git/                          ← Repositorio Git
@@ -98,7 +100,7 @@ Typescript_prueba/                 ← Raíz del proyecto
     ├── Dockerfile                  ← Dockerfile MySQL
     ├── .dockerignore
     └── init/
-        └── 01-schema.sql           ← Script inicialización DB
+          └── 01-schema.sql           ← Script inicialización DB
 ```
 
 ---
@@ -166,7 +168,6 @@ COPY --chown=appuser:appgroup entrypoint.sh /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 ##Windows
-
 # NO usar archivos .sh externos (problemas en Windows)
 ENTRYPOINT ["sh", "-c", 
   "echo 'Esperando 15 segundos a MySQL...' && sleep 15 && echo 'Arrancando Spring Boot...' && exec java -Xms256m -Xmx512m -Dspring.profiles.active=prod -jar app.jar"
