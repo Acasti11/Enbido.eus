@@ -1,0 +1,93 @@
+.card-logo {
+  position: relative;
+  width: 9rem;
+  height: 6rem;
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.card-logo__side {
+  position: absolute;
+  bottom: 0;
+  width: 3rem;
+  height: 4rem;
+  background-color: #fcfbf7;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e8e4d9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-logo__side--left {
+  left: 0.5rem;
+  transform: rotate(-12deg) translateX(-1rem);
+}
+
+.card-logo__side--right {
+  right: 0.5rem;
+  transform: rotate(12deg) translateX(1rem);
+}
+
+.card-logo__center {
+  position: absolute;
+  bottom: 0.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3.5rem;
+  height: 5rem;
+  background-color: #fcfbf7;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e8e4d9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-logo__rank {
+  position: absolute;
+  font-size: 0.5625rem;
+  font-weight: 700;
+}
+
+.card-logo__rank--green {
+  color: #2d6b45;
+}
+
+.card-logo__rank--red {
+  color: #e63946;
+}
+
+.card-logo__rank--gold {
+  color: #d4af37;
+}
+
+.card-logo__rank--bottom {
+  bottom: 0.125rem;
+  right: 0.25rem;
+  transform: rotate(180deg);
+}
+
+.card-logo__rank:not(.card-logo__rank--bottom) {
+  top: 0.125rem;
+  left: 0.25rem;
+}
+
+.card-logo__hearts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.card-logo__hearts-row {
+  display: flex;
+  gap: var(--spacing-xs);
+}

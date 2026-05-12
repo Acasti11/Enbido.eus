@@ -1,0 +1,103 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.login-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.login-form__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-brand-dark);
+}
+
+.login-form__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.login-form__forgot {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-brand-light);
+  transition: opacity var(--transition-fast);
+}
+
+.login-form__forgot:hover {
+  text-decoration: underline;
+}
+
+.login-form__input-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 3.5rem;
+  background-color: #ffffff;
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--spacing-md);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-input);
+}
+
+.login-form__input-wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(45, 107, 69, 0.15);
+  border-color: var(--color-brand-light);
+}
+
+.login-form__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.login-form__input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+
+.login-form__input::placeholder {
+  color: #9ca3af;
+}
+
+.login-form__toggle {
+  color: #9ca3af;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
+}
+
+.login-form__toggle:hover {
+  color: #6b7280;
+}
+
+.login-form__submit {
+  width: 100%;
+  height: 3.5rem;
+  background-color: var(--color-brand-light);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: 1.125rem;
+  transition: background-color var(--transition-fast);
+  box-shadow: var(--shadow-card);
+  margin-top: var(--spacing-sm);
+}
+
+.login-form__submit:hover {
+  background-color: var(--color-brand-main);
+}

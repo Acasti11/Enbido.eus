@@ -1,0 +1,45 @@
+import React from 'react';
+import './login-form.css';
+
+const LoginForm: React.FC = (): React.JSX.Element => {
+  return (
+    <form className="login-form">
+      <div className="login-form__field">
+        <label className="login-form__label">User or Email</label>
+        <div className="login-form__input-wrapper">
+          <svg className="login-form__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <input type="text" placeholder="Enter your user" className="login-form__input" />
+        </div>
+      </div>
+
+      <div className="login-form__field">
+        <div className="login-form__label-row">
+          <label className="login-form__label">Password</label>
+          <a href="#" className="login-form__forgot">Forgot password?</a>
+        </div>
+        <div className="login-form__input-wrapper">
+          <svg className="login-form__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <input type="password" placeholder="Enter your password" className="login-form__input" />
+          <button type="button" className="login-form__toggle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" className="login-form__submit">
+        Enter the table
+      </button>
+    </form>
+  );
+};
+
+export default LoginForm;

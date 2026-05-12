@@ -1,0 +1,51 @@
+.bg-card {
+  position: fixed;
+  width: 15rem;
+  height: 21rem;
+  background: rgba(252, 251, 247, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  z-index: 1;
+  backdrop-filter: blur(2px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .bg-card {
+    display: flex;
+  }
+}
+
+.bg-card--left {
+  left: 5%;
+  top: 25%;
+  transform: rotate(-15deg);
+}
+
+.bg-card--right {
+  right: 5%;
+  top: 20%;
+  transform: rotate(10deg);
+}
+
+.bg-card__rank {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  color: rgba(255, 255, 255, 0.1);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.875rem;
+}
+
+.bg-card__rank--bottom {
+  top: auto;
+  left: auto;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  transform: rotate(180deg);
+}
