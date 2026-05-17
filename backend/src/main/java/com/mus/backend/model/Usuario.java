@@ -1,42 +1,47 @@
 package com.mus.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "user_login")
+@Data
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    
-    @Column(nullable = false)
-    private String nombre;
-    
-    @Column(nullable = false, unique = true)
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "surname")
+    private String surname;
+
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
-    
-    @Column(name = "created_at", nullable = false, updatable = false)
+
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "postal_code")
+    private String postalCode;
+
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
+
+    @Column(name = "role")
+    private String role;
+
+    @Column(name = "is_banned")
+    private Boolean isBanned;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    public Usuario() {}
-
-    public Usuario(String nombre, String email) {
-        this.nombre = nombre;
-        this.email = email;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    // Getters y Setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
     
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

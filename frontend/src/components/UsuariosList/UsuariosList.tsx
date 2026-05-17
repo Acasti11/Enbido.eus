@@ -16,7 +16,7 @@ export const UsuariosList = (): React.JSX.Element => {
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {usuarios.map(usuario => (
             <li 
-              key={usuario.id} 
+              key={usuario.user_id} 
               style={{ 
                 padding: '1rem', 
                 margin: '0.5rem 0', 
@@ -25,7 +25,7 @@ export const UsuariosList = (): React.JSX.Element => {
                 borderLeft: '4px solid #646cff'
               }}
             >
-              <strong>{usuario.nombre}</strong>
+              <strong>{usuario.name}</strong>
               <span style={{ color: '#666', marginLeft: '1rem' }}>{usuario.email}</span>
             </li>
           ))}
