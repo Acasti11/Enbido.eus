@@ -4,7 +4,11 @@ import LoginForm from './LoginForm';
 import SocialDivider from './SocialDivider';
 import './login-card.css';
 
-const LoginCard: React.FC = (): React.JSX.Element => {
+interface LoginCardProps {
+  onSwitchToRegister: () => void;
+}
+
+const LoginCard: React.FC<LoginCardProps> = ({ onSwitchToRegister }): React.JSX.Element => {
   return (
     <div className="login-card">
       <div className="login-card__header">
@@ -12,8 +16,8 @@ const LoginCard: React.FC = (): React.JSX.Element => {
         <h1 className="login-card__title">ENBIDO</h1>
         <p className="login-card__subtitle">Connecting with the table...</p>
       </div>
-      <LoginForm />
-      <SocialDivider />
+      <LoginForm/>
+      <SocialDivider onSwitchToRegister={onSwitchToRegister} />
     </div>
   );
 };

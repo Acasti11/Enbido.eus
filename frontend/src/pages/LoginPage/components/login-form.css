@@ -101,3 +101,9 @@
 .login-form__submit:hover {
   background-color: var(--color-brand-main);
 }
+.login-form__success {
+  color: #28a745;
+  font-size: 0.875rem;
+  text-align: center;
+  font-weight: 600;
+}
