@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './login-form.css';  // Reusa los mismos estilos
+import './login-form.css';
 
-// Iconos (puedes cambiarlos por los tuyos o usar una librería como lucide-react)
+// Iconos (mismos que antes)
 const UserIcon = () => (
   <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -37,9 +37,21 @@ const MapPinIcon = () => (
   </svg>
 );
 
+const CalendarIcon = () => (
+  <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
 interface CreateUserFormProps {
   onSwitchToLogin: () => void;
 }
+
+// Campos obligatorios según tu tabla SQL
+const REQUIRED_FIELDS = ['name', 'email', 'password', 'username', 'birth_date'];
 
 const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): React.JSX.Element => {
   const [formData, setFormData] = useState({
@@ -49,25 +61,127 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
     username: '',
     password: '',
     phone_number: '',
-    postal_code: ''
+    postal_code: '',
+    birth_date: ''
   });
-  const [error, setError] = useState('');
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+    const { name, value } = e.target;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Limpiar error al escribir
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    validateField(name, formData[name as keyof typeof formData]);
+  };
+
+  const validateField = (fieldName: string, value: string): boolean => {
+    if (REQUIRED_FIELDS.includes(fieldName) && !value.trim()) {
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: 'This field is required'
+      }));
+      return false;
+    }
+    
+    // Validación específica de email
+    if (fieldName === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: 'Invalid email format'
+      }));
+      return false;
+    }
+    
+    // Validación de fecha de nacimiento (debe ser en el pasado)
+    if (fieldName === 'birth_date' && value) {
+      const birthDate = new Date(value);
+      const today = new Date();
+      if (birthDate >= today) {
+        setErrors(prev => ({
+          ...prev,
+          [fieldName]: 'Birth date must be in the past'
+        }));
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const validateAll = (): boolean => {
+    let isValid = true;
+    const newErrors: Record<string, string> = {};
+    
+    REQUIRED_FIELDS.forEach(field => {
+      const value = formData[field as keyof typeof formData];
+      if (!value || !value.trim()) {
+        newErrors[field] = 'This field is required';
+        isValid = false;
+      }
     });
+    
+    // Validar email
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors['email'] = 'Invalid email format';
+      isValid = false;
+    }
+    
+    setErrors(newErrors);
+    setTouched(
+      REQUIRED_FIELDS.reduce((acc, field) => ({ ...acc, [field]: true }), {})
+    );
+    
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setSuccess('');
+    
+    if (!validateAll()) {
+      return;
+    }
+    
+    setLoading(true);
 
     try {
-      await axios.post('http://localhost:8080/api/usuarios', formData);
+      // JSON que se envía al backend (solo campos de la tabla)
+      const payload = {
+        name: formData.name.trim(),
+        surname: formData.surname.trim() || null,
+        email: formData.email.trim(),
+        username: formData.username.trim(),
+        password: formData.password,
+        phone_number: formData.phone_number.trim() || null,
+        postal_code: formData.postal_code.trim() || null,
+        birth_date: formData.birth_date,
+        role: 'user'  // default según tu tabla
+      };
+      
+      console.log('Sending JSON:', JSON.stringify(payload, null, 2));
+      
+      await axios.post('http://localhost:8080/api/usuarios', payload);
+      
       setSuccess('Account created! Redirecting to login...');
       
       setTimeout(() => {
@@ -75,29 +189,40 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       }, 2000);
       
     } catch (err: any) {
-      setError(err.response?.data || 'Error creating account');
+      const errorMsg = err.response?.data || 'Error creating account';
+      setErrors({ general: errorMsg });
+    } finally {
+      setLoading(false);
     }
   };
 
+  const getFieldError = (fieldName: string): string | undefined => {
+    return touched[fieldName] ? errors[fieldName] : undefined;
+  };
+
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
-      {/* Name */}
+    <form className="login-form" onSubmit={handleSubmit} noValidate>
+      {/* Name - REQUIRED */}
       <div className="login-form__field">
-        <label className="login-form__label">Name</label>
-        <div className="login-form__input-wrapper">
+        <label className="login-form__label">
+          Name <span style={{ color: '#dc3545' }}>*</span>
+        </label>
+        <div className={`login-form__input-wrapper ${getFieldError('name') ? 'login-form__input-wrapper--error' : ''}`}>
           <UserIcon />
           <input
             name="name"
             className="login-form__input"
             value={formData.name}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="Your name"
             required
           />
         </div>
+        {getFieldError('name') && <span className="login-form__field-error">{errors.name}</span>}
       </div>
 
-      {/* Surname */}
+      {/* Surname - OPTIONAL */}
       <div className="login-form__field">
         <label className="login-form__label">Surname</label>
         <div className="login-form__input-wrapper">
@@ -108,15 +233,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
             value={formData.surname}
             onChange={handleChange}
             placeholder="Your surname"
-            required
           />
         </div>
       </div>
 
-      {/* Email */}
+      {/* Email - REQUIRED */}
       <div className="login-form__field">
-        <label className="login-form__label">Email</label>
-        <div className="login-form__input-wrapper">
+        <label className="login-form__label">
+          Email <span style={{ color: '#dc3545' }}>*</span>
+        </label>
+        <div className={`login-form__input-wrapper ${getFieldError('email') ? 'login-form__input-wrapper--error' : ''}`}>
           <MailIcon />
           <input
             name="email"
@@ -124,32 +250,40 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
             className="login-form__input"
             value={formData.email}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="your@email.com"
             required
           />
         </div>
+        {getFieldError('email') && <span className="login-form__field-error">{errors.email}</span>}
       </div>
 
-      {/* Username */}
+      {/* Username - REQUIRED */}
       <div className="login-form__field">
-        <label className="login-form__label">Username</label>
-        <div className="login-form__input-wrapper">
+        <label className="login-form__label">
+          Username <span style={{ color: '#dc3545' }}>*</span>
+        </label>
+        <div className={`login-form__input-wrapper ${getFieldError('username') ? 'login-form__input-wrapper--error' : ''}`}>
           <UserIcon />
           <input
             name="username"
             className="login-form__input"
             value={formData.username}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="Choose a username"
             required
           />
         </div>
+        {getFieldError('username') && <span className="login-form__field-error">{errors.username}</span>}
       </div>
 
-      {/* Password */}
+      {/* Password - REQUIRED */}
       <div className="login-form__field">
-        <label className="login-form__label">Password</label>
-        <div className="login-form__input-wrapper">
+        <label className="login-form__label">
+          Password <span style={{ color: '#dc3545' }}>*</span>
+        </label>
+        <div className={`login-form__input-wrapper ${getFieldError('password') ? 'login-form__input-wrapper--error' : ''}`}>
           <LockIcon />
           <input
             name="password"
@@ -157,13 +291,35 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
             className="login-form__input"
             value={formData.password}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="Choose a password"
             required
           />
         </div>
+        {getFieldError('password') && <span className="login-form__field-error">{errors.password}</span>}
       </div>
 
-      {/* Phone */}
+      {/* Birth Date - REQUIRED (nuevo campo) */}
+      <div className="login-form__field">
+        <label className="login-form__label">
+          Birth Date <span style={{ color: '#dc3545' }}>*</span>
+        </label>
+        <div className={`login-form__input-wrapper ${getFieldError('birth_date') ? 'login-form__input-wrapper--error' : ''}`}>
+          <CalendarIcon />
+          <input
+            name="birth_date"
+            type="date"
+            className="login-form__input"
+            value={formData.birth_date}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+          />
+        </div>
+        {getFieldError('birth_date') && <span className="login-form__field-error">{errors.birth_date}</span>}
+      </div>
+
+      {/* Phone - OPTIONAL */}
       <div className="login-form__field">
         <label className="login-form__label">Phone</label>
         <div className="login-form__input-wrapper">
@@ -178,7 +334,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
         </div>
       </div>
 
-      {/* Postal Code */}
+      {/* Postal Code - OPTIONAL */}
       <div className="login-form__field">
         <label className="login-form__label">Postal Code</label>
         <div className="login-form__input-wrapper">
@@ -193,11 +349,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
         </div>
       </div>
 
-      {error && <p className="login-form__error">{error}</p>}
+      {/* Errores generales */}
+      {errors.general && <p className="login-form__error">{errors.general}</p>}
       {success && <p className="login-form__success">{success}</p>}
 
-      <button type="submit" className="login-form__submit">
-        Create Account
+      <button 
+        type="submit" 
+        className="login-form__submit"
+        disabled={loading}
+      >
+        {loading ? 'Creating...' : 'Create Account'}
       </button>
 
       <p className="login-form__switch">
@@ -206,6 +367,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
           type="button" 
           className="login-form__link-button"
           onClick={onSwitchToLogin}
+          disabled={loading}
         >
           Sign In
         </button>
