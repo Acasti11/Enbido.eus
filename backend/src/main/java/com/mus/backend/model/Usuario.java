@@ -2,6 +2,7 @@ package com.mus.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDate;      
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,7 +15,7 @@ public class Usuario {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "surname")
@@ -32,8 +33,8 @@ public class Usuario {
     @Column(name = "postal_code")
     private String postalCode;
 
-    @Column(name = "birth_date")
-    private LocalDateTime birthDate;
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
 
     @Column(name = "username", unique = true, nullable = false)
     private String username;
@@ -46,5 +47,4 @@ public class Usuario {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
 }

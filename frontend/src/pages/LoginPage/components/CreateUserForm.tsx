@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import type { User } from '../../../types/User';
 import './login-form.css';
 
-// Iconos (mismos que antes)
 const UserIcon = () => (
   <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -50,11 +50,23 @@ interface CreateUserFormProps {
   onSwitchToLogin: () => void;
 }
 
-// Campos obligatorios según tu tabla SQL
-const REQUIRED_FIELDS = ['name', 'email', 'password', 'username', 'birth_date'];
+// ========== TIPOS CORREGIDOS ==========
+type FormField = 'name' | 'surname' | 'email' | 'username' | 'password' | 'phone_number' | 'postal_code' | 'birthDate';
+
+interface FormErrors extends Partial<Record<FormField, string>> {
+  general?: string;
+}
+
+type FormTouched = Partial<Record<FormField, boolean>>;
+
+// ========== REQUIRED_FIELDS CORREGIDO ==========
+// Antes: (keyof User)[] incluía 'user_id' que no existe en UserFormData
+const REQUIRED_FIELDS: FormField[] = ['name', 'email', 'password', 'username', 'birthDate'];
+
+type UserFormData = Omit<User, 'user_id' | 'role' | 'is_banned' | 'created_at'>;
 
 const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): React.JSX.Element => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserFormData>({
     name: '',
     surname: '',
     email: '',
@@ -62,11 +74,12 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
     password: '',
     phone_number: '',
     postal_code: '',
-    birth_date: ''
+    birthDate: ''  
   });
   
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  // ========== ESTADOS CORREGIDOS ==========
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<FormTouched>({});
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -78,11 +91,10 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       [name]: value
     }));
     
-    // Limpiar error al escribir
-    if (errors[name]) {
+    if (errors[name as FormField]) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[name];
+        delete newErrors[name as FormField];
         return newErrors;
       });
     }
@@ -91,11 +103,11 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
-    validateField(name, formData[name as keyof typeof formData]);
+    validateField(name as FormField, formData[name as FormField]);
   };
 
-  const validateField = (fieldName: string, value: string): boolean => {
-    if (REQUIRED_FIELDS.includes(fieldName) && !value.trim()) {
+  const validateField = (fieldName: FormField, value: string | undefined): boolean => {
+    if (REQUIRED_FIELDS.includes(fieldName) && (!value || !value.trim())) {
       setErrors(prev => ({
         ...prev,
         [fieldName]: 'This field is required'
@@ -103,7 +115,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       return false;
     }
     
-    // Validación específica de email
     if (fieldName === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       setErrors(prev => ({
         ...prev,
@@ -112,8 +123,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       return false;
     }
     
-    // Validación de fecha de nacimiento (debe ser en el pasado)
-    if (fieldName === 'birth_date' && value) {
+    if (fieldName === 'birthDate' && value) {
       const birthDate = new Date(value);
       const today = new Date();
       if (birthDate >= today) {
@@ -130,25 +140,24 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
 
   const validateAll = (): boolean => {
     let isValid = true;
-    const newErrors: Record<string, string> = {};
+    const newErrors: FormErrors = {};
     
     REQUIRED_FIELDS.forEach(field => {
-      const value = formData[field as keyof typeof formData];
+      const value = formData[field];
       if (!value || !value.trim()) {
         newErrors[field] = 'This field is required';
         isValid = false;
       }
     });
     
-    // Validar email
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors['email'] = 'Invalid email format';
+      newErrors.email = 'Invalid email format';
       isValid = false;
     }
     
     setErrors(newErrors);
     setTouched(
-      REQUIRED_FIELDS.reduce((acc, field) => ({ ...acc, [field]: true }), {})
+      REQUIRED_FIELDS.reduce((acc, field) => ({ ...acc, [field]: true }), {} as Record<FormField, boolean>)
     );
     
     return isValid;
@@ -165,17 +174,12 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
     setLoading(true);
 
     try {
-      // JSON que se envía al backend (solo campos de la tabla)
-      const payload = {
-        name: formData.name.trim(),
-        surname: formData.surname.trim() || null,
-        email: formData.email.trim(),
-        username: formData.username.trim(),
-        password: formData.password,
-        phone_number: formData.phone_number.trim() || null,
-        postal_code: formData.postal_code.trim() || null,
-        birth_date: formData.birth_date,
-        role: 'user'  // default según tu tabla
+      const payload: Omit<User, 'user_id' | 'is_banned' | 'created_at'> = {
+        ...formData,
+        surname: formData.surname?.trim() || undefined,
+        phone_number: formData.phone_number?.trim() || undefined,
+        postal_code: formData.postal_code?.trim() || undefined,
+        role: 'user'
       };
       
       console.log('Sending JSON:', JSON.stringify(payload, null, 2));
@@ -196,7 +200,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
     }
   };
 
-  const getFieldError = (fieldName: string): string | undefined => {
+  const getFieldError = (fieldName: FormField): string | undefined => {
     return touched[fieldName] ? errors[fieldName] : undefined;
   };
 
@@ -299,24 +303,24 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
         {getFieldError('password') && <span className="login-form__field-error">{errors.password}</span>}
       </div>
 
-      {/* Birth Date - REQUIRED (nuevo campo) */}
+      {/* Birth Date - REQUIRED */}
       <div className="login-form__field">
         <label className="login-form__label">
           Birth Date <span style={{ color: '#dc3545' }}>*</span>
         </label>
-        <div className={`login-form__input-wrapper ${getFieldError('birth_date') ? 'login-form__input-wrapper--error' : ''}`}>
+        <div className={`login-form__input-wrapper ${getFieldError('birthDate') ? 'login-form__input-wrapper--error' : ''}`}>
           <CalendarIcon />
           <input
-            name="birth_date"
+            name="birthDate"
             type="date"
             className="login-form__input"
-            value={formData.birth_date}
+            value={formData.birthDate}
             onChange={handleChange}
             onBlur={handleBlur}
             required
           />
         </div>
-        {getFieldError('birth_date') && <span className="login-form__field-error">{errors.birth_date}</span>}
+        {getFieldError('birthDate') && <span className="login-form__field-error">{errors.birthDate}</span>}
       </div>
 
       {/* Phone - OPTIONAL */}
@@ -349,7 +353,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
         </div>
       </div>
 
-      {/* Errores generales */}
       {errors.general && <p className="login-form__error">{errors.general}</p>}
       {success && <p className="login-form__success">{success}</p>}
 
