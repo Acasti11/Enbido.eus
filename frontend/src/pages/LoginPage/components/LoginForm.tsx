@@ -17,7 +17,16 @@ const LockIcon = () => (
 );
 
 const EyeIcon = ({ open }: { open: boolean }) => (
-  <svg className="login-form__toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg 
+    width="20" 
+    height="20" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     {open ? (
       <>
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -80,7 +89,7 @@ const LoginForm: React.FC = (): React.JSX.Element => {
         <div className="login-form__input-wrapper">
           <LockIcon />
           <input
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? 'te xt' : 'password'}
             className="login-form__input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

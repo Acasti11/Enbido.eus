@@ -79,12 +79,20 @@
   transition: color var(--transition-fast);
   flex-shrink: 0;
   margin-left: var(--spacing-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;        /* ← Añade esto */
+  align-items: center;  /* ← Añade esto */
+  justify-content: center; /* ← Añade esto */
+  width: 2rem;          /* ← Añade esto */
+  height: 2rem;         /* ← Añade esto */
 }
 
 .login-form__toggle:hover {
   color: #6b7280;
 }
-
 .login-form__submit {
   width: 100%;
   height: 3.5rem;
