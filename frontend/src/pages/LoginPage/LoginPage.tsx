@@ -1,21 +1,22 @@
 import React from 'react';
-import Navbar from '../../components/layout/Navbar';
 import LoginCard from './components/LoginCard';
 import BackgroundCards from './components/BackgroundCards';
-import BottomFeatures from './components/BottomFeatures';
-import ChatWidget from './components/ChatWidget';
 import './login-page.css';
 
-const LoginPage: React.FC = (): React.JSX.Element => {
+interface LoginPageProps {
+  onLoginSuccess: () => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }): React.JSX.Element => {
   return (
     <div className="login-page">
+      {/* El fondo decorativo (el cubo giratorio y demás) */}
       <BackgroundCards />
-      <Navbar />
+      
+      {/* ¡AQUÍ ESTÁ LA MAGIA! Tu clase original que centra la tarjeta */}
       <main className="login-page__main">
-        <LoginCard />
+        <LoginCard onLoginSuccess={onLoginSuccess} />
       </main>
-      <BottomFeatures />
-      <ChatWidget />
     </div>
   );
 };

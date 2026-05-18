@@ -1,13 +1,24 @@
-import React from 'react';
-import LoginPage from './pages/LoginPage/LoginPage';
-import './App.css';
+import { useState } from 'react'
+// IMPORTANTE: Aquí NO debe haber ningún "import './App.css'"
+import LoginPage from './pages/LoginPage/LoginPage'
+import MeetupPage from './pages/MeetUp/MeetupPage'
 
-const App: React.FC = (): React.JSX.Element => {
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true)
+  }
+
   return (
-    <div className="app">
-      <LoginPage />
-    </div>
-  );
-};
+    <>
+      {!isAuthenticated ? (
+        <LoginPage onLoginSuccess={handleLoginSuccess} />
+      ) : (
+        <MeetupPage />
+      )}
+    </>
+  )
+}
 
-export default App;
+export default App

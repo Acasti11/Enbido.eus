@@ -1,7 +1,5 @@
-export interface MeetupRequest {
-  requestId: number;
-  adId: number;
-  applicantId: number;
-  message: string;
-  status: 'pending' | 'accepted' | 'rejected';
+export interface CreateAdFormState {
+  location: string;
+  missingPlayers: string;
+  description: string;
 }

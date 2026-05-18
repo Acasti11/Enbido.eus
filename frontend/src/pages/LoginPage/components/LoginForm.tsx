@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import api from '../../../services/api';
 import './login-form.css';
 
-const LoginForm: React.FC = (): React.JSX.Element => {
-  const [formData, setFormData] = useState({
+interface LoginFormProps {
+  onLoginSuccess: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {  const [formData, setFormData] = useState({
     usuario: '',
     password: '',
   });
@@ -36,6 +39,8 @@ const LoginForm: React.FC = (): React.JSX.Element => {
       
       // Redirige a dashboard o donde necesites
       // navigate('/dashboard');
+
+      onLoginSuccess();
       
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');
