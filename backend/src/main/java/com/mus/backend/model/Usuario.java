@@ -32,6 +32,9 @@ public class Usuario {
     @Column(name = "postal_code")
     private String postalCode;
 
+    @Column(name = "birth_date")
+    private LocalDateTime birthDate;
+
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
