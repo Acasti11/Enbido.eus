@@ -4,6 +4,8 @@ import GameScoreBoard from './components/GameScoreBoard';
 import GameConsoleLogs from './components/GameConsoleLogs';
 import ActionPanel from './components/ActionPanel';
 import PlayerHand from './components/PlayerHand';
+import PremiumLobby from './components/PremiumLobby';
+import LobbyWaitingRoom from './components/LobbyWaitingRoom';
 import { useMusGame } from './hooks/useMusGame';
 import './mus-game.css';
 
@@ -14,7 +16,9 @@ const MusGamePage: React.FC = () => {
 
   const { 
     isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
-    handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection 
+    roomId, seats, isSearching, queueSize, username, isMyTurn, betState,
+    handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
+    onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom
   } = useMusGame(currentUserId);
 
   const handleActionPanelStart = () => {
@@ -29,15 +33,47 @@ const MusGamePage: React.FC = () => {
     handleExecuteDiscards(selectedCards);
   };
 
-  const handleBetLocal = (type: 'ENVIDO' | 'ORDAGO' | 'PASO') => {
-    const actionMap = {
-      'ENVIDO': 'Envido' as const,
-      'ORDAGO': 'Ordago' as const,
-      'PASO': 'Paso' as const
-    };
-    handleBetAction(actionMap[type]);
+  const handleBetLocal = (action: 'Paso' | 'Envido' | 'Ordago' | 'Quiero' | 'No Quiero') => {
+    handleBetAction(action);
   };
 
+  // --- VISTA 1: LOBBY DE SELECCIÓN DE SALAS / APUESTAS ---
+  if (roomId === '') {
+    return (
+      <>
+        <Navbar />
+        <PremiumLobby 
+          userId={currentUserId}
+          username={username}
+          isSearching={isSearching}
+          queueSize={queueSize}
+          onJoinRoom={onJoinRoom}
+          onCreateRoom={onCreateRoom}
+          onStartMatchmaking={onStartMatchmaking}
+          onCancelMatchmaking={onCancelMatchmaking}
+        />
+      </>
+    );
+  }
+
+  // --- VISTA 2: SALA DE ESPERA / PRE-SEATS MESA ---
+  if (!isPlaying) {
+    return (
+      <>
+        <Navbar />
+        <LobbyWaitingRoom 
+          roomId={roomId}
+          seats={seats}
+          currentUserId={currentUserId}
+          onAddBot={onAddBot}
+          onStartGame={handleStartMatch}
+          onLeaveRoom={onLeaveRoom}
+        />
+      </>
+    );
+  }
+
+  // --- VISTA 3: EL TAPETE VERDE DE JUEGO MULTIJUGADOR ---
   return (
     <>
       <Navbar />
@@ -50,32 +86,53 @@ const MusGamePage: React.FC = () => {
             <div className="felt-center-emblem">
               <h1 className="felt-logo">ENBIDO</h1>
               <span className="felt-sub">Mesa de Mus</span>
+              <button 
+                className="leave-felt-btn" 
+                onClick={onLeaveRoom} 
+                style={{
+                  marginTop: '10px',
+                  padding: '6px 12px',
+                  backgroundColor: 'rgba(220, 38, 38, 0.85)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  transition: 'background-color 0.2s',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.85)')}
+              >
+                🚪 Abandonar Mesa
+              </button>
             </div>
 
-            {/* JUGADOR NORTE (BOT) */}
+            {/* JUGADOR NORTE (Mapeado dinámicamente) */}
             <div className="player-position position-north">
-              <span className="player-info-tag">Bot Norte</span>
+              <span className="player-info-tag">{seats[2]?.username || 'Bot Norte'}</span>
               <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} />
               {speechBubbles[2] && <div className="speech-bubble show">{speechBubbles[2]}</div>}
             </div>
 
-            {/* JUGADOR OESTE (BOT) */}
+            {/* JUGADOR OESTE (Mapeado dinámicamente) */}
             <div className="player-position position-west">
-              <span className="player-info-tag">Bot Oeste</span>
+              <span className="player-info-tag">{seats[1]?.username || 'Bot Oeste'}</span>
               <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} />
               {speechBubbles[1] && <div className="speech-bubble show">{speechBubbles[1]}</div>}
             </div>
 
-            {/* JUGADOR ESTE (BOT) */}
+            {/* JUGADOR ESTE (Mapeado dinámicamente) */}
             <div className="player-position position-east">
-              <span className="player-info-tag">Bot Este</span>
+              <span className="player-info-tag">{seats[3]?.username || 'Bot Este'}</span>
               <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} />
               {speechBubbles[3] && <div className="speech-bubble show">{speechBubbles[3]}</div>}
             </div>
 
-            {/* TÚ (JUGADOR SUR) */}
+            {/* TÚ (JUGADOR SUR - Silla relative 0) */}
             <div className="player-position position-south">
-              <span className="player-info-tag current-player-tag">Tú (Jugador)</span>
+              <span className="player-info-tag current-player-tag">{seats[0]?.username || 'Tú'} (Jugador)</span>
               <PlayerHand 
                 hand={isPlaying ? playerHand : []} 
                 isBot={false} 
@@ -102,6 +159,8 @@ const MusGamePage: React.FC = () => {
             phase={phase}
             stage={stage}
             selectedCount={selectedCards.length}
+            isMyTurn={isMyTurn}
+            betState={betState}
             onStart={handleActionPanelStart}
             onDecision={handleUserMusDecision}
             onDiscard={executeDiscardsLocal}

@@ -3,12 +3,18 @@ import ProfileHeader from './ProfileHeader';
 import StatsGrid from './StatsGrid';
 import './profile-card.css';
 
-const ProfileCard: React.FC = (): React.JSX.Element => {
+interface ProfileCardProps {
+  username?: string;
+  initials?: string;
+  stats?: { label: string; value: number | string; icon: string }[];
+}
+
+const ProfileCard: React.FC<ProfileCardProps> = ({ username, initials, stats }): React.JSX.Element => {
   return (
     <div className="profile-card">
       <div className="profile-card__container">
-        <ProfileHeader />
-        <StatsGrid />
+        <ProfileHeader username={username} initials={initials} />
+        <StatsGrid stats={stats} />
       </div>
     </div>
   );

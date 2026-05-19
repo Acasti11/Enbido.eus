@@ -1,0 +1,141 @@
+import React from 'react';
+import './lobby-waiting-room.css';
+
+interface SeatInfo {
+  chair: number;
+  username: string;
+  isBot: boolean;
+  userId: number | null;
+}
+
+interface LobbyWaitingRoomProps {
+  roomId: string;
+  seats: SeatInfo[];
+  currentUserId: number;
+  onAddBot: (chair: number) => void;
+  onStartGame: () => void;
+  onLeaveRoom: () => void;
+}
+
+const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
+  roomId,
+  seats,
+  currentUserId,
+  onAddBot,
+  onStartGame,
+  onLeaveRoom,
+}) => {
+  // El host es el primer jugador real (normalmente en la silla 0)
+  const hostPlayer = seats.find(s => s.userId !== null && !s.isBot);
+  const isHost = hostPlayer && hostPlayer.userId === currentUserId;
+
+  const totalPlayersCount = seats.filter(s => s.username !== 'Vacío').length;
+  const isTableFull = totalPlayersCount === 4;
+
+  // Asignamos una posición de mesa para renderizar en círculo
+  // 0 = Abajo (Tú), 1 = Izquierda (Oeste), 2 = Arriba (Norte), 3 = Derecha (Este)
+  const getSeatPositionClass = (chair: number) => {
+    if (chair === 0) return 'seat-south';
+    if (chair === 1) return 'seat-west';
+    if (chair === 2) return 'seat-north';
+    return 'seat-east';
+  };
+
+  return (
+    <div className="waiting-room-overlay">
+      <div className="waiting-room-card">
+        
+        {/* ROOM CODE TITLE */}
+        <header className="room-header">
+          <button className="leave-room-btn" onClick={onLeaveRoom}>
+            🚪 Abandonar
+          </button>
+          <div className="room-title-area">
+            <span className="room-tag font-bold">MESA DE MUS</span>
+            <h2 className="room-code">{roomId}</h2>
+          </div>
+          <div className="room-count-badge">
+            {totalPlayersCount}/4 Sentados
+          </div>
+        </header>
+
+        {/* GREEN MESA PREVIEW */}
+        <div className="mesa-felt-preview">
+          <div className="mesa-center-logo">
+            <h3 className="felt-logo-text">ENBIDO</h3>
+            <span className="felt-sub-text">Sala de Espera</span>
+          </div>
+
+          {/* THE 4 CHAIRS */}
+          {seats.map((seat) => {
+            const isEmpty = seat.username === 'Vacío';
+            const isSelf = seat.userId === currentUserId;
+            
+            return (
+              <div 
+                key={seat.chair} 
+                className={`mesa-chair-node ${getSeatPositionClass(seat.chair)} ${isEmpty ? 'chair-empty' : 'chair-occupied'} ${isSelf ? 'chair-self' : ''}`}
+              >
+                {isEmpty ? (
+                  <div className="empty-chair-inner">
+                    <span className="chair-lbl">Vacío</span>
+                    {isHost && (
+                      <button 
+                        className="add-bot-btn"
+                        onClick={() => onAddBot(seat.chair)}
+                      >
+                        🤖 Añadir Bot
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="occupied-chair-inner">
+                    <div className="avatar-circle">
+                      {seat.isBot ? '🤖' : '👤'}
+                    </div>
+                    <span className="player-name">
+                      {seat.username} {isSelf && '(Tú)'}
+                    </span>
+                    <span className="player-role">
+                      {seat.isBot ? 'BOT COMPUTADOR' : 'JUGADOR ACTIVO'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* BOTTOM CONTROLS */}
+        <div className="waiting-footer-actions">
+          {isHost ? (
+            <div className="host-panel">
+              <p className="status-tip">
+                {isTableFull 
+                  ? '¡La mesa está completa! Todo listo para jugar.' 
+                  : 'Rellena los asientos vacíos con Bots o espera a que entren jugadores reales.'}
+              </p>
+              <button 
+                className="start-game-trigger"
+                onClick={onStartGame}
+                disabled={!isTableFull}
+              >
+                🎮 Comenzar Partida de Mus
+              </button>
+            </div>
+          ) : (
+            <div className="guest-panel">
+              <div className="waiting-pulse-loader"></div>
+              <p className="guest-waiting-lbl">
+                Esperando a que el anfitrión comience la partida...
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default LobbyWaitingRoom;

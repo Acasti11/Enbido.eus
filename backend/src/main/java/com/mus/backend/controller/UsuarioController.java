@@ -18,6 +18,9 @@ public class UsuarioController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private com.mus.backend.repository.UserGameProfileRepository userGameProfileRepository;
+
     // GET todos los usuarios
     @GetMapping
     public List<Usuario> getAllUsuarios() {
@@ -44,6 +47,14 @@ public class UsuarioController {
         }
 
         Usuario saved = usuarioRepository.save(usuario);
+        
+        try {
+            com.mus.backend.model.UserGameProfile profile = new com.mus.backend.model.UserGameProfile(saved.getUserId());
+            userGameProfileRepository.save(profile);
+        } catch (Exception e) {
+            System.err.println("Error al inicializar el perfil del usuario: " + e.getMessage());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
