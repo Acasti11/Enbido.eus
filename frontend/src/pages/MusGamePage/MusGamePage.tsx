@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Navbar from '../../components/layout/Navbar';
 import GameScoreBoard from './components/GameScoreBoard';
 import GameConsoleLogs from './components/GameConsoleLogs';
 import ActionPanel from './components/ActionPanel';
 import PlayerHand from './components/PlayerHand';
 import { useMusGame } from './hooks/useMusGame';
-import { createNewDeck, shuffleCardDeck } from './helpers/musEngineHelpers';
-import type { CardItem } from '../../types/MusGame';
 import './mus-game.css';
 
 const MusGamePage: React.FC = () => {
@@ -14,47 +12,30 @@ const MusGamePage: React.FC = () => {
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUserId = savedUser.user_id || 1;
 
-  const [deck, setDeck] = useState<CardItem[]>([]);
-  const [deckIndex, setDeckIndex] = useState(16);
-  const [playerHand, setPlayerHand] = useState<CardItem[]>([]);
-  const [botHands, setBotHands] = useState<CardItem[][]>([[], [], []]);
-  
   const { 
-    score, logs, isPlaying, phase, stage, selectedCards,
-    handleStartMatch, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection 
+    isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
+    handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection 
   } = useMusGame(currentUserId);
 
-  // Inicializar mazo
-  useEffect(() => {
-    const freshDeck = createNewDeck();
-    const shuffled = shuffleCardDeck(freshDeck);
-    setDeck(shuffled);
-    setDeckIndex(16);
-  }, [isPlaying]); // Se reinicia el mazo al empezar una nueva partida
-
-  // Repartir cartas cuando la fase es 'mus-check'
-  useEffect(() => {
-    if (phase === 'mus-check' && deck.length >= 16 && playerHand.length === 0) {
-      setPlayerHand(deck.slice(0, 4));
-      setBotHands([deck.slice(4, 8), deck.slice(8, 12), deck.slice(12, 16)]);
-      setDeckIndex(16);
+  const handleActionPanelStart = () => {
+    if (phase === 'round-over') {
+      startNewHand();
+    } else {
+      handleStartMatch();
     }
-  }, [phase, deck, playerHand.length]);
+  };
 
   const executeDiscardsLocal = () => {
-    if (selectedCards.length > 0) {
-      const newCards = deck.slice(deckIndex, deckIndex + selectedCards.length);
-      setDeckIndex(prev => prev + selectedCards.length);
+    handleExecuteDiscards(selectedCards);
+  };
 
-      const updatedHand = playerHand.map(card => {
-        if (selectedCards.includes(card.id)) {
-          return newCards.shift() as CardItem;
-        }
-        return card;
-      });
-      setPlayerHand(updatedHand);
-    }
-    handleExecuteDiscards();
+  const handleBetLocal = (type: 'ENVIDO' | 'ORDAGO' | 'PASO') => {
+    const actionMap = {
+      'ENVIDO': 'Envido' as const,
+      'ORDAGO': 'Ordago' as const,
+      'PASO': 'Paso' as const
+    };
+    handleBetAction(actionMap[type]);
   };
 
   return (
@@ -74,19 +55,22 @@ const MusGamePage: React.FC = () => {
             {/* JUGADOR NORTE (BOT) */}
             <div className="player-position position-north">
               <span className="player-info-tag">Bot Norte</span>
-              <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={true} />
+              <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} />
+              {speechBubbles[2] && <div className="speech-bubble show">{speechBubbles[2]}</div>}
             </div>
 
             {/* JUGADOR OESTE (BOT) */}
             <div className="player-position position-west">
               <span className="player-info-tag">Bot Oeste</span>
-              <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={true} />
+              <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} />
+              {speechBubbles[1] && <div className="speech-bubble show">{speechBubbles[1]}</div>}
             </div>
 
             {/* JUGADOR ESTE (BOT) */}
             <div className="player-position position-east">
               <span className="player-info-tag">Bot Este</span>
-              <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={true} />
+              <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} />
+              {speechBubbles[3] && <div className="speech-bubble show">{speechBubbles[3]}</div>}
             </div>
 
             {/* TÚ (JUGADOR SUR) */}
@@ -99,6 +83,7 @@ const MusGamePage: React.FC = () => {
                 selectedCards={selectedCards}
                 onCardClick={toggleCardSelection}
               />
+              {speechBubbles[0] && <div className="speech-bubble show">{speechBubbles[0]}</div>}
             </div>
 
           </div>
@@ -117,10 +102,10 @@ const MusGamePage: React.FC = () => {
             phase={phase}
             stage={stage}
             selectedCount={selectedCards.length}
-            onStart={handleStartMatch}
+            onStart={handleActionPanelStart}
             onDecision={handleUserMusDecision}
             onDiscard={executeDiscardsLocal}
-            onBet={handleBetAction}
+            onBet={handleBetLocal}
           />
         </aside>
 

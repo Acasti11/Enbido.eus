@@ -39,6 +39,10 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     </div>
   );
 
+  if (phase === 'round-over') return (
+    <button className="btn-primary-action" onClick={onStart}>Siguiente Mano</button>
+  );
+
   return null;
 };
 

@@ -253,3 +253,46 @@
   color: #666;
   cursor: not-allowed;
 }
+
+/* =========================================
+   BOCADILLOS DE TEXTO (SPEECH BUBBLES)
+   ========================================= */
+.speech-bubble {
+  position: absolute;
+  background: white;
+  color: black;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.8) translateX(-50%);
+  left: 50%;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.speech-bubble.show {
+  opacity: 1;
+  transform: scale(1) translateX(-50%);
+}
+
+/* Colocaciones según el jugador */
+.position-north .speech-bubble {
+  bottom: -45px;
+}
+
+.position-south .speech-bubble {
+  top: -45px;
+}
+
+.position-west .speech-bubble {
+  top: -45px;
+}
+
+.position-east .speech-bubble {
+  top: -45px;
+}
