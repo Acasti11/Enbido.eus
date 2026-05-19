@@ -17,16 +17,7 @@ const LockIcon = () => (
 );
 
 const EyeIcon = ({ open }: { open: boolean }) => (
-  <svg 
-    width="20" 
-    height="20" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     {open ? (
       <>
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -41,7 +32,7 @@ const EyeIcon = ({ open }: { open: boolean }) => (
   </svg>
 );
 
-const LoginForm: React.FC = (): React.JSX.Element => {
+const LoginForm: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -57,8 +48,9 @@ const LoginForm: React.FC = (): React.JSX.Element => {
         password
       });
       
-      alert('¡Login exitoso! Bienvenido ' + response.data.name);
+      // Guardar el usuario y recargar la página para que App.tsx lea la sesión
       localStorage.setItem('user', JSON.stringify(response.data));
+      window.location.reload(); 
       
     } catch (err: any) {
       setError(err.response?.data || 'Error al iniciar sesión');
@@ -76,7 +68,7 @@ const LoginForm: React.FC = (): React.JSX.Element => {
             className="login-form__input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your user"
+            placeholder="Introduce: juanito"
             required
           />
         </div>
@@ -89,19 +81,14 @@ const LoginForm: React.FC = (): React.JSX.Element => {
         <div className="login-form__input-wrapper">
           <LockIcon />
           <input
-            type={showPassword ? 'te xt' : 'password'}
+            type={showPassword ? 'text' : 'password'}
             className="login-form__input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder="Introduce: 1234"
             required
           />
-          <button
-            type="button"
-            className="login-form__toggle"
-            onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-          >
+          <button type="button" className="login-form__toggle" onClick={() => setShowPassword(!showPassword)}>
             <EyeIcon open={showPassword} />
           </button>
         </div>
@@ -110,7 +97,7 @@ const LoginForm: React.FC = (): React.JSX.Element => {
       {error && <p className="login-form__error">{error}</p>}
 
       <button type="submit" className="login-form__submit">
-        Submit
+        Jugar ahora
       </button>
     </form>
   );
