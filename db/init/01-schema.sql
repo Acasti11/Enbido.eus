@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS user_login (
     username VARCHAR(50) UNIQUE NOT NULL,
     role ENUM('user', 'admin') DEFAULT 'user',
     is_banned BOOLEAN DEFAULT FALSE,
+    birth_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS categories (
