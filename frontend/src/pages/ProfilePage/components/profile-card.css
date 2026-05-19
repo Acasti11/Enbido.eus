@@ -1,0 +1,21 @@
+.profile-card {
+  width: 100%;
+  max-width: 45rem;
+  background-color: var(--color-card-bg);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-3xl);
+  box-shadow: var(--shadow-premium);
+  position: relative;
+}
+
+.profile-card__container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 1024px) {
+  .profile-card {
+    padding: var(--spacing-3xl);
+  }
+}
