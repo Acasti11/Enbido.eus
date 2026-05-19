@@ -1,5 +1,7 @@
-package com.tuprojecto.service;
+package com.mus.backend.service;
 
+import com.mus.backend.model.Usuario;
+import com.mus.backend.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -9,15 +11,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRepository usuarioRepository;
 
-    // Spring inyecta el Bean automáticamente
-    public UserService(PasswordEncoder passwordEncoder) {
+    public UserService(PasswordEncoder passwordEncoder, UsuarioRepository usuarioRepository) {
         this.passwordEncoder = passwordEncoder;
+        this.usuarioRepository = usuarioRepository;
     }
 
-    public void crearUsuario(Usuario u) {
-        u.password = passwordEncoder.encode(u.passwordEncoder);
-        Usuario saved =usuarioRepository.save(u);
-        return saved;
+    public Usuario crearUsuario(Usuario u) {
+        u.setPassword(passwordEncoder.encode(u.getPassword()));
+        return usuarioRepository.save(u);
     }
 
     public boolean verificarLogin(String passwordPlano, String hashDeBaseDatos) {

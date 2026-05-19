@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.mus.backend.service.UserService;
+import com.mus.backend.model.LoginRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,8 +19,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    
     @Autowired
-    private final UsuarioService usuarioService;
+    private UserService userService;
 
     // GET todos los usuarios
     @GetMapping
@@ -45,7 +48,7 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body("El email ya existe");
         }
         
-        Usuario saved = usuarioService.crearUsuario(usuario);
+        Usuario saved = userService.crearUsuario(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -93,21 +96,10 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no encontrado");
         }
 
-        if (!usuario.get().getPassword().equals(request.getPassword())) {
+        if (!userService.verificarLogin(request.getPassword(),usuario.get().getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Contraseña incorrecta");
         }
 
         return ResponseEntity.ok(usuario.get());
-    }
-
-    // Clase interna para el login
-    public static class LoginRequest {
-        private String username;
-        private String password;
-
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        
-        public String getPassword() { return password; }
     }
 }
