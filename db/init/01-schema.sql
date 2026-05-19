@@ -242,13 +242,4 @@ ALTER TABLE friendships
     ADD CONSTRAINT friendships_user_login_1_FK FOREIGN KEY (user_id_1) REFERENCES user_login (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT friendships_user_login_2_FK FOREIGN KEY (user_id_2) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
-INSERT INTO user_login (
-    name,
-    surname,
-    email,
-    password,
-    username
-) VALUES 
-('Juan', 'Perez', 'juan@example.com', '1234', 'juan123'),
-('Maria', 'Garcia', 'maria@example.com', '1234', 'maria123'),
-('Carlos', 'Lopez', 'carlos@example.com', '1234', 'carlos123');
+INSERT INTO usuarios (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '1234', 'juanito', '1990-01-01');

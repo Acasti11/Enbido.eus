@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import Navbar from '../../components/layout/Navbar';
+// Quitamos el import de Navbar que no se usaba
 import LoginCard from './components/LoginCard';
 import CreateUserCard from './components/CreateUserCard';  
 import BackgroundCards from './components/BackgroundCards';
+import BottomFeatures from './components/BottomFeatures'; // <- Import añadido
+import ChatWidget from './components/ChatWidget';         // <- Import añadido
 import './login-page.css';
 
 const LoginPage: React.FC = (): React.JSX.Element => {
@@ -10,10 +12,10 @@ const LoginPage: React.FC = (): React.JSX.Element => {
 
   return (
     <div className="login-page">
-      {/* El fondo decorativo (el cubo giratorio y demás) */}
+      {/* El fondo decorativo */}
       <BackgroundCards />
       
-      {/* ¡AQUÍ ESTÁ LA MAGIA! Tu clase original que centra la tarjeta */}
+      {/* Contenedor principal que centra la tarjeta */}
       <main className="login-page__main">
         {isLogin ? (  
           <LoginCard onSwitchToRegister={() => setIsLogin(false)} />
@@ -21,7 +23,8 @@ const LoginPage: React.FC = (): React.JSX.Element => {
           <CreateUserCard onSwitchToLogin={() => setIsLogin(true)} />
         )}
       </main>
-      <BottomFeatures/>
+      
+      <BottomFeatures />
       <ChatWidget />
     </div>
   );
