@@ -1,70 +1,103 @@
-import React, { useState } from 'react';
-import type { TournamentFormState, TournamentDto } from '../../types/tournament';
-import { CONST_VIEW_LIST, CONST_VIEW_PUBLISH, CONST_INITIAL_TOURNAMENTS } from './constants';
+import React from 'react';
+import type { TournamentFormState } from '../../../types/tournament';
+import TextInput from '../../../components/ui/TextInput';
+import RadioGroup from '../../../components/ui/RadioGroup';
+import FileInput from '../../../components/ui/FileInput'
 
-import TournamentList from './components/TournamentList';
-import PublishForm from './components/PublishForm';
-import './tournament.css';
+interface PublishFormFieldsProps {
+  formState: TournamentFormState;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
-const TournamentPage = (): React.JSX.Element => {
-  const [currentView, setCurrentView] = useState<string>(CONST_VIEW_LIST);
-  const [tournamentsList, setTournamentsList] = useState<TournamentDto[]>(CONST_INITIAL_TOURNAMENTS);
+const structureOptions = [
+  { value: 'association', label: 'Elkartea / Asociación' },
+  { value: 'professional', label: 'Profesionala / Profesional' }
+];
 
-  const isListView = currentView === CONST_VIEW_LIST;
-  const isPublishView = currentView === CONST_VIEW_PUBLISH;
-
-  const handleShowList = () => setCurrentView(CONST_VIEW_LIST);
-  const handleShowPublish = () => setCurrentView(CONST_VIEW_PUBLISH);
-
-  const handleSaveTournament = (newTournamentData: TournamentFormState) => {
-    const newTournament: TournamentDto = { ...newTournamentData, id: Date.now() };
-    setTournamentsList((prevList) => [newTournament, ...prevList]);
-    handleShowList();
-  };
-
+const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): React.JSX.Element => {
   return (
-    <div className="tournament-app-wrapper">
-      <nav className="tournament-nav-bar">
-        <div className="tournament-nav-brand" onClick={handleShowList}>
-          <div className="tournament-nav-avatar">♣</div>
-          <span className="tournament-nav-title">MUS PLATFORM</span>
-        </div>
-        <div className="tournament-nav-user">
-          <span onClick={handleShowList} style={{ cursor: 'pointer' }}>Inicio</span>
-          <div className="tournament-nav-avatar">MP</div>
-        </div>
-      </nav>
-
-      <main className="page-content">
-        {isListView && (
-          <header className="page-header">
-            <div>
-              <h1 className="page-title">Txapelketak / Tournois</h1>
-              <p className="page-subtitle">Encuentra y apúntate a los próximos torneos de mus</p>
-            </div>
-            <button className="btn-action" onClick={handleShowPublish}>
-              + Argitaratu
-            </button>
-          </header>
-        )}
-
-        {isPublishView && (
-          <header className="page-header">
-            <div>
-              <h1 className="page-title">Zure txapelketa hemen argitaratu!</h1>
-              <p className="page-subtitle">Publie ton tournois ici! ¡Publica tu torneo aquí!</p>
-            </div>
-            <button className="btn-back" onClick={handleShowList}>
-              ← Itzuli / Volver
-            </button>
-          </header>
-        )}
-
-        {isListView && <TournamentList tournaments={tournamentsList} />}
-        {isPublishView && <PublishForm onAddTournament={handleSaveTournament} onCancelPublish={handleShowList} />}
-      </main>
-    </div>
+    <>
+      <TextInput
+        label="Txapelketaren izena / Nombre del torneo"
+        name="tournamentName"
+        value={formState.tournamentName}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Kontaktu emaila / Email de contacto"
+        name="contactEmail"
+        type="email"
+        value={formState.contactEmail}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Kokapena / Ubicación"
+        name="tournamentLocation"
+        value={formState.tournamentLocation}
+        onChange={onChange}
+        isRequired
+      />
+      <RadioGroup
+        label="Egitura / Estructura"
+        name="tournamentStructure"
+        value={formState.tournamentStructure}
+        options={structureOptions}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Data / Fecha"
+        name="tournamentDate"
+        type="date"
+        value={formState.tournamentDate}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Ordua / Hora"
+        name="tournamentTime"
+        type="time"
+        value={formState.tournamentTime}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Parte-hartzaile kopuru maximoa / Máx. participantes"
+        name="maxParticipants"
+        type="number"
+        value={formState.maxParticipants}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Izen-emate prezioa / Precio inscripción (€)"
+        name="inscriptionPrice"
+        type="number"
+        value={formState.inscriptionPrice}
+        onChange={onChange}
+        isRequired
+      />
+      <TextInput
+        label="Sariak / Premios"
+        name="tournamentPrizes"
+        value={formState.tournamentPrizes}
+        onChange={onChange}
+      />
+      <TextInput
+        label="Beste xehetasunak / Otros detalles"
+        name="otherDetails"
+        value={formState.otherDetails}
+        onChange={onChange}
+      />
+      <FileInput
+        label="Kartela / Cartel"
+        name="posterImage"
+        onChange={onChange}
+      />
+    </>
   );
 };
 
-export default TournamentPage;
+export default PublishFormFields;

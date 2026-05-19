@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-// IMPORTANTE: Aquí NO debe haber ningún "import './App.css'"
 import LoginPage from './pages/LoginPage/LoginPage';
 import MeetupPage from './pages/MeetUp/MeetupPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
+import TournamentPage from './pages/TournamentPage/TournamentPage';
 
 // Definimos las páginas posibles de tu app
-type PageView = 'login' | 'meetups' | 'profile';
+type PageView = 'login' | 'meetups' | 'profile' | 'tournaments';
 
 function App() {
   // Estado principal para controlar qué página se ve en pantalla
@@ -27,10 +27,7 @@ function App() {
 
   return (
     <>
-      {/* 🛠️ MENÚ DE DESARROLLO (Dev Tools) 🛠️
-        He creado este menú flotante para que puedas navegar libremente
-        entre tus 3 páginas y probar el diseño sin tener que hacer login cada vez.
-      */}
+      {/* 🛠️ MENÚ DE DESARROLLO (Dev Tools) 🛠️ */}
       <div style={{
         position: 'fixed',
         bottom: '20px',
@@ -74,6 +71,18 @@ function App() {
         </button>
 
         <button 
+          onClick={() => setCurrentPage('tournaments')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: currentPage === 'tournaments' ? '#d4af37' : 'rgba(255,255,255,0.1)',
+            color: currentPage === 'tournaments' ? '#0f291e' : '#fff',
+            border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', transition: '0.2s'
+          }}
+        >
+          🏆 Tournaments
+        </button>
+
+        <button 
           onClick={() => setCurrentPage('profile')}
           style={{
             padding: '8px 16px',
@@ -104,6 +113,7 @@ function App() {
       {/* RENDERIZADO CONDICIONAL DE TUS PÁGINAS */}
       {currentPage === 'login' && <LoginPage />}
       {currentPage === 'meetups' && <MeetupPage />}
+      {currentPage === 'tournaments' && <TournamentPage />}
       {currentPage === 'profile' && <ProfilePage />}
     </>
   );
