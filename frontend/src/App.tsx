@@ -3,9 +3,10 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import MeetupPage from './pages/MeetUp/MeetupPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import TournamentPage from './pages/TournamentPage/TournamentPage';
+import ShopPage from './pages/ShopPage/ShopPage';
 
 // Definimos las páginas posibles de tu app
-type PageView = 'login' | 'meetups' | 'profile' | 'tournaments';
+type PageView = 'login' | 'meetups' | 'profile' | 'tournaments' | 'shop';
 
 function App() {
   // Estado principal para controlar qué página se ve en pantalla
@@ -83,6 +84,18 @@ function App() {
         </button>
 
         <button 
+          onClick={() => setCurrentPage('shop')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: currentPage === 'shop' ? '#d4af37' : 'rgba(255,255,255,0.1)',
+            color: currentPage === 'shop' ? '#0f291e' : '#fff',
+            border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', transition: '0.2s'
+          }}
+        >
+          🛍️ Shop
+        </button>
+
+        <button 
           onClick={() => setCurrentPage('profile')}
           style={{
             padding: '8px 16px',
@@ -114,6 +127,7 @@ function App() {
       {currentPage === 'login' && <LoginPage />}
       {currentPage === 'meetups' && <MeetupPage />}
       {currentPage === 'tournaments' && <TournamentPage />}
+      {currentPage === 'shop' && <ShopPage />}
       {currentPage === 'profile' && <ProfilePage />}
     </>
   );
