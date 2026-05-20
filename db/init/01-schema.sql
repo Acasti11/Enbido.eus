@@ -259,6 +259,7 @@ CREATE TABLE IF NOT EXISTS game_matches (
     FOREIGN KEY (user_id) REFERENCES user_login(user_id)
 );
 
+
 -- Insertar valores maestros por defecto
 INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots');
 INSERT IGNORE INTO game_states (game_state_id, name, description) VALUES 

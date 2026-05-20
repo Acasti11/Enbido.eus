@@ -11,6 +11,8 @@ interface UserProfile {
   coins: number;
   totalGamesPlayed: number;
   totalGamesWon: number;
+  equippedAvatarItemId?: number;
+  equippedTitleItemId?: number;
 }
 
 const ProfilePage: React.FC = (): React.JSX.Element => {
@@ -61,7 +63,13 @@ const ProfilePage: React.FC = (): React.JSX.Element => {
       <BackgroundCards />
       <Navbar />
       <main className="profile-page__main">
-        <ProfileCard username={username} initials={initials} stats={stats} />
+        <ProfileCard
+          username={username}
+          initials={initials}
+          stats={stats}
+          equippedAvatarItemId={profile?.equippedAvatarItemId}
+          equippedTitleItemId={profile?.equippedTitleItemId}
+        />
       </main>
       <ChatWidget />
     </div>

@@ -209,8 +209,25 @@ public class GameSessionManager {
                 "(2, 'Finalizada', 'Partida terminada por llegar a 30 puntos'), " +
                 "(3, 'Abandonada', 'Partida cancelada por abandono')"
             ).executeUpdate();
+
+            entityManager.createNativeQuery(
+                "INSERT IGNORE INTO categories (category_id, name, description) VALUES " +
+                "(1, 'profiles', 'Profilak / Perfiles'), " +
+                "(2, 'decks', 'Kartak / Cartas'), " +
+                "(3, 'aliases', 'Ezizenak / Alias')"
+            ).executeUpdate();
+
+            entityManager.createNativeQuery(
+                "INSERT IGNORE INTO items (item_id, category_id, name, price) VALUES " +
+                "(1, 1, 'Perfil Txapeldun', 850), " +
+                "(2, 1, 'Perfil Fronton', 620), " +
+                "(3, 2, 'Baraja Euskal', 1200), " +
+                "(4, 2, 'Baraja Gau Beltza', 1450), " +
+                "(5, 3, 'Handia', 350), " +
+                "(6, 3, 'Enbido Maisu', 700)"
+            ).executeUpdate();
             
-            System.out.println(">>> [BD] Datos maestros de game_mode y game_states inicializados con éxito.");
+            System.out.println(">>> [BD] Datos maestros de game_mode, game_states y tienda inicializados con éxito.");
         } catch (Exception e) {
             System.err.println(">>> [BD] Advertencia al inicializar datos maestros: " + e.getMessage());
         }

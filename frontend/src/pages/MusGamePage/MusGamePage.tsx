@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/layout/Navbar';
 import GameScoreBoard from './components/GameScoreBoard';
 import GameConsoleLogs from './components/GameConsoleLogs';
@@ -7,12 +7,28 @@ import PlayerHand from './components/PlayerHand';
 import PremiumLobby from './components/PremiumLobby';
 import LobbyWaitingRoom from './components/LobbyWaitingRoom';
 import { useMusGame } from './hooks/useMusGame';
+import api from '../../services/api';
 import './mus-game.css';
 
 const MusGamePage: React.FC = () => {
   // Extraemos el ID del usuario del localStorage, o usamos el 1 por defecto
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUserId = savedUser.userId || savedUser.user_id || 1;
+
+  // Cargar perfil para obtener equipamiento dinámico
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get(`/usuarios/${currentUserId}/profile`);
+        setProfile(res.data);
+      } catch (err) {
+        console.error('Error fetching player profile for game felt:', err);
+      }
+    };
+    fetchProfile();
+  }, [currentUserId]);
 
   const { 
     isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
@@ -112,33 +128,38 @@ const MusGamePage: React.FC = () => {
             {/* JUGADOR NORTE (Mapeado dinámicamente) */}
             <div className="player-position position-north">
               <span className="player-info-tag">{seats[2]?.username || 'Bot Norte'}</span>
-              <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} />
+              <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} equippedDeckItemId={profile?.equippedDeckItemId} />
               {speechBubbles[2] && <div className="speech-bubble show">{speechBubbles[2]}</div>}
             </div>
 
             {/* JUGADOR OESTE (Mapeado dinámicamente) */}
             <div className="player-position position-west">
               <span className="player-info-tag">{seats[1]?.username || 'Bot Oeste'}</span>
-              <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} />
+              <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} equippedDeckItemId={profile?.equippedDeckItemId} />
               {speechBubbles[1] && <div className="speech-bubble show">{speechBubbles[1]}</div>}
             </div>
 
             {/* JUGADOR ESTE (Mapeado dinámicamente) */}
             <div className="player-position position-east">
               <span className="player-info-tag">{seats[3]?.username || 'Bot Este'}</span>
-              <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} />
+              <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} equippedDeckItemId={profile?.equippedDeckItemId} />
               {speechBubbles[3] && <div className="speech-bubble show">{speechBubbles[3]}</div>}
             </div>
 
             {/* TÚ (JUGADOR SUR - Silla relative 0) */}
             <div className="player-position position-south">
-              <span className="player-info-tag current-player-tag">{seats[0]?.username || 'Tú'} (Jugador)</span>
+              <span className={`player-info-tag current-player-tag ${profile?.equippedAvatarItemId === 1 ? 'avatar-ring-gold' : profile?.equippedAvatarItemId === 2 ? 'avatar-ring-green' : ''}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '6px 12px' }}>
+                <span style={{ fontWeight: 800 }}>{seats[0]?.username || 'Tú'} (Jugador)</span>
+                {profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
+                {profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
+              </span>
               <PlayerHand 
                 hand={isPlaying ? playerHand : []} 
                 isBot={false} 
                 isSelectable={phase === 'discarding'}
                 selectedCards={selectedCards}
                 onCardClick={toggleCardSelection}
+                equippedDeckItemId={profile?.equippedDeckItemId}
               />
               {speechBubbles[0] && <div className="speech-bubble show">{speechBubbles[0]}</div>}
             </div>

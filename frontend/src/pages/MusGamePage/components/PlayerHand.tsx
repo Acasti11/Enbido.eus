@@ -7,6 +7,7 @@ interface PlayerHandProps {
   selectedCards?: string[];
   isSelectable?: boolean;
   onCardClick?: (cardId: string) => void;
+  equippedDeckItemId?: number;
 }
 
 const PlayerHand: React.FC<PlayerHandProps> = ({
@@ -15,6 +16,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   selectedCards = [],
   isSelectable = false,
   onCardClick,
+  equippedDeckItemId,
 }): React.JSX.Element => {
   
   const handleCardClick = (cardId: string): void => {
@@ -35,17 +37,30 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       const isSelected = selectedCards.includes(card.id);
       
       if (isBot) {
+        let cardBackClass = 'card card-back';
+        if (equippedDeckItemId === 3) {
+          cardBackClass = 'card card-back euskal-back';
+        } else if (equippedDeckItemId === 4) {
+          cardBackClass = 'card card-back gau-beltza-back';
+        }
         return (
-          <div key={card.id} className="card card-back">
+          <div key={card.id} className={cardBackClass}>
             <div className="card-back-pattern"></div>
           </div>
         );
       }
 
+      let cardFrontClass = `card card-front ${isSelected ? 'is-selected-discard' : ''} ${isSelectable ? 'is-hoverable' : ''}`;
+      if (equippedDeckItemId === 3) {
+        cardFrontClass += ' euskal-front';
+      } else if (equippedDeckItemId === 4) {
+        cardFrontClass += ' gau-beltza-front';
+      }
+
       return (
         <div
           key={card.id}
-          className={`card card-front ${isSelected ? 'is-selected-discard' : ''} ${isSelectable ? 'is-hoverable' : ''}`}
+          className={cardFrontClass}
           onClick={() => handleCardClick(card.id)}
         >
           <div className="card-suit-corner top-left">{card.suit[0]}</div>
