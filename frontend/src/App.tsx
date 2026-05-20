@@ -114,10 +114,7 @@ const btnStyle = (isActive: boolean) => ({
   fontWeight: 'bold' as const,
   transition: '0.2s',
   fontSize: '14px',
-  textAlign: 'center' as const,
-  hover: {
-    transform: 'scale(1.05)',
-  }
+  textAlign: 'center' as const
 });
 
 export default App;

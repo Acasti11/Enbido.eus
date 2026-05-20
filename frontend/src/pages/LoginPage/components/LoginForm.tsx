@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../../services/api';
 import './login-form.css';
 
 const UserIcon = () => (
@@ -43,7 +43,7 @@ const LoginForm: React.FC = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8080/api/usuarios/login', {
+      const response = await api.post('/usuarios/login', {
         username,
         password
       });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import Navbar from '../../components/layout/Navbar';
 import ProfileCard from './components/ProfileCard';
 import BackgroundCards from './components/BackgroundCards';
@@ -24,7 +24,7 @@ const ProfilePage: React.FC = (): React.JSX.Element => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/api/usuarios/${currentUserId}/profile`);
+        const res = await api.get(`/usuarios/${currentUserId}/profile`);
         setProfile(res.data);
       } catch (err) {
         console.error('Error fetching player profile from DB:', err);

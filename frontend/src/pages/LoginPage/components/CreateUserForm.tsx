@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../../services/api';
 import type { User } from '../../../types/User';
 import './login-form.css';
 
@@ -184,7 +184,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       
       console.log('Sending JSON:', JSON.stringify(payload, null, 2));
       
-      await axios.post('http://localhost:8080/api/usuarios', payload);
+      await api.post('/usuarios', payload);
       
       setSuccess('Account created! Redirecting to login...');
       

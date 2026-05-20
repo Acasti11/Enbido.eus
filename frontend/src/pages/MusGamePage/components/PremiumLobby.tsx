@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../../services/api';
 import './premium-lobby.css';
 
 interface PremiumLobbyProps {
@@ -37,7 +37,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/api/usuarios/${userId}/profile`);
+        const res = await api.get(`/usuarios/${userId}/profile`);
         setProfile(res.data);
       } catch (err) {
         console.error('Error fetching player profile from DB:', err);

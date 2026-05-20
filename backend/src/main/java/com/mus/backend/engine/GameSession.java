@@ -362,14 +362,28 @@ public class GameSession {
             }
         } 
         else if (action.equalsIgnoreCase("Envido")) {
-            p.setSpeechBubble("¡Envido!");
-            appendLog(p.getUsername() + " envida 2 a la " + stage.toUpperCase());
-            currentBetSize = 2;
-            betState = 1;
+            if (betState == 1) {
+                currentBetSize += 2;
+                p.setSpeechBubble("¡Envido más!");
+                appendLog(p.getUsername() + " re-envida. Apuesta total: " + currentBetSize + " a la " + stage.toUpperCase());
+            } else {
+                p.setSpeechBubble("¡Envido!");
+                appendLog(p.getUsername() + " envida 2 a la " + stage.toUpperCase());
+                currentBetSize = 2;
+                betState = 1;
+            }
             lastBettedPlayer = playerIdx;
             
-            // Move turn to the other team's next player
-            activeTurnIdx = (playerIdx + 1) % 4;
+            // Move turn to the other team's player (preferring humans over bots)
+            int opp1 = (playerIdx + 1) % 4;
+            int opp2 = (playerIdx + 3) % 4;
+            if (players.get(opp1).isBot() && !players.get(opp2).isBot()) {
+                activeTurnIdx = opp2;
+            } else if (!players.get(opp1).isBot() && players.get(opp2).isBot()) {
+                activeTurnIdx = opp1;
+            } else {
+                activeTurnIdx = opp1;
+            }
         } 
         else if (action.equalsIgnoreCase("Ordago")) {
             p.setSpeechBubble("¡ÓRDAGO!");
@@ -378,7 +392,16 @@ public class GameSession {
             betState = 2;
             lastBettedPlayer = playerIdx;
             
-            activeTurnIdx = (playerIdx + 1) % 4;
+            // Move turn to the other team's player (preferring humans over bots)
+            int opp1 = (playerIdx + 1) % 4;
+            int opp2 = (playerIdx + 3) % 4;
+            if (players.get(opp1).isBot() && !players.get(opp2).isBot()) {
+                activeTurnIdx = opp2;
+            } else if (!players.get(opp1).isBot() && players.get(opp2).isBot()) {
+                activeTurnIdx = opp1;
+            } else {
+                activeTurnIdx = opp1;
+            }
         } 
         else if (action.equalsIgnoreCase("Quiero")) {
             p.setSpeechBubble("¡Quiero!");
