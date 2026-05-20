@@ -19,9 +19,10 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
-    
     @Autowired
     private UserService userService;
+        @Autowired
+    private com.mus.backend.repository.UserGameProfileRepository
 
     // GET todos los usuarios
     @GetMapping
@@ -47,8 +48,15 @@ public class UsuarioController {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             return ResponseEntity.badRequest().body("El email ya existe");
         }
-        
+
         Usuario saved = userService.crearUsuario(usuario);
+        try {
+            com.mus.backend.model.UserGameProfile profile = new com.mus.backend.model.UserGameProfile(saved.getUserId());
+            userGameProfileRepository.save(profile);
+        } catch (Exception e) {
+            System.err.println("Error al inicializar el perfil del usuario: " + e.getMessage());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 

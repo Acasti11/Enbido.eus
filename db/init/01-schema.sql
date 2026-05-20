@@ -242,4 +242,26 @@ ALTER TABLE friendships
     ADD CONSTRAINT friendships_user_login_1_FK FOREIGN KEY (user_id_1) REFERENCES user_login (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT friendships_user_login_2_FK FOREIGN KEY (user_id_2) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
-INSERT INTO usuarios (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '1234', 'juanito', '1990-01-01');
+INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '1234', 'juanito', '1990-01-01');
+
+
+
+
+
+
+
+CREATE TABLE IF NOT EXISTS game_matches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    score_us INT DEFAULT 0,
+    score_them INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'IN_PROGRESS',
+    FOREIGN KEY (user_id) REFERENCES user_login(user_id)
+);
+
+-- Insertar valores maestros por defecto
+INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots');
+INSERT IGNORE INTO game_states (game_state_id, name, description) VALUES 
+(1, 'En Progreso', 'Partida en juego actualmente'),
+(2, 'Finalizada', 'Partida terminada por llegar a 30 puntos'),
+(3, 'Abandonada', 'Partida cancelada por abandono');
