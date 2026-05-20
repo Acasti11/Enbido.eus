@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
+import com.mus.backend.repository.UserGameProfileRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +22,9 @@ public class UsuarioController {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private UserService userService;
-        @Autowired
-    private com.mus.backend.repository.UserGameProfileRepository
+    @Autowired
+    private UserGameProfileRepository userGameProfileRepository;
 
-    // GET todos los usuarios
     @GetMapping
     public List<Usuario> getAllUsuarios() {
         return usuarioRepository.findAll();
