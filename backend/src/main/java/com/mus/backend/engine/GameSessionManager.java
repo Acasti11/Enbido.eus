@@ -8,6 +8,11 @@ import com.mus.backend.repository.PlayGameRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -184,6 +189,30 @@ public class GameSessionManager {
                     System.err.println("Error updating user statistics in DB: " + e.getMessage());
                 }
             }
+        }
+    }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
+    public void initDatabaseDefaults() {
+        try {
+            entityManager.createNativeQuery(
+                "INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots')"
+            ).executeUpdate();
+            
+            entityManager.createNativeQuery(
+                "INSERT IGNORE INTO game_states (game_state_id, name, description) VALUES " +
+                "(1, 'En Progreso', 'Partida en juego actualmente'), " +
+                "(2, 'Finalizada', 'Partida terminada por llegar a 30 puntos'), " +
+                "(3, 'Abandonada', 'Partida cancelada por abandono')"
+            ).executeUpdate();
+            
+            System.out.println(">>> [BD] Datos maestros de game_mode y game_states inicializados con éxito.");
+        } catch (Exception e) {
+            System.err.println(">>> [BD] Advertencia al inicializar datos maestros: " + e.getMessage());
         }
     }
 }

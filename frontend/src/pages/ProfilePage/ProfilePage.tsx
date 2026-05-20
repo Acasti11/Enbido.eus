@@ -15,7 +15,7 @@ interface UserProfile {
 
 const ProfilePage: React.FC = (): React.JSX.Element => {
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUserId = savedUser.user_id || 1;
+  const currentUserId = savedUser.userId || savedUser.user_id || 1;
   const username = savedUser.username || 'Juan Pérez';
   const initials = username.slice(0, 2).toUpperCase();
 

@@ -12,7 +12,7 @@ import './mus-game.css';
 const MusGamePage: React.FC = () => {
   // Extraemos el ID del usuario del localStorage, o usamos el 1 por defecto
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUserId = savedUser.user_id || 1;
+  const currentUserId = savedUser.userId || savedUser.user_id || 1;
 
   const { 
     isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
