@@ -46,5 +46,5 @@ public class Usuario {
     private Boolean isBanned;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt=LocalDateTime.now();
 }
