@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';type PageView = 'login' | 'meetups' | 'profile';
 import LoginPage from './pages/LoginPage/LoginPage';
 import MeetupPage from './pages/MeetUp/MeetupPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
-import MusGamePage from './pages/MusGamePage/MusGamePage'; // <-- AÑADIDO EL JUEGO
+import TournamentPage from './pages/TournamentPage/TournamentPage';
+import ShopPage from './pages/ShopPage/ShopPage';
+import MusGamePage from './pages/MusGamePage/MusGamePage'; 
 
-// Definimos las páginas posibles de tu app (añadido 'mus')
-type PageView = 'login' | 'meetups' | 'profile' | 'mus';
+// Definimos las páginas posibles de tu app
+type PageView = 'login' | 'meetups' | 'profile' | 'tournaments' | 'shop' | 'mus';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<PageView>('login');
@@ -24,6 +26,10 @@ function App() {
 
   return (
     <>
+      {/* 🛠️ MENÚ DE DESARROLLO (Dev Tools) 🛠️
+        He creado este menú flotante para que puedas navegar libremente
+        entre tus 3 páginas y probar el diseño sin tener que hacer login cada vez.
+      */}
       <div style={{
         position: 'fixed', bottom: '20px', left: '20px', zIndex: 9999,
         display: 'flex', flexDirection: 'column', gap: '8px',
@@ -50,6 +56,8 @@ function App() {
       {/* RENDERIZADO DE LAS PÁGINAS */}
       {currentPage === 'login' && <LoginPage />}
       {currentPage === 'meetups' && <MeetupPage />}
+      {currentPage === 'tournaments' && <TournamentPage />}
+      {currentPage === 'shop' && <ShopPage />}
       {currentPage === 'profile' && <ProfilePage />}
       {currentPage === 'mus' && <MusGamePage />} 
     </>

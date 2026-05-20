@@ -20,6 +20,7 @@ dist/
 
 # Docker
 .dockerignore
+DOCKERFILE
 
 # Env (NUNCA subas credenciales)
 
