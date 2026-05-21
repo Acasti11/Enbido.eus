@@ -284,6 +284,16 @@
   transform: rotate(12deg);
 }
 
+.euskal-back.shop-card__playing-card {
+  background: repeating-linear-gradient(45deg, #1b3a57, #1b3a57 5px, #254b70 5px, #254b70 10px) !important;
+  border-color: #f1f1f1 !important;
+}
+
+.gau-beltza-back.shop-card__playing-card {
+  background: repeating-linear-gradient(45deg, #0a0a0a, #0a0a0a 5px, #1a1a1a 5px, #1a1a1a 10px) !important;
+  border-color: #d4af37 !important;
+}
+
 .shop-card__alias {
   min-width: 11rem;
   padding: var(--spacing-md) var(--spacing-lg);

@@ -21,6 +21,21 @@ const MusGamePage: React.FC = () => {
     onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom
   } = useMusGame(currentUserId);
 
+  const [equippedDeckId, setEquippedDeckId] = React.useState<number | undefined>(undefined);
+  const [equippedTitleId, setEquippedTitleId] = React.useState<number | undefined>(undefined);
+
+  React.useEffect(() => {
+    fetch(`http://localhost:8080/api/usuarios/${currentUserId}/profile`)
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setEquippedDeckId(data.equippedDeckItemId);
+          setEquippedTitleId(data.equippedTitleItemId);
+        }
+      })
+      .catch(console.error);
+  }, [currentUserId]);
+
   const handleActionPanelStart = () => {
     if (phase === 'round-over') {
       startNewHand();
@@ -116,33 +131,36 @@ const MusGamePage: React.FC = () => {
             {/* JUGADOR NORTE (Mapeado dinámicamente) */}
             <div className="player-position position-north">
               <span className="player-info-tag">{seats[2]?.username || 'Bot Norte'}</span>
-              <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} />
+              <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} deckItemId={equippedDeckId} />
               {speechBubbles[2] && <div className="speech-bubble show">{speechBubbles[2]}</div>}
             </div>
 
             {/* JUGADOR OESTE (Mapeado dinámicamente) */}
             <div className="player-position position-west">
               <span className="player-info-tag">{seats[1]?.username || 'Bot Oeste'}</span>
-              <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} />
+              <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} deckItemId={equippedDeckId} />
               {speechBubbles[1] && <div className="speech-bubble show">{speechBubbles[1]}</div>}
             </div>
 
             {/* JUGADOR ESTE (Mapeado dinámicamente) */}
             <div className="player-position position-east">
               <span className="player-info-tag">{seats[3]?.username || 'Bot Este'}</span>
-              <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} />
+              <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} deckItemId={equippedDeckId} />
               {speechBubbles[3] && <div className="speech-bubble show">{speechBubbles[3]}</div>}
             </div>
 
             {/* TÚ (JUGADOR SUR - Silla relative 0) */}
             <div className="player-position position-south">
-              <span className="player-info-tag current-player-tag">{seats[0]?.username || 'Tú'} (Jugador)</span>
+              <span className="player-info-tag current-player-tag">
+                {seats[0]?.username || 'Tú'} ({equippedTitleId === 5 ? 'El Tímido' : equippedTitleId === 6 ? 'Maestro del Órdago' : 'Jugador'})
+              </span>
               <PlayerHand 
                 hand={isPlaying ? playerHand : []} 
                 isBot={false} 
                 isSelectable={phase === 'discarding'}
                 selectedCards={selectedCards}
                 onCardClick={toggleCardSelection}
+                deckItemId={equippedDeckId}
               />
               {speechBubbles[0] && <div className="speech-bubble show">{speechBubbles[0]}</div>}
             </div>

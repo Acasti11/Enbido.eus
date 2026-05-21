@@ -7,6 +7,7 @@ interface PlayerHandProps {
   selectedCards?: string[];
   isSelectable?: boolean;
   onCardClick?: (cardId: string) => void;
+  deckItemId?: number;
 }
 
 const PlayerHand: React.FC<PlayerHandProps> = ({
@@ -15,6 +16,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   selectedCards = [],
   isSelectable = false,
   onCardClick,
+  deckItemId,
 }): React.JSX.Element => {
   
   const handleCardClick = (cardId: string): void => {
@@ -34,9 +36,13 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     return hand.map((card) => {
       const isSelected = selectedCards.includes(card.id);
       
+      let deckSkinClass = "";
+      if (deckItemId === 3) deckSkinClass = " euskal-back";
+      if (deckItemId === 4) deckSkinClass = " gau-beltza-back";
+
       if (isBot) {
         return (
-          <div key={card.id} className="card card-back">
+          <div key={card.id} className={`card card-back${deckSkinClass}`}>
             <div className="card-back-pattern"></div>
           </div>
         );
@@ -45,7 +51,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       return (
         <div
           key={card.id}
-          className={`card card-front ${isSelected ? 'is-selected-discard' : ''} ${isSelectable ? 'is-hoverable' : ''}`}
+          className={`card card-front${deckSkinClass} ${isSelected ? 'is-selected-discard' : ''} ${isSelectable ? 'is-hoverable' : ''}`}
           onClick={() => handleCardClick(card.id)}
         >
           <div className="card-suit-corner top-left">{card.suit[0]}</div>

@@ -125,6 +125,27 @@
   border: 4px solid white;
 }
 
+/* Skins de Barajas (Decks) */
+.card-back.euskal-back, .euskal-back.shop-card__playing-card {
+  background: repeating-linear-gradient(45deg, #1b3a57, #1b3a57 5px, #254b70 5px, #254b70 10px);
+  border-color: #f1f1f1;
+}
+
+.card-front.euskal-back {
+  background-color: #f4f1ea;
+}
+
+.card-back.gau-beltza-back, .gau-beltza-back.shop-card__playing-card {
+  background: repeating-linear-gradient(45deg, #0a0a0a, #0a0a0a 5px, #1a1a1a 5px, #1a1a1a 10px);
+  border-color: #d4af37;
+}
+
+.card-front.gau-beltza-back {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+  border: 1px solid #d4af37;
+}
+
 .card-suit-corner {
   position: absolute;
   top: 4px;
