@@ -23,6 +23,7 @@ const MusGamePage: React.FC = () => {
 
   const [equippedDeckId, setEquippedDeckId] = React.useState<number | undefined>(undefined);
   const [equippedTitleId, setEquippedTitleId] = React.useState<number | undefined>(undefined);
+  const [equippedBoardId, setEquippedBoardId] = React.useState<number | undefined>(undefined);
 
   React.useEffect(() => {
     fetch(`http://localhost:8080/api/usuarios/${currentUserId}/profile`)
@@ -31,6 +32,7 @@ const MusGamePage: React.FC = () => {
         if (data) {
           setEquippedDeckId(data.equippedDeckItemId);
           setEquippedTitleId(data.equippedTitleItemId);
+          setEquippedBoardId(data.equippedBoardItemId);
         }
       })
       .catch(console.error);
@@ -99,8 +101,8 @@ const MusGamePage: React.FC = () => {
       <div className="mus-view-container">
         
         {/* PANEL IZQUIERDO: LA MESA VERDE */}
-        <div className="felt-layout-pane">
-          <div className="game-felt-board">
+        <div className={`felt-layout-pane${equippedBoardId === 7 ? ' pane-royal-blue' : equippedBoardId === 8 ? ' pane-dark-velvet' : equippedBoardId === 9 ? ' pane-golden-casino' : ''}`}>
+          <div className={`game-felt-board${equippedBoardId === 7 ? ' board-royal-blue' : equippedBoardId === 8 ? ' board-dark-velvet' : equippedBoardId === 9 ? ' board-golden-casino' : ''}`}>
             
             <div className="felt-center-emblem">
               <h1 className="felt-logo">ENBIDO</h1>

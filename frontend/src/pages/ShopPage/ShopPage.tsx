@@ -3,7 +3,7 @@ import Navbar from '../../components/layout/Navbar';
 import api from '../../services/api';
 import './shop-page.css';
 
-type ShopCategory = 'profiles' | 'decks' | 'aliases';
+type ShopCategory = 'profiles' | 'decks' | 'aliases' | 'boards';
 
 type ShopItem = {
   id: number;
@@ -20,6 +20,7 @@ const CATEGORY_LABELS: Record<ShopCategory, string> = {
   profiles: 'Profilak / Perfiles',
   decks: 'Kartak / Cartas',
   aliases: 'Ezizenak / Alias',
+  boards: 'Tapeteak / Tapetes',
 };
 
 const ITEM_METADATA: Record<number, { description: string; accent: 'gold' | 'red' | 'green' }> = {
@@ -47,6 +48,18 @@ const ITEM_METADATA: Record<number, { description: string; accent: 'gold' | 'red
     description: 'Título para quien sabe cuándo apretar la apuesta.',
     accent: 'red',
   },
+  7: {
+    description: 'Un elegante tapete azul real con costuras plateadas de tacto satinado.',
+    accent: 'gold',
+  },
+  8: {
+    description: 'Diseño ultra premium negro aterciopelado con ribetes de oro para mesas clandestinas.',
+    accent: 'red',
+  },
+  9: {
+    description: 'Clásico paño verde de casino de lujo con marcaje dorado y acabados de caoba noble.',
+    accent: 'gold',
+  },
 };
 
 const CoinIcon: React.FC = (): React.JSX.Element => (
@@ -69,6 +82,7 @@ const ShopPage: React.FC = (): React.JSX.Element => {
   const [equippedAvatarItemId, setEquippedAvatarItemId] = useState<number | null>(null);
   const [equippedDeckItemId, setEquippedDeckItemId] = useState<number | null>(null);
   const [equippedTitleItemId, setEquippedTitleItemId] = useState<number | null>(null);
+  const [equippedBoardItemId, setEquippedBoardItemId] = useState<number | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<ShopCategory>('profiles');
@@ -93,6 +107,7 @@ const ShopPage: React.FC = (): React.JSX.Element => {
       setEquippedAvatarItemId(profileRes.data.equippedAvatarItemId || null);
       setEquippedDeckItemId(profileRes.data.equippedDeckItemId || null);
       setEquippedTitleItemId(profileRes.data.equippedTitleItemId || null);
+      setEquippedBoardItemId(profileRes.data.equippedBoardItemId || null);
 
       // 3. Obtener el inventario del usuario
       const invRes = await api.get(`/usuarios/${currentUserId}/inventory`);
@@ -140,6 +155,8 @@ const ShopPage: React.FC = (): React.JSX.Element => {
         setEquippedDeckItemId(itemId);
       } else if (category === 'aliases') {
         setEquippedTitleItemId(itemId);
+      } else if (category === 'boards') {
+        setEquippedBoardItemId(itemId);
       }
     } catch (err: any) {
       const errMsg = err.response?.data || 'Error al equipar el objeto';
@@ -157,6 +174,8 @@ const ShopPage: React.FC = (): React.JSX.Element => {
         setEquippedDeckItemId(null);
       } else if (category === 'aliases') {
         setEquippedTitleItemId(null);
+      } else if (category === 'boards') {
+        setEquippedBoardItemId(null);
       }
     } catch (err: any) {
       const errMsg = err.response?.data || 'Error al desequipar el objeto';
@@ -172,11 +191,12 @@ const ShopPage: React.FC = (): React.JSX.Element => {
        if (item.categoryId === 1) category = 'profiles';
        else if (item.categoryId === 2) category = 'decks';
        else if (item.categoryId === 3) category = 'aliases';
+       else if (item.categoryId === 4) category = 'boards';
     }
     const catTyped = category as ShopCategory;
     const metadata = ITEM_METADATA[itemId] || {
       description: 'Objeto de personalización exclusiva.',
-      accent: catTyped === 'profiles' ? 'gold' : catTyped === 'decks' ? 'red' : 'green',
+      accent: catTyped === 'profiles' ? 'gold' : catTyped === 'decks' ? 'red' : catTyped === 'boards' ? 'gold' : 'green',
     };
 
     const isOwned = inventory.some((id: any) => Number(id) === itemId);
@@ -188,6 +208,8 @@ const ShopPage: React.FC = (): React.JSX.Element => {
       isEquipped = equippedDeckItemId === itemId;
     } else if (category === 'aliases') {
       isEquipped = equippedTitleItemId === itemId;
+    } else if (category === 'boards') {
+      isEquipped = equippedBoardItemId === itemId;
     }
 
     return {

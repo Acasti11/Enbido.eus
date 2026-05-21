@@ -376,4 +376,93 @@
 
 .position-east .speech-bubble {
   top: -45px;
+}
+
+/* =========================================
+   SKINS DE TAPETES (BOARD SKINS)
+   ========================================= */
+
+/* --- TAPETE 7: AZUL REAL --- */
+.felt-layout-pane.pane-royal-blue {
+  background: radial-gradient(circle, #10336b 0%, #051633 100%);
+}
+
+.game-felt-board.board-royal-blue {
+  background-color: #0b2b61;
+  background-image: radial-gradient(circle, #144391 0%, #08204b 100%);
+  border: 20px solid #23354f; /* Borde metálico de acero azulado */
+  box-shadow: 
+    inset 0 0 50px rgba(0, 0, 0, 0.8),
+    0 0 35px rgba(20, 67, 145, 0.6),
+    0 20px 50px rgba(0, 0, 0, 0.9);
+}
+
+.game-felt-board.board-royal-blue .felt-logo {
+  color: #c4d7f5;
+  text-shadow: 0 0 15px rgba(196, 215, 245, 0.6);
+}
+
+.game-felt-board.board-royal-blue .felt-sub {
+  color: #7b9ccf;
+}
+
+/* --- TAPETE 8: TERCIOPELO NEGRO (CARBONO / LUXURY BLACK) --- */
+.felt-layout-pane.pane-dark-velvet {
+  background: radial-gradient(circle, #252525 0%, #0c0c0c 100%);
+}
+
+.game-felt-board.board-dark-velvet {
+  background-color: #121212;
+  background-image: radial-gradient(circle, #2a2a2a 0%, #0a0a0a 100%);
+  border: 20px solid #c99f18; /* Borde dorado pulido deslumbrante */
+  box-shadow: 
+    inset 0 0 60px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(201, 159, 24, 0.4),
+    0 20px 50px rgba(0, 0, 0, 0.95);
+}
+
+.game-felt-board.board-dark-velvet .felt-logo {
+  color: #fceca1;
+  text-shadow: 0 0 20px rgba(252, 236, 161, 0.7);
+}
+
+.game-felt-board.board-dark-velvet .felt-sub {
+  color: #c99f18;
+  letter-spacing: 6px;
+}
+
+/* --- TAPETE 9: CASINO DORADO (HIGH-STAKES CLASSIC) --- */
+.felt-layout-pane.pane-golden-casino {
+  background: radial-gradient(circle, #093c1d 0%, #021a0a 100%);
+}
+
+.game-felt-board.board-golden-casino {
+  background-color: #0b4f26;
+  background-image: radial-gradient(circle, #107337 0%, #052a12 100%);
+  border: 20px solid #571e06; /* Madera noble de caoba de casino */
+  box-shadow: 
+    inset 0 0 50px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(16, 115, 55, 0.5),
+    0 20px 50px rgba(0, 0, 0, 0.9);
+}
+
+.game-felt-board.board-golden-casino::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 2px dashed rgba(212, 175, 55, 0.25); /* Línea dorada clásica de marcaje */
+  border-radius: 180px;
+  pointer-events: none;
+}
+
+.game-felt-board.board-golden-casino .felt-logo {
+  color: #ffe680;
+  text-shadow: 0 0 15px rgba(255, 230, 128, 0.5);
+}
+
+.game-felt-board.board-golden-casino .felt-sub {
+  color: #d4af37;
 }

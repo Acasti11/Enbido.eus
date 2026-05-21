@@ -188,10 +188,11 @@ public class UsuarioController {
         if (categories.isEmpty()) return ResponseEntity.badRequest().body("Item no existe");
         
         Integer categoryId = categories.get(0);
-        // 1 = profiles, 2 = decks, 3 = aliases (ajustado a tu base de datos)
+        // 1 = profiles, 2 = decks, 3 = aliases, 4 = boards (ajustado a tu base de datos)
         if (categoryId == 1) profile.setEquippedAvatarItemId(itemId);
         else if (categoryId == 2) profile.setEquippedDeckItemId(itemId);
         else if (categoryId == 3) profile.setEquippedTitleItemId(itemId);
+        else if (categoryId == 4) profile.setEquippedBoardItemId(itemId);
         
         userGameProfileRepository.save(profile);
         return ResponseEntity.ok("Equipado");
@@ -207,6 +208,7 @@ public class UsuarioController {
         if (category.equals("profiles")) profile.setEquippedAvatarItemId(null);
         else if (category.equals("decks")) profile.setEquippedDeckItemId(null);
         else if (category.equals("aliases")) profile.setEquippedTitleItemId(null);
+        else if (category.equals("boards")) profile.setEquippedBoardItemId(null);
         
         userGameProfileRepository.save(profile);
         return ResponseEntity.ok("Desequipado");

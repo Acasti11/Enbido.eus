@@ -14,6 +14,7 @@ interface UserProfile {
   equippedAvatarItemId?: number;
   equippedDeckItemId?: number;
   equippedTitleItemId?: number;
+  equippedBoardItemId?: number;
 }
 
 const ProfilePage: React.FC = (): React.JSX.Element => {

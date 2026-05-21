@@ -44,6 +44,7 @@ public class UserProfileController {
             profile.setEquippedAvatarItemId(updatedDetails.getEquippedAvatarItemId());
             profile.setEquippedDeckItemId(updatedDetails.getEquippedDeckItemId());
             profile.setEquippedTitleItemId(updatedDetails.getEquippedTitleItemId());
+            profile.setEquippedBoardItemId(updatedDetails.getEquippedBoardItemId());
             UserGameProfile saved = profileRepository.save(profile);
             return ResponseEntity.ok(saved);
         }).orElseGet(() -> {
