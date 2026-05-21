@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 import type { TournamentFormState, TournamentDto } from '../../types/tournament';
 import { CONST_VIEW_LIST, CONST_VIEW_PUBLISH, CONST_INITIAL_TOURNAMENTS } from './constants';
 
@@ -14,13 +15,53 @@ const TournamentPage = (): React.JSX.Element => {
   const isListView = currentView === CONST_VIEW_LIST;
   const isPublishView = currentView === CONST_VIEW_PUBLISH;
 
+  useEffect(() => {
+    fetchTournaments();
+  }, []);
+
+  const fetchTournaments = async () => {
+    try {
+      const response = await api.get('/tournaments');
+      // Mapear los datos del backend al formato que esperan los componentes antiguos
+      const mappedTournaments = response.data.map((t: any) => ({
+        ...t,
+        id: t.tournamentId,
+        tournamentName: t.title,
+        tournamentLocation: t.city + (t.specificLocation ? ' - ' + t.specificLocation : ''),
+        tournamentDate: t.startDatetime ? t.startDatetime.split('T')[0] : '',
+        tournamentTime: t.startDatetime ? t.startDatetime.split('T')[1]?.substring(0,5) : '',
+        maxParticipants: t.maxTeams,
+        inscriptionPrice: t.entryFee
+      }));
+      setTournamentsList(mappedTournaments);
+    } catch (error) {
+      console.error('Error fetching tournaments', error);
+    }
+  };
+
   const handleShowList = () => setCurrentView(CONST_VIEW_LIST);
   const handleShowPublish = () => setCurrentView(CONST_VIEW_PUBLISH);
 
-  const handleSaveTournament = (newTournamentData: TournamentFormState) => {
-    const newTournament: TournamentDto = { ...newTournamentData, id: Date.now() };
-    setTournamentsList((prevList) => [newTournament, ...prevList]);
-    handleShowList();
+  const handleSaveTournament = async (newTournamentData: TournamentFormState) => {
+    const userStr = localStorage.getItem('user');
+    const userId = userStr ? JSON.parse(userStr).userId : 1;
+
+    try {
+      // Mapear los datos del formulario antiguo al formato que espera el nuevo backend
+      await api.post('/tournaments', {
+        title: newTournamentData.tournamentName,
+        city: newTournamentData.tournamentLocation,
+        specificLocation: newTournamentData.tournamentLocation,
+        startDatetime: `${newTournamentData.tournamentDate}T${newTournamentData.tournamentTime}:00`,
+        entryFee: parseInt(newTournamentData.inscriptionPrice || '0', 10),
+        maxTeams: parseInt(newTournamentData.maxParticipants || '8', 10),
+        organizerId: userId
+      });
+      await fetchTournaments();
+      setCurrentView(CONST_VIEW_LIST);
+    } catch (error) {
+      console.error('Error creating tournament', error);
+    }
   };
 
   return (

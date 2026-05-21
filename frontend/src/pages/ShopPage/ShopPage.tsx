@@ -166,11 +166,17 @@ const ShopPage: React.FC = (): React.JSX.Element => {
 
   // Mapeo de objetos de la base de datos combinando metadatos visuales
   const mappedItems: ShopItem[] = items.map((item: any) => {
-    const itemId = Number(item.itemId);
-    const category = item.category as ShopCategory;
+    const itemId = Number(item.itemId || item.id);
+    let category = item.category;
+    if (!category) {
+       if (item.categoryId === 1) category = 'profiles';
+       else if (item.categoryId === 2) category = 'decks';
+       else if (item.categoryId === 3) category = 'aliases';
+    }
+    const catTyped = category as ShopCategory;
     const metadata = ITEM_METADATA[itemId] || {
       description: 'Objeto de personalización exclusiva.',
-      accent: category === 'profiles' ? 'gold' : category === 'decks' ? 'red' : 'green',
+      accent: catTyped === 'profiles' ? 'gold' : catTyped === 'decks' ? 'red' : 'green',
     };
 
     const isOwned = inventory.some((id: any) => Number(id) === itemId);

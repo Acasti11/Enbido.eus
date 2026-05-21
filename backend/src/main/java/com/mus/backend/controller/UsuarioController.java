@@ -130,6 +130,88 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario.get());
     }
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    // GET Inventario del usuario (para la tienda)
+    @GetMapping("/{id}/inventory")
+    public ResponseEntity<List<Integer>> getUserInventory(@PathVariable Long id) {
+        List<Integer> inventory = jdbcTemplate.queryForList(
+            "SELECT item_id FROM user_inventory WHERE user_id = ?", Integer.class, id);
+        return ResponseEntity.ok(inventory);
+    }
+
+    // POST Comprar objeto
+    @PostMapping("/{id}/buy/{itemId}")
+    public ResponseEntity<?> buyItem(@PathVariable Long id, @PathVariable Integer itemId) {
+        Optional<UserGameProfile> profileOpt = userGameProfileRepository.findById(id);
+        if (profileOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        UserGameProfile profile = profileOpt.get();
+        
+        // Consultar precio del item
+        List<Integer> prices = jdbcTemplate.queryForList(
+            "SELECT price FROM items WHERE item_id = ?", Integer.class, itemId);
+        
+        if (prices.isEmpty()) return ResponseEntity.badRequest().body("Item no existe");
+        
+        int price = prices.get(0);
+        if (profile.getCoins() < price) {
+            return ResponseEntity.badRequest().body("No tienes suficientes monedas");
+        }
+
+        // Descontar monedas
+        profile.setCoins(profile.getCoins() - price);
+        userGameProfileRepository.save(profile);
+
+        // Añadir al inventario
+        jdbcTemplate.update("INSERT IGNORE INTO user_inventory (user_id, item_id) VALUES (?, ?)", id, itemId);
+
+        // Añadir historial
+        jdbcTemplate.update("INSERT INTO purchase_history (user_id, item_id, coins_spent) VALUES (?, ?, ?)", id, itemId, price);
+
+        return ResponseEntity.ok(java.util.Map.of("newCoins", profile.getCoins()));
+    }
+
+    // POST Equipar objeto
+    @PostMapping("/{id}/equip/{itemId}")
+    public ResponseEntity<?> equipItem(@PathVariable Long id, @PathVariable Integer itemId) {
+        Optional<UserGameProfile> profileOpt = userGameProfileRepository.findById(id);
+        if (profileOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        UserGameProfile profile = profileOpt.get();
+        
+        // Buscar categoria
+        List<Integer> categories = jdbcTemplate.queryForList(
+            "SELECT category_id FROM items WHERE item_id = ?", Integer.class, itemId);
+            
+        if (categories.isEmpty()) return ResponseEntity.badRequest().body("Item no existe");
+        
+        Integer categoryId = categories.get(0);
+        // 1 = profiles, 2 = decks, 3 = aliases (ajustado a tu base de datos)
+        if (categoryId == 1) profile.setEquippedAvatarItemId(itemId);
+        else if (categoryId == 2) profile.setEquippedDeckItemId(itemId);
+        else if (categoryId == 3) profile.setEquippedTitleItemId(itemId);
+        
+        userGameProfileRepository.save(profile);
+        return ResponseEntity.ok("Equipado");
+    }
+
+    // POST Desequipar objeto
+    @PostMapping("/{id}/unequip/{category}")
+    public ResponseEntity<?> unequipItem(@PathVariable Long id, @PathVariable String category) {
+        Optional<UserGameProfile> profileOpt = userGameProfileRepository.findById(id);
+        if (profileOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        UserGameProfile profile = profileOpt.get();
+        if (category.equals("profiles")) profile.setEquippedAvatarItemId(null);
+        else if (category.equals("decks")) profile.setEquippedDeckItemId(null);
+        else if (category.equals("aliases")) profile.setEquippedTitleItemId(null);
+        
+        userGameProfileRepository.save(profile);
+        return ResponseEntity.ok("Desequipado");
+    }
+
     // Clase interna para el login
     public static class LoginRequest {
         private String username;
