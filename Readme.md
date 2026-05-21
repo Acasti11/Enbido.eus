@@ -1,696 +1,217 @@
-# 📘 Guía Completa: MUs Full Stack con Docker/Podman
+# 🃏 Enbido.eus - Plataforma Integral de Mus Multijugador
 
-> **Stack:** Spring Boot 3.5.14 + Java 21 | React 18 + TypeScript + Vite | MySQL 8.0 | Nginx
-> **Orquestación:** Docker Compose / Podman Compose
-> **Sistemas compatibles:** Linux (Docker/podman)"problemas de permisos con SElinux"  y Windows (Docker Desktop)
+Bienvenido a la documentación oficial y completa de **Enbido.eus**, una plataforma Full Stack avanzada para jugar al Mus en línea, organizar torneos físicos, gestionar quedadas presenciales (MeetUps) y personalizar la experiencia del jugador con un sistema de economía y tienda virtual.
 
 ---
 
-## Tabla de Contenidos
+## 📑 Tabla de Contenidos
 
-1. [Estructura del Proyecto](#1-estructura-del-proyecto)
-2. [Backend - Spring Boot](#2-backend---spring-boot)
-3. [Base de Datos - MySQL](#3-base-de-datos---mysql)
-4. [Frontend - React + TypeScript + Vite](#4-frontend---react--typescript--vite)
-5. [Docker Compose - Orquestación](#5-docker-compose---orquestación)
-6. [Comandos de Referencia](#6-comandos-de-referencia)
-7. [Solución de Problemas](#7-solución-de-problemas)
-8. [Checklist de Despliegue](#8-checklist-de-despliegue)
-
----
-
-## 1. Estructura del Proyecto
-
-
-```
-Typescript_prueba/                 ← Raíz del proyecto
-├── .git/                          ← Repositorio Git
-├── .gitignore                     ← Variables ignoradas en Git
-├── docker-compose.yml             ← Orquestación de servicios
-├── docker-compose.dev.yml         ← Orquestación para dev container
-├── Readme.md                       ← Este archivo
-│
-├── backend/                        ← SPRING BOOT
-│   ├── pom.xml                     ← Dependencias Maven
-│   ├── Dockerfile                  ← Build multietapa del backend
-│   ├── entrypoint.sh               ← Script de espera a MySQL
-│   ├── mvnw                        ← Maven wrapper (Linux/Mac)
-│   ├── mvnw.cmd                    ← Maven wrapper (Windows)
-│   ├── .gitignore
-│   ├── .dockerignore
-│   └── src/
-│       ├── main/
-│       │   ├── java/com/mus/backend/
-│       │   │   ├── BackendApplication.java
-│       │   │   ├── config/
-│       │   │   │   ├── CorsConfig.java
-│       │   │   │   └── JpaConfig.java
-│       │   │   ├── controller/
-│       │   │   │   └── UsuarioController.java
-│       │   │   ├── service/
-│       │   │   │   └── UsuarioService.java
-│       │   │   ├── repository/
-│       │   │   │   └── UsuarioRepository.java
-│       │   │   ├── model/
-│       │   │   │   └── Usuario.java
-│       │   │   ├── dto/
-│       │   │   │   └── UsuarioDTO.java
-│       │   │   └── exception/
-│       │   │       └── ResourceNotFoundException.java
-│       │   └── resources/
-│       │       ├── application.properties
-│       │       └── application-prod.properties
-│       └── test/
-│           └── java/com/mus/backend/
-│
-├── frontend/                       ← REACT + TYPESCRIPT + VITE
-│   ├── package.json                ← Dependencias NPM
-│   ├── package-lock.json           ← Lock de dependencias
-│   ├── Dockerfile                  ← Build multietapa del frontend
-│   ├── nginx.conf                  ← Configuración Nginx
-│   ├── .dockerignore               ← Archivos ignorados en Docker
-│   ├── .gitignore                  ← Archivos ignorados en Git
-│   ├── index.html                  ← Entry point HTML de Vite
-│   ├── vite.config.ts              ← Configuración de Vite
-│   ├── tsconfig.json               ← Configuración TypeScript
-│   ├── tsconfig.node.json          ← Configuración TypeScript (Node)
-│   ├── public/
-│   │   └── favicon.ico
-│   └── src/
-│       ├── main.tsx                ← Punto de entrada React
-│       ├── App.tsx                 ← Componente raíz
-│       ├── index.css               ← Estilos globales
-│       ├── types/
-│       │   └── usuario.ts          ← Tipos TypeScript
-│       ├── hooks/
-│       │   └── useUsuarios.ts      ← Hook personalizado
-│       ├── components/
-│       │   └── UsuariosList/
-│       │       └── UsuariosList.tsx ← Componente lista
-│       ├── services/               ← API calls
-│       ├── utils/                  ← Utilidades
-│       ├── pages/                  ← Páginas (React Router)
-│       └── styles/
-│           ├── index.css
-│           └── App.css
-│
-└── db/                             ← BASE DE DATOS
-    ├── Dockerfile                  ← Dockerfile MySQL
-    ├── .dockerignore
-    └── init/
-          └── 01-schema.sql           ← Script inicialización DB
-```
----
-## 2. Backend - Spring Boot
-
-### 2.1 Tecnologías
-
-| Componente | Versión |
-|------------|---------|
-| Spring Boot | 3.5.14 |
-| Java | 21 |
-| Maven | 3.9 |
-| Hibernate | 6.6.49.Final |
-| MySQL Connector | 9.7.0 |
-| HikariCP | 6.3.3 |
-
-### 2.2 Dockerfile del Backend
-
-**IMPORTANTE:** No usar archivos `.sh` externos (fallan en Windows por CRLF/LF). Todo inline.
-
-```dockerfile
-# ─── STAGE 1: BUILD ─────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-21-alpine AS builder
-
-WORKDIR /app
-
-# Cachear dependencias primero
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copiar código y compilar
-COPY src ./src
-RUN mvn clean package -DskipTests -B
-
-# ─── STAGE 2: RUNTIME ─────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
-
-WORKDIR /app
-
-# Crear usuario no-root (seguridad)
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Copiar JAR desde builder
-COPY --from=builder /app/target/*.jar app.jar
-RUN chown appuser:appgroup app.jar
-
-# Instalar wget para healthcheck
-RUN apk add --no-cache wget
-
-USER appuser
-
-EXPOSE 8080
-
-# Healthcheck del contenedor
-HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
-
-# ENTRYPOINT inline: espera 15s a MySQL, luego arranca Spring Boot
-##LINUX
-# Copiar script de entrada
-COPY --chown=appuser:appgroup entrypoint.sh /app/entrypoint.sh
-
-ENTRYPOINT ["/app/entrypoint.sh"]
-
-##Windows
-# NO usar archivos .sh externos (problemas en Windows)
-ENTRYPOINT ["sh", "-c", 
-  "echo 'Esperando 15 segundos a MySQL...' && sleep 15 && echo 'Arrancando Spring Boot...' && exec java -Xms256m -Xmx512m -Dspring.profiles.active=prod -jar app.jar"
-]
-```
-
-### 2.3 Configuración por Perfiles
-
-**application-prod.properties** (para contenedor):
-```properties
-# Datasource (inyectado por variables de entorno)
-spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/mudb}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME:muuser}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:mupass}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-
-# Pool de conexiones
-spring.datasource.hikari.maximum-pool-size=10
-spring.datasource.hikari.minimum-idle=5
-spring.datasource.hikari.idle-timeout=300000
-
-# Logging
-logging.level.org.springframework=INFO
-logging.level.com.mus=DEBUG
-```
-
-### 2.4 Endpoints REST
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/usuarios` | Listar todos |
-| GET | `/api/usuarios/{id}` | Obtener por ID |
-| POST | `/api/usuarios` | Crear nuevo |
-| PUT | `/api/usuarios/{id}` | Actualizar |
-| DELETE | `/api/usuarios/{id}` | Eliminar |
+1. [Visión General y Arquitectura](#1-visión-general-y-arquitectura)
+2. [Motor del Juego de Mus (Multijugador)](#2-motor-del-juego-de-mus-multijugador)
+3. [Economía, Perfiles y Tienda Virtual](#3-economía-perfiles-y-tienda-virtual)
+4. [Módulo Social: MeetUps y Torneos Físicos](#4-módulo-social-meetups-y-torneos-físicos)
+5. [Ranking Global ELO](#5-ranking-global-elo)
+6. [Estructura de la Base de Datos (MySQL)](#6-estructura-de-la-base-de-datos-mysql)
+7. [Despliegue y Orquestación (Docker)](#7-despliegue-y-orquestación-docker)
+8. [Diccionario Exhaustivo de Archivos (TODO EL CÓDIGO)](#8-diccionario-exhaustivo-de-archivos-todo-el-código)
 
 ---
 
-## 3. Base de Datos - MySQL
+## 1. Visión General y Arquitectura
 
-### 3.1 Script de Inicialización (db/init/01-schema.sql)
+El proyecto está diseñado siguiendo una arquitectura **Cliente-Servidor (Full Stack)** con comunicación bidireccional en tiempo real.
 
-```sql
-CREATE DATABASE IF NOT EXISTS mudb 
-    CHARACTER SET utf8mb4 
-    COLLATE utf8mb4_unicode_ci;
+- **Frontend (Cliente):** React 18, TypeScript y Vite. La UI es ultra-premium, moderna, con animaciones CSS avanzadas (Glassmorphism, gradientes, sombras 3D) y un flujo de uniones a salas extremadamente fluido.
+- **Backend (Servidor):** Java 21 con Spring Boot 3.5. Gestiona toda la lógica de negocio, reglas del Mus, matchmaking, perfiles y seguridad HTTP (Spring Security) y comunicación de sockets.
+- **Comunicación en Tiempo Real:** Las partidas se juegan utilizando **WebSockets** (`ws://`), permitiendo que el estado de la mesa se sincronice al milisegundo entre 4 jugadores.
+- **Base de Datos:** MySQL 8.0 relacional, orquestada y gestionada a través de volúmenes en Docker.
+- **Infraestructura:** Todo el proyecto está containerizado y orquestado mediante Docker Compose, incluyendo un proxy reverso Nginx para servir el Frontend.
 
-USE mudb;
+---
 
-CREATE TABLE IF NOT EXISTS usuarios (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    edad INT CHECK (edad >= 0 AND edad <= 150),
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
-    INDEX idx_email (email),
-    INDEX idx_activo (activo)
-) ENGINE=InnoDB;
+## 2. Motor del Juego de Mus (Multijugador)
 
-CREATE TABLE IF NOT EXISTS productos (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(200) NOT NULL,
-    descripcion TEXT,
-    precio DECIMAL(10, 2) NOT NULL CHECK (precio >= 0),
-    stock INT DEFAULT 0 CHECK (stock >= 0),
-    categoria VARCHAR(50),
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_categoria (categoria)
-) ENGINE=InnoDB;
+El corazón de Enbido.eus es el motor de juego, ubicado en el paquete `com.mus.backend.engine` del servidor (clase `GameSession.java`).
 
--- Datos iniciales
-INSERT INTO usuarios (nombre, email, edad) VALUES
-    ('Administrador', 'admin@mus.com', 30),
-    ('Usuario Demo', 'demo@mus.com', 25);
+### Flujo de WebSocket
+Cuando un jugador entra en la sala (`LobbyWaitingRoom`), el cliente y el servidor abren una conexión WebSocket. Todo el estado del juego se transmite en mensajes JSON con un tipo de acción (`START_GAME`, `BET_ACTION`, `DISCARD_ACTION`, etc.).
+El servidor procesa la lógica, valida si es el turno del jugador y hace un broadcast (`ROOM_STATE`) a los 4 jugadores para actualizar el tapete.
 
-INSERT INTO productos (nombre, descripcion, precio, stock, categoria) VALUES
-    ('Laptop Pro', 'Laptop alta gama', 1299.99, 10, 'Tecnología'),
-    ('Monitor 4K', 'Monitor 27 pulgadas', 499.50, 15, 'Tecnología');
-```
+### Fases del Juego
+El juego se divide en estrictas fases lógicas (`phase` en `GameSession`):
+1. **init:** Esperando jugadores o en la sala del lobby.
+2. **discarding (El Descarte):** Fase inicial donde el jugador mano evalúa si desea Mus o cortar el Mus. Si hay Mus, los jugadores pueden descartar entre 1 y 4 cartas.
+3. **betting (Apuestas):** Se juega a los 4 lances clásicos: Grande, Chica, Pares y Juego/Punto. Las decisiones incluyen Paso, Envido, Órdago y Quiero/No Quiero.
+4. **round-over (Fin de Mano):** Se resuelven los lances, se calculan las piedras (tantos), y los jugadores pueden ver las cartas antes de pulsar en "Siguiente Mano" para rotar al repartidor.
+5. **game-over (Fin de Partida):** Se alcanza cuando el "Equipo 1" o el "Equipo 2" superan los 30 puntos (tantos). Aparece una ventana para solicitar "Revancha" y reiniciar la mesa.
 
-### 3.2 Variables de Entorno
+### Modo 4 Reyes vs 8 Reyes
+La plataforma soporta los dos estilos principales del Mus:
+- **Modo 8 Reyes (Por defecto):** Los *Treses (3)* valen y cuentan como Reyes (10 puntos). Los *Doses (2)* valen y cuentan como Ases (1 punto).
+- **Modo 4 Reyes:** Se juega con la baraja estricta. El 3 es simplemente un 3, y el 2 es un 2. 
 
+---
+
+## 3. Economía, Perfiles y Tienda Virtual
+
+Para fomentar la retención, Enbido.eus implementa un meta-juego donde los usuarios ganan "monedas" y suben de rango (ELO).
+
+### Perfil del Jugador
+Cada usuario tiene un registro en la tabla `user_game_profile` gestionada por el `UserProfileController`. Este perfil almacena:
+- Su ELO (Puntos de liga competitiva).
+- Sus Monedas virtuales.
+- Estadísticas de victorias y partidas jugadas.
+- Los **objetos equipados** (IDs numéricos que apuntan a la tienda).
+
+### La Tienda (Shop)
+La tienda (`ShopPage.tsx`) permite comprar personalizaciones premium.
+Las categorías implementadas (`categoryId` en la tabla `categories`) son:
+1. **Perfiles/Avatares:** Cambian la imagen del jugador.
+2. **Barajas:** Cambian los reversos de las cartas (Ej. Reverso Nocturno, Baraja Euskal).
+3. **Alias/Títulos:** Textos que aparecen debajo de tu nombre (Ej. "El Tímido", "Maestro del Órdago").
+4. **Tapetes de Mesa (Boards):** Cambian dinámicamente la estética CSS de todo el tablero (`.game-felt-board`). Ejemplos: Tapete Azul Real, Terciopelo Negro, Casino Dorado. Estos modifican brillos, texturas y hasta la iluminación de la sala.
+
+---
+
+## 4. Módulo Social: MeetUps y Torneos Físicos
+
+Enbido.eus va más allá del juego virtual e incluye herramientas para el mundo real.
+
+### MeetUps (Quedadas Físicas)
+- Endpoint: `/api/meetups` (`MeetupController.java`)
+- Los jugadores pueden publicar "Anuncios" buscando personas en su zona (Ej. "Falta uno para jugar en el Bar Txiki a las 18:00"). Estos anuncios persisten en la tabla `local_meetup_ad`.
+
+### Torneos Físicos
+- Endpoint: `/api/tournaments` (`PhysicalTournamentController.java`)
+- Organizadores de asociaciones o bares pueden registrar campeonatos enteros con fecha, ubicación, precio de entrada, estructura del torneo y los premios. Toda la información queda documentada en la tabla `physical_tournament`.
+
+---
+
+## 5. Ranking Global ELO
+
+La competitividad se gestiona a través del sistema **ELO**.
+- Todos los usuarios comienzan con 200 puntos ELO (definido en `UserGameProfile.java`).
+- Al ganar o perder partidas multijugador, este valor fluctúa.
+- La página `/ranking` hace una llamada a `/api/usuarios/ranking` que cruza los datos de las cuentas de registro (`user_login`) con el perfil de juego (`user_game_profile`) ordenando a los jugadores por ELO descendente y calculando su **Win Rate (%)** en vivo.
+
+---
+
+## 6. Estructura de la Base de Datos (MySQL)
+
+El script maestro de base de datos se encuentra en `db/init/01-schema.sql`. La base de datos (`mudb`) contiene una amplia variedad de tablas para sostener este gigantesco sistema:
+
+### Sistema de Cuentas y Seguridad
+- **`user_login`**: El núcleo de la cuenta. Guarda email, password encriptado, fecha de nacimiento, rol, y estado de banneo.
+- **`friendships`**: Para el sistema de amigos (pendiente/aceptado).
+
+### Sistema de Juego Virtual
+- **`user_game_profile`**: El perfil estadístico y los cosméticos equipados.
+- **`play_game`**: El registro histórico de cada partida, guardando qué 4 jugadores estuvieron en la mesa, puntos finales y tiempos.
+- **`game_action_log`**: Trazabilidad y auditoría de los movimientos realizados en partidas en curso.
+- **`matchmaking_queue`**: Una cola donde los jugadores esperan a que el servidor los empareje con aliados u oponentes según su nivel.
+- **`chat`**: Almacena mensajes persistentes entre partidas.
+
+### Tienda Virtual y Monetización
+- **`categories`** y **`items`**: Catálogo general que ofrece la tienda.
+- **`user_inventory`**: Tabla cruzada que dictamina de qué objetos es propietario cada usuario.
+- **`purchase_history`**: Registro de facturación (cuántas monedas gastó el usuario, qué compró y a qué hora).
+
+### Sistema Físico y Torneos
+- **`physical_tournament`** y **`physical_tournament_team`**: Inscripción y pagos de equipos en el mundo real.
+- **`local_meetup_ad`** y **`meetup_request`**: Solicitudes de asistencia a quedadas en bares locales.
+
+---
+
+## 7. Despliegue y Orquestación (Docker)
+
+Todo el ecosistema está configurado para un levantamiento local instantáneo y con cero fricción ("One Click Deploy").
+
+Para lanzar toda la aplicación desde cero:
 ```bash
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=mudb
-MYSQL_USER=muuser
-MYSQL_PASSWORD=mupass
+docker compose up --build -d
 ```
+*(Nota: Spring Boot esperará 15 segundos a que el contenedor de MySQL haya iniciado los puertos y precargado el esquema `01-schema.sql` antes de conectar y ejecutar las migraciones Java de `DataInitializer`).*
 
 ---
 
-## 4. Frontend - React + TypeScript + Vite
-
-### 4.1 Generar Proyecto Vite (sin instalar Node en tu PC)
-
-```bash
-# Linux (Podman)
-podman run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine \
-  sh -c "npm install -g create-vite && npm create vite@latest . -- --template react-ts && npm install && npm install react-router-dom"
-
-# Windows (Docker)
-docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine \
-  sh -c "npm install -g create-vite && npm create vite@latest . -- --template react-ts && npm install && npm install react-router-dom"
-```
-
-### 4.2 Estructura de Archivos TypeScript
-
-**src/types/usuario.ts**
-```typescript
-export interface Usuario {
-  id: number;
-  nombre: string;
-  email: string;
-}
-```
-
-**src/hooks/useUsuarios.ts**
-```typescript
-import { useState, useEffect } from 'react';
-import type { Usuario } from '../types/usuario';
-
-interface UseUsuariosReturn {
-  usuarios: Usuario[];
-  loading: boolean;
-  error: string | null;
-}
-
-export const useUsuarios = (): UseUsuariosReturn => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUsuarios = async (): Promise<void> => {
-      try {
-        const response = await fetch('/api/usuarios');
-        if (!response.ok) throw new Error(`Error ${response.status}`);
-        const data: Usuario[] = await response.json();
-        setUsuarios(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsuarios();
-  }, []);
-
-  return { usuarios, loading, error };
-};
-```
-
-**src/components/UsuariosList/UsuariosList.tsx**
-```typescript
-import React from 'react';
-import { useUsuarios } from '../../hooks/useUsuarios';
-
-export const UsuariosList = (): React.JSX.Element => {
-  const { usuarios, loading, error } = useUsuarios();
-
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
-
-  return (
-    <div>
-      <h1>Usuarios</h1>
-      {usuarios.length === 0 ? (
-        <p>No hay usuarios registrados</p>
-      ) : (
-        <ul>
-          {usuarios.map(usuario => (
-            <li key={usuario.id}>
-              <strong>{usuario.nombre}</strong> — {usuario.email}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
-```
-
-**src/main.tsx**
-```typescript
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './styles/index.css';
-
-const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-```
-
-### 4.3 Dockerfile del Frontend
-
-```dockerfile
-# ─── STAGE 1: BUILD ─────────────────────────────────────────
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copiar dependencias primero (cacheo de capas)
-COPY package*.json ./
-RUN npm ci
-
-# Copiar código fuente y build
-COPY . .
-RUN npm run build
-
-# ─── STAGE 2: SERVIDOR ─────────────────────────────────────
-FROM nginx:alpine
-
-# Vite genera dist/, NO build/ como CRA
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-### 4.4 nginx.conf
-
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css application/json application/javascript;
-
-    # Cache assets estáticos de Vite (tienen hash en nombre)
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        access_log off;
-    }
-
-    # React Router: todas las rutas → index.html
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Proxy al backend
-    location /api/ {
-        proxy_pass http://backend:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### 4.5 .dockerignore
-
-```
-node_modules
-dist
-.git
-```
-
----
-
-## 5. Docker Compose - Orquestación
-
-### 5.1 docker-compose.yml
-
-```yaml
-version: '3.8'
-
-services:
-  # ─── DATABASE ─────────────────────────────────────────────
-  db:
-    image: mysql:8.0
-    container_name: prueba_mus_db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-mudb}
-      MYSQL_USER: ${MYSQL_USER:-muuser}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mupass}
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./db/init:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "3306:3306"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  # ─── BACKEND ──────────────────────────────────────────────
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: prueba_mus_backend
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-mudb}
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-muuser}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-mupass}
-      SPRING_PROFILES_ACTIVE: prod
-      JAVA_OPTS: "-Xms256m -Xmx512m"
-    ports:
-      - "8080:8080"
-    networks:
-      - app-network
-
-  # ─── FRONTEND ─────────────────────────────────────────────
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: prueba_mus_frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "8081:80"
-    networks:
-      - app-network
-
-# ─── VOLUMES ────────────────────────────────────────────────
-volumes:
-  mysql_data:
-    driver: local
-
-# ─── NETWORKS ───────────────────────────────────────────────
-networks:
-  app-network:
-    driver: bridge
-```
-
-### 5.2 .env
-
-```bash
-# MySQL
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=mudb
-MYSQL_USER=muuser
-MYSQL_PASSWORD=mupass
-
-# Backend
-SPRING_PROFILES_ACTIVE=prod
-JAVA_OPTS=-Xms256m -Xmx512m
-```
-
----
-
-## 6. Comandos de Referencia
-
-### 6.1 Generar Proyecto Vite desde Cero
-
-```bash
-# Linux
-rm -rf frontend
-mkdir frontend
-podman run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine \
-  sh -c "npm install -g create-vite && npm create vite@latest . -- --template react-ts && npm install && npm install react-router-dom"
-
-# Windows
-Remove-Item -Recurse -Force frontend -ErrorAction SilentlyContinue
-mkdir frontend
-docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine \
-  sh -c "npm install -g create-vite && npm create vite@latest . -- --template react-ts && npm install && npm install react-router-dom"
-```
-
-### 6.2 Build Local (con Docker/Podman, sin instalar Node)
-
-```bash
-# Linux
-podman run --rm -v "$(pwd):/app" -w /app node:20-alpine sh -c "npm run build"
-
-# Windows
-docker run --rm -v "${PWD}:/app" -w /app node:20-alpine sh -c "npm run build"
-```
-
-### 6.3 Construir y Levantar Todo
-
-```bash
-# Linux (Podman)
-podman-compose down
-podman rmi prueba_mus_frontend prueba_mus_backend 2>/dev/null || true
-podman-compose up -d --build
-
-# Windows (Docker)
-docker-compose down
-docker rmi prueba_mus_frontend prueba_mus_backend 2>$null
-docker-compose up -d --build
-```
-
-### 6.4 Ver Estado y Logs
-
-```bash
-# Ver contenedores corriendo
-podman ps        # Linux
-docker ps        # Windows
-
-# Logs en tiempo real
-podman-compose logs -f backend    # Backend
-podman-compose logs -f frontend   # Frontend
-podman-compose logs -f db         # MySQL
-
-# Entrar a un contenedor
-podman exec -it prueba_mus_db sh
-docker exec -it prueba_mus_db sh
-```
-
-### 6.5 Limpieza de Caché
-
-```bash
-# Borrar caché de build
-podman builder prune -f
-docker builder prune -f
-
-# Limpieza total (⚠️ borra todo)
-podman system prune -a -f --volumes
-docker system prune -a -f --volumes
-```
-
----
-
-## 7. Solución de Problemas
-
-### 7.1 "Module not found" en build de Vite
-
-**Causa:** Importas un archivo que no existe (ej: `./styles/App.css`)
-**Solución:** Verificar rutas relativas correctas desde el archivo que importa.
-
-### 7.2 "Cannot find namespace JSX"
-
-**Causa:** React 18+ no exporta `JSX` globalmente
-**Solución:** Usar `React.JSX.Element` en vez de `JSX.Element`:
-```typescript
-function App(): React.JSX.Element { ... }
-```
-
-### 7.3 "is a type and must be imported using type-only import"
-
-**Causa:** TypeScript strict con `verbatimModuleSyntax`
-**Solución:** Usar `import type`:
-```typescript
-import type { Usuario } from '../types/usuario';
-```
-
-### 7.4 Backend se cae con "Connection refused" a MySQL
-
-**Causa:** Backend arranca antes de que MySQL acepte conexiones
-**Solución:** Añadir espera en ENTRYPOINT del Dockerfile:
-```dockerfile
-ENTRYPOINT ["sh", "-c", "sleep 15 && java -Xms256m -Xmx512m -Dspring.profiles.active=prod -jar app.jar"]
-```
-
-### 7.5 "exec /app/entrypoint.sh: no such file or directory" en Windows
-
-**Causa:** Archivos `.sh` con saltos de línea CRLF (Windows) en vez de LF (Linux)
-**Solución:** NO usar archivos `.sh` externos. Poner todo el script en ENTRYPOINT inline.
-
-### 7.6 "host not found in upstream backend" en nginx
-
-**Causa:** El servicio `backend` no está en la misma red Docker o no existe
-**Solución:** Verificar que `docker-compose.yml` tenga:
-```yaml
-services:
-  backend:
-    networks:
-      - app-network
-  frontend:
-    networks:
-      - app-network
-networks:
-  app-network:
-    driver: bridge
-```
-
----
-
-## 8. Checklist de Despliegue
-
-- [ ] `.env` creado con variables correctas
-- [ ] `db/init/01-schema.sql` con tablas y datos iniciales
-- [ ] Backend: `Dockerfile` con ENTRYPOINT inline (no .sh externos)
-- [ ] Backend: `application-prod.properties` configurado
-- [ ] Frontend: Proyecto Vite generado con `react-ts` template
-- [ ] Frontend: Archivos `.tsx` con tipos correctos (`React.JSX.Element`, `import type`)
-- [ ] Frontend: `Dockerfile` copiando desde `/app/dist` (Vite, no `/app/build` de CRA)
-- [ ] Frontend: `nginx.conf` con proxy a `backend:8080`
-- [ ] Frontend: `.dockerignore` con `node_modules` y `dist`
-- [ ] `docker-compose.yml` con `depends_on` y redes configuradas
-- [ ] Probar build local antes de Docker: `npm run build` (o con contenedor Node)
-- [ ] Probar en navegador: http://localhost:8081 (frontend), http://localhost:8080/api/usuarios (backend)
-
----
-
-## Notas Importantes
-
-1. **NO usar archivos `.sh` externos** en Dockerfiles (problemas CRLF/LF en Windows)
-2. **Vite genera `dist/`**, no `build/` como CRA
-3. **Usar `npm ci`** en Docker en vez de `npm install` (más rápido y determinista)
-4. **Esperar a MySQL** en el backend con `sleep` o bucle de verificación
-5. **Variables de entorno** en `.env`, NO hardcodeadas en código
-
----
-
-*Documento generado para el proyecto MUs Full Stack*
-*Stack: Spring Boot 3.5.14 + React 18 + TypeScript + Vite + MySQL 8.0 + Nginx*
+## 8. Diccionario Exhaustivo de Archivos (TODO EL CÓDIGO)
+
+Esta sección explica de forma detallada qué hace **absolutamente cada archivo** del repositorio.
+
+### Archivos de Configuración Raíz y Despliegue
+* **`.env`**: Archivo de variables de entorno (contraseñas, configuraciones). Oculto pero vital para seguridad.
+* **`docker-compose.yml`** y **`docker-compose.dev.yml`**: Orquestan los tres contenedores principales (MySQL, Spring Boot Backend, Nginx Frontend) indicando puertos y volúmenes persistentes.
+* **`Readme.md`**: Este mismo archivo de documentación principal.
+* **`fix_passwords.sql`** y **`test_login.sh`**: Scripts utilitarios (shell y SQL) creados para testear la encriptación BCrypt o reiniciar usuarios corruptos en desarrollo.
+
+### Directorio Base de Datos (`/db`)
+* **`db/Dockerfile`**: Configura la imagen base de la base de datos MySQL 8.
+* **`db/init/01-schema.sql`**: **El archivo más crítico de la BD**. Ejecuta automáticamente el DDL (Data Definition Language) creando TODAS las tablas descritas en la Sección 6 y pobladas con cuentas de prueba.
+
+### Directorio Backend Java (`/backend`)
+* **`backend/Dockerfile`**: Compila el código Java usando Maven (multi-etapa) y crea un contenedor ligero Alpine con el JAR listo para correr.
+* **`backend/entrypoint.sh`**: Script que ejecuta Spring Boot asegurando que MySQL ya ha arrancado (espera 15 seg).
+* **`backend/pom.xml`**: El manejador de dependencias de Maven (Lombok, Spring Web, Spring WebSocket, Spring Data JPA, MySQL Connector).
+
+#### Controladores REST y Endpoints (`/backend/src/main/java/com/mus/backend/controller/`)
+* **`GameMatchController.java`**: Gestiona las llamadas HTTP para las salas multijugador y consultas de partidas históricas.
+* **`MeetupController.java`**: API que recibe y sirve los anuncios de quedadas físicas y de bares.
+* **`PhysicalTournamentController.java`**: Expone la lista de torneos físicos registrados en la base de datos.
+* **`ShopController.java`**: Devuelve al frontend los artículos (items) y categorías disponibles para comprar.
+* **`UserProfileController.java`**: Controlador dedicado al ELO, victorias y qué artículos tiene equipados un jugador.
+* **`UsuarioController.java`**: El controlador más grande. Maneja el login manual, cálculos del Ranking ELO global, lógica transaccional de compra en la tienda e inyección de inventarios.
+* **`MusGameWebSocketHandler.java`**: El "Router" de las partidas en tiempo real. Maneja el canal de WebSockets, interceptando acciones como `START_GAME`, `BET` o `DISCARD`, derivándolas al Engine de Mus y devolviendo un JSON broadcast (ROOM_STATE) a todos los clientes.
+
+#### El Motor Matemático del Mus (`/backend/src/main/java/com/mus/backend/engine/`)
+* **`Card.java`**: Modela una carta de la baraja española, asignándole su palo, su número, y su valor en pares/juego.
+* **`Deck.java`**: Modela la baraja de 40 cartas y expone métodos de barajar aleatoriamente y robar (pop).
+* **`GameSession.java`**: **El cerebro del Mus.** Una clase colosal que gestiona las variables del tapete: qué cartas tiene quién, quién es el mano, cálculos dinámicos de los lances (Grande, Chica, Pares, Juego), modos de juego (4 vs 8 reyes) y la suma final de piedras/tantos por equipo.
+* **`GameSessionManager.java`**: Componente global (Singleton) que guarda en un mapa en memoria todas las partidas (`GameSession`) que están ocurriendo en el servidor al mismo tiempo.
+
+#### Modelos de Base de Datos / Entidades JPA (`/backend/src/main/java/com/mus/backend/model/`)
+* **`Usuario.java`**, **`UserGameProfile.java`**: Mapean (representan) a las tablas `user_login` y `user_game_profile` en código Java.
+* **`Category.java`**, **`Item.java`**: Representan cosméticos comprables de la tienda.
+* **`PlayGame.java`**, **`GameMatch.java`**, **`GameActionLog.java`**: Entidades para persistir auditorías e historiales en MySQL.
+* **`LocalMeetupAd.java`**, **`PhysicalTournament.java`**: Clases modelo para torneos y quedadas físicas.
+
+#### Repositorios de Hibernate (`/backend/src/main/java/com/mus/backend/repository/`)
+* Archivos como **`UsuarioRepository.java`**, **`UserGameProfileRepository.java`**, **`PlayGameRepository.java`**, etc: Interfaces de Spring Data que permiten hacer peticiones SELECT, UPDATE, INSERT a MySQL sin escribir SQL manualmente (magia de ORM).
+
+#### Configuraciones del Servidor (`/backend/src/main/java/com/mus/backend/config/`)
+* **`DataInitializer.java`**: Ejecutado al arrancar el servidor. Modifica programáticamente la base de datos (por ejemplo, insertando los nuevos tapetes de casino e inyectando las filas base si faltan).
+* **`WebSocketConfig.java`**: Configura y abre el túnel `/ws/game` para permitir conexiones de sockets puras ignorando los límites de CORS.
+
+### Directorio Frontend React (`/frontend`)
+* **`frontend/Dockerfile`** / **`nginx.conf`**: El frontend se compila a puro HTML/JS, por lo que su Dockerfile compila usando Node y luego copia los archivos estáticos a Nginx, que los sirve y además proxy-fica las llamadas `/api/` a Java.
+* **`package.json`** / **`vite.config.ts`**: Configuración de dependencias NPM (React, Router, Axios) y del compilador ultrarrápido Vite.
+
+#### Arquitectura React (`/frontend/src/`)
+* **`main.tsx`**: El ancla al HTML. Arranca React y renderiza la aplicación principal.
+* **`App.tsx`**: El Router central de la app. Si la URL es `/shop` carga `ShopPage`, si es `/game` carga `MusGamePage`.
+* **`services/api.ts`**: Fichero que configura Axios (la librería de peticiones HTTP), insertando las cabeceras predeterminadas y apuntando a `/api/`.
+
+#### Componentes de Vistas y Páginas (`/frontend/src/pages/`)
+1. **Login y Entrada (`LoginPage/`)**:
+   - `LoginPage.tsx`: Orquesta el flujo visual de entrar.
+   - `LoginForm.tsx`, `CreateUserForm.tsx`: Componentes controlados para meter credenciales o registrarse.
+   - `BackgroundCards.tsx`: Elementos decorativos CSS que rotan de fondo en el portal de entrada.
+2. **El Juego (`MusGamePage/`)**:
+   - **`MusGamePage.tsx`**: El tapete verde. Contiene el renderizado principal del tablero y llama dinámicamente a las clases CSS del tapete comprado.
+   - **`components/LobbyWaitingRoom.tsx`** / **`PremiumLobby.tsx`**: Salas de espera pre-partida y selección de modo (4/8 reyes), añadir bots, o colas públicas de matchmaking.
+   - **`components/ActionPanel.tsx`**: El bloque de botones vital (Mus, Cortar, Envido, Órdago).
+   - **`components/PlayerHand.tsx`**: Dibuja tus 4 cartas y oculta el reverso de las cartas enemigas, aplicando la skin de la baraja comprada.
+   - **`components/GameScoreBoard.tsx`**: Marcador visual de puntos de los Equipos 1 y 2 en el juego.
+   - **`hooks/useMusGame.ts` / `useGameApi.ts`**: Ficheros extremadamente técnicos de Hooks de React que abren el `new WebSocket()` contra Java, serializan el estado del juego recibido y reactualizan el tapete visual.
+3. **El Perfil (`ProfilePage/`)**:
+   - `ProfilePage.tsx` / `ProfileCard.tsx` / `StatsGrid.tsx`: Calculan y renderizan en pantalla tu ELO, Win Rate %, y dibujan tu Avatar y Título equipados mediante llamadas API.
+4. **La Tienda (`ShopPage/`)**:
+   - **`ShopPage.tsx`**: Renderiza el inventario del usuario y 4 pestañas de cosméticos (Perfiles, Barajas, Alias, Tapetes). Controla los botones asíncronos para deducir monedas y mandar la señal de `/equip/`.
+5. **Ranking y Clasificación (`RankingPage/`)**:
+   - **`RankingPage.tsx`**: Un podio renderizado de manera premium que obtiene dinámicamente la lista de los mejores jugadores de la base de datos (Top ELO).
+6. **Entorno Social Físico (`MeetUp/` y `TournamentPage/`)**:
+   - Componentes (`CreateAdPage.tsx`, `PublishForm.tsx`) para introducir datos reales en formularios, los cuales envían un POST REST para guardarlos en base de datos e imprimirlos en modo tarjetas dinámicas.
+
+#### Estilos (CSS)
+* El proyecto no utiliza Tailwind, utiliza CSS Vanilla puro segmentado por página.
+* **`frontend/src/styles/variables.css`**: Define una tremenda paleta de colores CSS root (dorados, rojos premium, colores de error).
+* Archivos como **`mus-game.css`**, **`shop-page.css`**, **`ranking-page.css`** controlan todas las estéticas de sombras profundas, bordes de madera noble de los tapetes de mesa y colores premium adaptativos.
