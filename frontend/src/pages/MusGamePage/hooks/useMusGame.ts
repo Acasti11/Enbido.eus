@@ -54,7 +54,8 @@ export const useMusGame = (userId: number) => {
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsHost = window.location.hostname;
-    const socket = new WebSocket(`${wsProtocol}//${wsHost}:8080/ws-mus`);
+    const port = window.location.protocol === 'https:' ? '80' : '8080';
+    const socket = new WebSocket(`${wsProtocol}//${wsHost}:${port}/ws-mus`);
     socketRef.current = socket;
 
     socket.onopen = () => {
