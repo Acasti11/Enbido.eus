@@ -1,37 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Navbar from '../../components/layout/Navbar';
-// Fíjate en la palabra "type" que he añadido dentro de las llaves en estas dos líneas:
 import MeetupAdCard, { type LocalMeetupAd } from './components/MeetupAdCard';
 import CreateAdPage, { type CreateAdFormState } from './components/CreateAdPage';
 import './meetup-page.css';
 
-const CONST_CURRENT_USER_ID = 999; 
-
-const CONST_INITIAL_ADS: LocalMeetupAd[] = [
-  { adId: 1, creatorId: 101, creatorName: 'Juan Perez', location: 'Taverna El Botxo', missingPlayers: 2, description: 'Buscamos 2 personas para jugar. Pagamos cañas.', isActive: true },
-  { adId: 2, creatorId: 102, creatorName: 'Maria Garcia', location: 'Bar Zabaleta', missingPlayers: 1, description: 'Falta uno para cerrar la mesa.', isActive: true }
-];
+const CONST_CURRENT_USER_ID = 1; // Assuming 1 for now or retrieve from auth context
 
 const MeetupPage: React.FC = (): React.JSX.Element => {
   const [currentView, setCurrentView] = useState<'list' | 'create'>('list');
-  const [ads, setAds] = useState<LocalMeetupAd[]>(CONST_INITIAL_ADS);
+  const [ads, setAds] = useState<LocalMeetupAd[]>([]);
+
+  useEffect(() => {
+    fetchAds();
+  }, []);
+
+  const fetchAds = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/meetups');
+      setAds(response.data);
+    } catch (error) {
+      console.error('Error fetching meetups', error);
+    }
+  };
 
   const handleNavigateToCreate = (): void => setCurrentView('create');
   const handleNavigateToList = (): void => setCurrentView('list');
 
-  const handleSaveNewAd = (formData: CreateAdFormState): void => {
-    const newAd: LocalMeetupAd = {
-      adId: Math.floor(Math.random() * 1000),
-      creatorId: CONST_CURRENT_USER_ID,
-      creatorName: 'Tú (Jugador Actual)',
+  const handleSaveNewAd = async (formData: CreateAdFormState): Promise<void> => {
+    const userStr = localStorage.getItem('user');
+    const userId = userStr ? JSON.parse(userStr).userId : CONST_CURRENT_USER_ID;
+
+    const newAd = {
+      creatorId: userId,
       location: formData.location,
       missingPlayers: Number(formData.missingPlayers),
       description: formData.description,
       isActive: true
     };
     
-    setAds([newAd, ...ads]);
-    handleNavigateToList();
+    try {
+      await axios.post('http://localhost:8080/api/meetups', newAd);
+      await fetchAds();
+      handleNavigateToList();
+    } catch (error) {
+      console.error('Error creating meetup', error);
+    }
   };
 
   return (

@@ -16,7 +16,7 @@ const MusGamePage: React.FC = () => {
 
   const { 
     isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
-    roomId, seats, isSearching, queueSize, username, isMyTurn, betState,
+    roomId, seats, isSearching, queueSize, username, isMyTurn, betState, reyesMode, setReyesMode,
     handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
     onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom
   } = useMusGame(currentUserId);
@@ -51,6 +51,8 @@ const MusGamePage: React.FC = () => {
           onCreateRoom={onCreateRoom}
           onStartMatchmaking={onStartMatchmaking}
           onCancelMatchmaking={onCancelMatchmaking}
+          reyesMode={reyesMode}
+          onReyesModeChange={setReyesMode}
         />
       </>
     );
@@ -66,8 +68,10 @@ const MusGamePage: React.FC = () => {
           seats={seats}
           currentUserId={currentUserId}
           onAddBot={onAddBot}
-          onStartGame={handleStartMatch}
+          onStartGame={() => handleStartMatch()}
           onLeaveRoom={onLeaveRoom}
+          reyesMode={reyesMode}
+          onReyesModeChange={setReyesMode}
         />
       </>
     );

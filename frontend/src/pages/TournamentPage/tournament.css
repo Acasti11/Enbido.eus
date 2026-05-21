@@ -1,0 +1,226 @@
+.tournament-page-content {
+  max-width: 1200px;
+  margin: 100px auto 40px;
+  padding: 0 20px;
+}
+
+.tournament-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.tournament-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #d4af37, #f5d77a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.tournament-subtitle {
+  color: rgba(255,255,255,0.6);
+  font-size: 1.1rem;
+}
+
+.tournament-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 36px;
+}
+
+.create-tournament-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #d4af37, #b8941e);
+  color: #0f291e;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-tournament-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+}
+
+/* Tournament Cards Grid */
+.tournament-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.tournament-card {
+  background: linear-gradient(145deg, rgba(15, 41, 30, 0.8), rgba(20, 55, 40, 0.6));
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 16px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.tournament-card:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 175, 55, 0.1);
+}
+
+.tournament-card-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.tournament-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tournament-card-info span {
+  color: rgba(255,255,255,0.65);
+  font-size: 0.9rem;
+}
+
+.tournament-card-info span strong {
+  color: #d4af37;
+}
+
+.tournament-status {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tournament-status.open {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.tournament-status.playing {
+  background: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.tournament-status.finished {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.tournament-status.cancelled {
+  background: rgba(149, 165, 166, 0.15);
+  color: #95a5a6;
+  border: 1px solid rgba(149, 165, 166, 0.3);
+}
+
+/* Form */
+.tournament-form-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.tournament-form {
+  background: linear-gradient(145deg, #0f291e, #14372a);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 36px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.tournament-form h2 {
+  color: #d4af37;
+  font-size: 1.6rem;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.tournament-form label {
+  display: block;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tournament-form input,
+.tournament-form select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 18px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.tournament-form input:focus,
+.tournament-form select:focus {
+  border-color: #d4af37;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.form-buttons button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-btn-save {
+  background: linear-gradient(135deg, #d4af37, #b8941e);
+  color: #0f291e;
+}
+
+.form-btn-cancel {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+}
+
+.tournament-loading {
+  text-align: center;
+  padding: 60px;
+  color: rgba(255,255,255,0.5);
+  font-size: 1.2rem;
+}
+
+.tournament-empty {
+  text-align: center;
+  padding: 60px;
+  color: rgba(255,255,255,0.4);
+  font-size: 1.1rem;
+}

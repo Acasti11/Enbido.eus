@@ -18,6 +18,7 @@ public class GameSession {
     private List<Card> deck = new ArrayList<>();
     private List<Card> discardPile = new ArrayList<>();
     
+    private int reyesMode = 8;
     private int dealerIdx = 0;
     private int activeTurnIdx = 0;
     private int musVotesCount = 0;
@@ -119,14 +120,24 @@ public class GameSession {
     // --- GAME ENGINE PROCESSES ---
 
     public void startMatch() {
+        startMatch(8);
+    }
+
+    public void startMatch(int reyesMode) {
         if (getPlayersCount() < 4) {
             appendLog("Esperando a 4 jugadores para iniciar la partida.");
             return;
         }
+        this.reyesMode = reyesMode;
         scoreUs = 0;
         scoreThem = 0;
         isPlaying = true;
         dealerIdx = 0;
+        startNewHand();
+    }
+
+    public void nextHand() {
+        dealerIdx = (dealerIdx + 1) % 4;
         startNewHand();
     }
 
@@ -423,19 +434,19 @@ public class GameSession {
         appendLog("--- RECUENTO FINAL DE PUNTOS ---");
 
         // 1. Evaluate Grande
-        CardItemInfo usBestGrande = getBestGrande(0, 2);
-        CardItemInfo themBestGrande = getBestGrande(1, 3);
+        List<CardItemInfo> usBestGrandeHand = getBestGrandeHand(0, 2);
+        List<CardItemInfo> themBestGrandeHand = getBestGrandeHand(1, 3);
         
         if (apuestas.get("grande").getGanadaPor() == null) {
-            apuestas.get("grande").setGanadaPor(compareGrande(usBestGrande, themBestGrande) >= 0 ? "us" : "them");
+            apuestas.get("grande").setGanadaPor(compareHandsGrande(usBestGrandeHand, themBestGrandeHand) >= 0 ? "us" : "them");
         }
 
         // 2. Evaluate Chica
-        CardItemInfo usBestChica = getBestChica(0, 2);
-        CardItemInfo themBestChica = getBestChica(1, 3);
+        List<CardItemInfo> usBestChicaHand = getBestChicaHand(0, 2);
+        List<CardItemInfo> themBestChicaHand = getBestChicaHand(1, 3);
         
         if (apuestas.get("chica").getGanadaPor() == null) {
-            apuestas.get("chica").setGanadaPor(compareChica(usBestChica, themBestChica) >= 0 ? "us" : "them");
+            apuestas.get("chica").setGanadaPor(compareHandsChica(usBestChicaHand, themBestChicaHand) >= 0 ? "us" : "them");
         }
 
         // 3. Evaluate Pares
@@ -478,11 +489,19 @@ public class GameSession {
 
         for (String lance : LANCES) {
             LanceBet lb = apuestas.get(lance);
+            if (lb.getGanadaPor() == null) continue; // Si nadie tuvo pares/juego
+            
             int gain = lb.getDeje() > 0 ? lb.getDeje() : (lb.getPuntos() == 0 ? 1 : lb.getPuntos());
+            String lanceUpper = lance.toUpperCase();
+            
             if ("us".equals(lb.getGanadaPor())) {
                 pointsRoundUs += gain;
+                if (gain >= 40) appendLog("El Equipo 1 gana la " + lanceUpper + " por ÓRDAGO.");
+                else appendLog("El Equipo 1 gana la " + lanceUpper + " (+" + gain + " pts).");
             } else if ("them".equals(lb.getGanadaPor())) {
                 pointsRoundThem += gain;
+                if (gain >= 40) appendLog("El Equipo 2 gana la " + lanceUpper + " por ÓRDAGO.");
+                else appendLog("El Equipo 2 gana la " + lanceUpper + " (+" + gain + " pts).");
             }
         }
 
@@ -519,12 +538,13 @@ public class GameSession {
         
         // Check game over
         if (scoreUs >= 30 || scoreThem >= 30) {
-            isPlaying = false;
+            isPlaying = true;
+            phase = "game-over";
             appendLog("--- FIN DE LA PARTIDA ---");
             if (scoreUs >= 30) {
-                appendLog("🏆 ¡NOSOTROS HEMOS GANADO EL ENCUENTRO!");
+                appendLog("🏆 ¡EL EQUIPO 1 HA GANADO EL ENCUENTRO!");
             } else {
-                appendLog("💔 ¡RIVALES GANAN EL ENCUENTRO!");
+                appendLog("💔 ¡EL EQUIPO 2 HA GANADO EL ENCUENTRO!");
             }
         }
     }
@@ -537,18 +557,22 @@ public class GameSession {
         private int realOrder; // 3=12, 12=12, 11=11, 10=10, 2=1, 1=1...
     }
 
-    public static CardItemInfo getCardDetails(Card c) {
+    public CardItemInfo getCardDetails(Card c) {
         CardItemInfo info = new CardItemInfo();
         info.setCard(c);
         int r = c.getRank();
-        if (r == 3) info.setRealOrder(12); // 3 es Rey
-        else if (r == 2) info.setRealOrder(1); // 2 es As
-        else if (r == 1) info.setRealOrder(1);
-        else info.setRealOrder(r);
+        if (reyesMode == 8) {
+            if (r == 3) info.setRealOrder(12); // 3 es Rey
+            else if (r == 2) info.setRealOrder(1); // 2 es As
+            else if (r == 1) info.setRealOrder(1);
+            else info.setRealOrder(r);
+        } else {
+            info.setRealOrder(r); // En 4 reyes, 3 es 3 y 2 es 2
+        }
         return info;
     }
 
-    public static List<CardItemInfo> getSortedGrande(List<Card> hand) {
+    public List<CardItemInfo> getSortedGrande(List<Card> hand) {
         List<CardItemInfo> list = new ArrayList<>();
         for (Card c : hand) {
             list.add(getCardDetails(c));
@@ -557,7 +581,7 @@ public class GameSession {
         return list;
     }
 
-    public static List<CardItemInfo> getSortedChica(List<Card> hand) {
+    public List<CardItemInfo> getSortedChica(List<Card> hand) {
         List<CardItemInfo> list = new ArrayList<>();
         for (Card c : hand) {
             list.add(getCardDetails(c));
@@ -566,24 +590,32 @@ public class GameSession {
         return list;
     }
 
-    private CardItemInfo getBestGrande(int p1, int p2) {
+    private List<CardItemInfo> getBestGrandeHand(int p1, int p2) {
         List<CardItemInfo> h1 = getSortedGrande(players.get(p1).getHand());
         List<CardItemInfo> h2 = getSortedGrande(players.get(p2).getHand());
-        return compareGrande(h1.get(0), h2.get(0)) >= 0 ? h1.get(0) : h2.get(0);
+        return compareHandsGrande(h1, h2) >= 0 ? h1 : h2;
     }
 
-    private int compareGrande(CardItemInfo a, CardItemInfo b) {
-        return a.getRealOrder() - b.getRealOrder();
+    private int compareHandsGrande(List<CardItemInfo> h1, List<CardItemInfo> h2) {
+        for (int i = 0; i < 4 && i < h1.size() && i < h2.size(); i++) {
+            int cmp = h1.get(i).getRealOrder() - h2.get(i).getRealOrder();
+            if (cmp != 0) return cmp;
+        }
+        return 0; // Empate absoluto, gana mano (que se gestionará luego si hiciese falta)
     }
 
-    private CardItemInfo getBestChica(int p1, int p2) {
+    private List<CardItemInfo> getBestChicaHand(int p1, int p2) {
         List<CardItemInfo> h1 = getSortedChica(players.get(p1).getHand());
         List<CardItemInfo> h2 = getSortedChica(players.get(p2).getHand());
-        return compareChica(h1.get(0), h2.get(0)) >= 0 ? h1.get(0) : h2.get(0);
+        return compareHandsChica(h1, h2) >= 0 ? h1 : h2;
     }
 
-    private int compareChica(CardItemInfo a, CardItemInfo b) {
-        return b.getRealOrder() - a.getRealOrder(); // Smaller realOrder is better
+    private int compareHandsChica(List<CardItemInfo> h1, List<CardItemInfo> h2) {
+        for (int i = 0; i < 4 && i < h1.size() && i < h2.size(); i++) {
+            int cmp = h2.get(i).getRealOrder() - h1.get(i).getRealOrder(); // Smaller is better
+            if (cmp != 0) return cmp;
+        }
+        return 0;
     }
 
     @Data
@@ -594,7 +626,7 @@ public class GameSession {
         private int orderVal;
     }
 
-    public static ParesResult evaluatePares(List<Card> hand) {
+    public ParesResult evaluatePares(List<Card> hand) {
         ParesResult pr = new ParesResult();
         Map<Integer, Integer> counts = new HashMap<>();
         for (Card c : hand) {
@@ -605,7 +637,7 @@ public class GameSession {
         frequencies.sort(Collections.reverseOrder());
         
         List<CardItemInfo> sorted = getSortedGrande(hand);
-        int maxVal = sorted.get(0).getCard().getRank();
+        int maxVal = sorted.get(0).getRealOrder();
 
         if (frequencies.isEmpty()) {
             pr.setHas(false);
@@ -677,11 +709,32 @@ public class GameSession {
         private int strength; // 31=8, 32=7, 40=6, 37=5...
     }
 
-    public static JuegoResult evaluateJuego(List<Card> hand) {
+    public int getCardScoreValue(Card c) {
+        int r = c.getRank();
+        if (reyesMode == 8) {
+            if (r == 1 || r == 2) {
+                return 1;
+            } else if (r == 3 || r >= 10) {
+                return 10;
+            } else {
+                return r;
+            }
+        } else {
+            if (r == 1) {
+                return 1;
+            } else if (r >= 10) {
+                return 10;
+            } else {
+                return r;
+            }
+        }
+    }
+
+    public JuegoResult evaluateJuego(List<Card> hand) {
         JuegoResult jr = new JuegoResult();
         int sum = 0;
         for (Card c : hand) {
-            sum += getCardDetails(c).getCard().getScoreValue();
+            sum += getCardScoreValue(c);
         }
         jr.setSum(sum);
         
@@ -725,6 +778,7 @@ public class GameSession {
         state.put("dealerIdx", dealerIdx);
         state.put("betState", betState);
         state.put("currentBetSize", currentBetSize);
+        state.put("reyesMode", reyesMode);
         
         Map<String, Integer> score = new HashMap<>();
         score.put("us", scoreUs);
@@ -765,7 +819,7 @@ public class GameSession {
                         cMap.put("suit", c.getSuit());
                         cMap.put("rank", c.getRank());
                         cMap.put("imagePath", c.getImagePath());
-                        cMap.put("scoreValue", c.getScoreValue());
+                        cMap.put("scoreValue", getCardScoreValue(c));
                     } else {
                         // CONCEALED! Hide other players' cards!
                         cMap.put("id", c.getId());
@@ -801,7 +855,7 @@ public class GameSession {
     // --- SERVER-SIDE BOT AUTOMATION ---
 
     public boolean runBotTurnIfActive() {
-        if (!isPlaying || phase.equals("round-over")) return false;
+        if (!isPlaying || phase.equals("round-over") || phase.equals("game-over")) return false;
         
         GamePlayer current = players.get(activeTurnIdx);
         if (current == null || !current.isBot()) return false;

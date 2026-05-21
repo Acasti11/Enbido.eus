@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import com.mus.backend.model.UserGameProfile;
+import com.mus.backend.dto.RankingDTO;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -25,6 +28,24 @@ public class UsuarioController {
     @GetMapping
     public List<Usuario> getAllUsuarios() {
         return usuarioRepository.findAll();
+    }
+
+    @GetMapping("/ranking")
+    public ResponseEntity<List<RankingDTO>> getRanking() {
+        List<UserGameProfile> profiles = userGameProfileRepository.findAllByOrderByEloDesc();
+        List<RankingDTO> ranking = new ArrayList<>();
+        int rank = 1;
+        for (UserGameProfile profile : profiles) {
+            Usuario u = usuarioRepository.findById(profile.getUserId()).orElse(null);
+            String username = u != null ? u.getUsername() : "Usuario Desconocido";
+            int played = profile.getTotalGamesPlayed();
+            int won = profile.getTotalGamesWon();
+            double winRate = played > 0 ? ((double) won / played) * 100.0 : 0.0;
+            // Redondear a 1 decimal
+            winRate = Math.round(winRate * 10.0) / 10.0;
+            ranking.add(new RankingDTO(rank++, username, profile.getElo(), played, won, winRate));
+        }
+        return ResponseEntity.ok(ranking);
     }
 
     // GET un usuario por ID

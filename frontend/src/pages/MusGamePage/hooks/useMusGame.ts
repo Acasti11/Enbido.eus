@@ -33,6 +33,7 @@ export const useMusGame = (userId: number) => {
   const [isMyTurn, setIsMyTurn] = useState<boolean>(false);
   const [betState, setBetState] = useState<number>(0);
   const [currentBetSize, setCurrentBetSize] = useState<number>(0);
+  const [reyesMode, setReyesMode] = useState<number>(8);
 
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -106,6 +107,9 @@ export const useMusGame = (userId: number) => {
           setIsMyTurn(data.isMyTurn || false);
           setBetState(data.betState || 0);
           setCurrentBetSize(data.currentBetSize || 0);
+          if (data.reyesMode !== undefined) {
+            setReyesMode(data.reyesMode);
+          }
           setIsSearching(false);
         } 
         else if (type === 'QUEUEING') {
@@ -155,15 +159,18 @@ export const useMusGame = (userId: number) => {
 
   // --- ACCIONES ENVIADAS POR WEBSOCKET ---
 
-  const handleStartMatch = () => {
+  const handleStartMatch = (mode?: number) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({ type: 'START_GAME' }));
+      socketRef.current.send(JSON.stringify({ 
+        type: 'START_GAME',
+        reyesMode: mode !== undefined ? mode : reyesMode
+      }));
     }
   };
 
   const startNewHand = () => {
     // Al ser servidor síncrono, "Nueva mano" se lanza con el mismo trigger
-    handleStartMatch();
+    handleStartMatch(reyesMode);
   };
 
   const handleUserMusDecision = (wantsMus: boolean) => {
@@ -259,7 +266,9 @@ export const useMusGame = (userId: number) => {
     isMyTurn,
     betState,
     currentBetSize,
+    reyesMode,
     
+    setReyesMode,
     handleStartMatch,
     startNewHand,
     handleUserMusDecision,

@@ -64,7 +64,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 handleAddBot(conn, data);
             } 
             else if ("START_GAME".equals(type)) {
-                handleStartGame(conn);
+                handleStartGame(conn, data);
             } 
             else if ("DECISION_MUS".equals(type)) {
                 handleMusDecision(conn, data);
@@ -208,15 +208,35 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         broadcastRoomState(room);
     }
 
-    private void handleStartGame(UserConnection conn) {
+    private void handleStartGame(UserConnection conn, Map<String, Object> data) {
         if (conn.roomId == null) return;
         GameSession room = sessionManager.getRoom(conn.roomId);
-        if (room == null || room.isPlaying()) return;
+        if (room == null) return;
 
-        // Persistir la partida en la Base de Datos antes de empezar
-        sessionManager.saveNewGameToDb(room);
+        // Si ya está jugando pero NO está en round-over ni en game-over, ignoramos
+        if (room.isPlaying() && !room.getPhase().equals("round-over") && !room.getPhase().equals("game-over")) {
+            return;
+        }
 
-        room.startMatch();
+        int reyesMode = 8;
+        if (data != null && data.containsKey("reyesMode")) {
+            try {
+                reyesMode = Integer.parseInt(data.get("reyesMode").toString());
+            } catch (Exception e) {
+                reyesMode = 8;
+            }
+        }
+
+        if ("round-over".equals(room.getPhase())) {
+            room.nextHand();
+        } else if ("game-over".equals(room.getPhase())) {
+            sessionManager.updateGameScoresInDb(room);
+            room.startMatch(reyesMode);
+        } else {
+            sessionManager.saveNewGameToDb(room);
+            room.startMatch(reyesMode);
+        }
+
         broadcastRoomState(room);
         
         // Si le toca a un Bot, lo automatizamos

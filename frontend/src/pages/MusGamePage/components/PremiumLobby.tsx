@@ -11,6 +11,8 @@ interface PremiumLobbyProps {
   onCreateRoom: (roomId: string) => void;
   onStartMatchmaking: () => void;
   onCancelMatchmaking: () => void;
+  reyesMode?: number;
+  onReyesModeChange?: (mode: number) => void;
 }
 
 interface UserProfile {
@@ -29,6 +31,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   onCreateRoom,
   onStartMatchmaking,
   onCancelMatchmaking,
+  reyesMode = 8,
+  onReyesModeChange,
 }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roomCode, setRoomCode] = useState('');
@@ -95,6 +99,29 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             </div>
           )}
         </header>
+
+        {/* REYES MODE SELECTOR */}
+        <div className="reyes-mode-selector" style={{ marginBottom: '24px', textAlign: 'center', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.2)' }}>
+          <span className="mode-selector-label" style={{ color: '#fbbf24', display: 'block', marginBottom: '12px', fontWeight: 'bold', letterSpacing: '1px' }}>REGLAS DE MESA:</span>
+          <div className="mode-toggle-group" style={{ display: 'inline-flex', gap: '12px' }}>
+            <button
+              type="button"
+              className={`mode-btn ${reyesMode === 8 ? 'active-mode' : ''}`}
+              onClick={() => onReyesModeChange?.(8)}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: reyesMode === 8 ? 'linear-gradient(135deg, #fbbf24, #b45309)' : 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.3s' }}
+            >
+              👑 8 Reyes (Vasco)
+            </button>
+            <button
+              type="button"
+              className={`mode-btn ${reyesMode === 4 ? 'active-mode' : ''}`}
+              onClick={() => onReyesModeChange?.(4)}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: reyesMode === 4 ? 'linear-gradient(135deg, #fbbf24, #b45309)' : 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.3s' }}
+            >
+              🃏 4 Reyes (Español)
+            </button>
+          </div>
+        </div>
 
         {/* DASHBOARD GRID */}
         <div className="lobby-grid">

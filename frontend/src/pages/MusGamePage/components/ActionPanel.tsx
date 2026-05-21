@@ -75,6 +75,14 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     <button className="btn-primary-action" onClick={onStart}>Siguiente Mano</button>
   );
 
+  if (phase === 'game-over') return (
+    <div className="action-panel-bar game-over-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.3)' }}>
+      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fbbf24', textShadow: '0 0 10px rgba(250,199,21,0.5)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>🏆 ¡Encuentro Finalizado! 🏆</h3>
+      <p style={{ fontSize: '0.9rem', color: '#e5e7eb', margin: 0 }}>La partida ha terminado al alcanzar los 30 puntos.</p>
+      <button className="btn-primary-action animate-pulse" style={{ backgroundColor: '#059669', boxShadow: '0 0 15px rgba(5,150,105,0.4)', marginTop: '8px' }} onClick={onStart}>🎮 Jugar Revancha</button>
+    </div>
+  );
+
   return null;
 };
 

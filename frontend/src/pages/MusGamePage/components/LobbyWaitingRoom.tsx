@@ -15,6 +15,8 @@ interface LobbyWaitingRoomProps {
   onAddBot: (chair: number) => void;
   onStartGame: () => void;
   onLeaveRoom: () => void;
+  reyesMode?: number;
+  onReyesModeChange?: (mode: number) => void;
 }
 
 const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
@@ -24,6 +26,8 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
   onAddBot,
   onStartGame,
   onLeaveRoom,
+  reyesMode = 8,
+  onReyesModeChange,
 }) => {
   // El host es el primer jugador real (normalmente en la silla 0)
   const hostPlayer = seats.find(s => s.userId !== null && !s.isBot);
@@ -110,6 +114,25 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
         <div className="waiting-footer-actions">
           {isHost ? (
             <div className="host-panel">
+              <div className="reyes-mode-selector">
+                <span className="mode-selector-label">Reglas:</span>
+                <div className="mode-toggle-group">
+                  <button
+                    type="button"
+                    className={`mode-btn ${reyesMode === 8 ? 'active-mode' : ''}`}
+                    onClick={() => onReyesModeChange?.(8)}
+                  >
+                    👑 8 Reyes (Vasco)
+                  </button>
+                  <button
+                    type="button"
+                    className={`mode-btn ${reyesMode === 4 ? 'active-mode' : ''}`}
+                    onClick={() => onReyesModeChange?.(4)}
+                  >
+                    🃏 4 Reyes (Español)
+                  </button>
+                </div>
+              </div>
               <p className="status-tip">
                 {isTableFull 
                   ? '¡La mesa está completa! Todo listo para jugar.' 
@@ -129,6 +152,9 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
               <p className="guest-waiting-lbl">
                 Esperando a que el anfitrión comience la partida...
               </p>
+              <div className="guest-mode-info">
+                Modo: <strong className="glow-text">{reyesMode === 8 ? '8 Reyes (Mazo Vasco)' : '4 Reyes (Mazo Español)'}</strong>
+              </div>
             </div>
           )}
         </div>

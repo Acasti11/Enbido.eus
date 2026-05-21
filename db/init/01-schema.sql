@@ -242,12 +242,7 @@ ALTER TABLE friendships
     ADD CONSTRAINT friendships_user_login_1_FK FOREIGN KEY (user_id_1) REFERENCES user_login (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT friendships_user_login_2_FK FOREIGN KEY (user_id_2) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
-INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '1234', 'juanito', '1990-01-01');
-
-
-
-
-
+INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '$2a$10$sNTJxM4eafrhdyP2vbyvWOtKWImFWiPeeF3XOh6h6ru/gEJbs0K92', 'juanito', '1990-01-01');
 
 
 CREATE TABLE IF NOT EXISTS game_matches (

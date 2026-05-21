@@ -17,7 +17,8 @@ export type GamePhase =
   | 'mus-check' 
   | 'discarding' 
   | 'betting' 
-  | 'round-over';
+  | 'round-over'
+  | 'game-over';
 
 export type BettingStage = 'grande' | 'chica' | 'pares' | 'juego' | 'punto';
 
