@@ -174,13 +174,16 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
     setLoading(true);
 
     try {
-      const payload: Omit<User, 'user_id' | 'is_banned' | 'created_at'> = {
-        ...formData,
-        surname: formData.surname?.trim() || undefined,
-        phone_number: formData.phone_number?.trim() || undefined,
-        postal_code: formData.postal_code?.trim() || undefined,
-        role: 'user'
-      };
+      const payload = {
+        name: formData.name,
+        surname: formData.surname?.trim() || null,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phone_number?.trim() || null,  // ← camelCase
+        postalCode: formData.postal_code?.trim() || null,     // ← camelCase
+        birthDate: formData.birthDate,
+        username: formData.username
+};
       
       console.log('Sending JSON:', JSON.stringify(payload, null, 2));
       
