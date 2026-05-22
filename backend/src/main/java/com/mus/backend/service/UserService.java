@@ -16,9 +16,26 @@ public class UserService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public Usuario crearUsuario(Usuario u) {
-        u.setPassword(passwordEncoder.encode(u.getPassword()));
-        return usuarioRepository.save(u);
+    public Usuario registrarUsuario(Usuario usuario) {
+        if (usuarioRepository.existsByUsername(usuario.getUsername())) {
+            throw new IllegalArgumentException("El username ya existe");
+        }
+        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+            throw new IllegalArgumentException("El email ya existe");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
+        Usuario saved = usuarioRepository.save(usuario);
+
+        try {
+            UserGameProfile profile = new UserGameProfile(saved.getUserId());
+            userGameProfileRepository.save(profile);
+        } catch (Exception e) {
+            System.err.println("Error al inicializar el perfil: " + e.getMessage());
+        }
+
+        return saved;
     }
 
     public boolean verificarLogin(String passwordPlano, String hashDeBaseDatos) {

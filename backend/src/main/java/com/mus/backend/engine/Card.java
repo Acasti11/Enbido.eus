@@ -20,7 +20,7 @@ public class Card {
         // As / 2 es As (valor 1). 3 / Rey / Caballo / Sota es Figura (valor 10)
         if (rank == 1 || rank == 2) {
             this.scoreValue = 1;
-        } else if (rank >= 10 || rank == 3) {
+        } else if (rank >= 10 || rank == 3) {  //!!{ MAAAAAALLLLL} falta saber si estas a 4 o a 8
             this.scoreValue = 10;
         } else {
             this.scoreValue = rank;

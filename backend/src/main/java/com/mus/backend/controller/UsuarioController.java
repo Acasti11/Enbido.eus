@@ -41,23 +41,12 @@ public class UsuarioController {
     // POST crear usuario
     @PostMapping
     public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
-        if (usuarioRepository.existsByUsername(usuario.getUsername())) {
-            return ResponseEntity.badRequest().body("El username ya existe");
-        }
-        
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            return ResponseEntity.badRequest().body("El email ya existe");
-        }
-
-        Usuario saved = userService.crearUsuario(usuario);
         try {
-            com.mus.backend.model.UserGameProfile profile = new com.mus.backend.model.UserGameProfile(saved.getUserId());
-            userGameProfileRepository.save(profile);
-        } catch (Exception e) {
-            System.err.println("Error al inicializar el perfil del usuario: " + e.getMessage());
+            Usuario saved = usuarioService.registrarUsuario(usuario);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     // PUT actualizar usuario
