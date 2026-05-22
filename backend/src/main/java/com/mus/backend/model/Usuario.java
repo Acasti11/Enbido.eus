@@ -1,5 +1,8 @@
 package com.mus.backend.model;
 
+import com.mus.backend.validator.MinAge;
+import com.mus.backend.validator.PostalCodeES;
+import com.mus.backend.validator.StrongPassword;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -29,18 +32,20 @@ public class Usuario {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @StrongPassword  // ← CUSTOM
     @Column(name = "password", nullable = false)
     private String password;
 
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @PostalCodeES  // ← CUSTOM
     @Column(name = "postal_code")
     private String postalCode;
 
     @NotNull(message = "Birth date is required")
     @Past(message = "Birth date must be in the past")
+    @MinAge(value = 3, message = "You must be at least 3 years old")  // ← CUSTOM
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
