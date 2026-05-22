@@ -22,7 +22,8 @@ public class UsuarioRegisterDto {
     @NotBlank(message = "Password is required")
     @StrongPassword
     private String password;
-
+    
+    @Pattern(regexp = "^\\+?[0-9]{9,15}$", message = "Phone must be 9-15 digits, optional + prefix")
     private String phoneNumber;
 
     @PostalCodeES
