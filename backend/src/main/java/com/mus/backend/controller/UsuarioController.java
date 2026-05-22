@@ -40,15 +40,14 @@ public class UsuarioController {
 
     // POST crear usuario
     @PostMapping
-    public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> createUsuario(@Valid @RequestBody UsuarioRegistroDto dto) {
         try {
-            Usuario saved = usuarioService.registrarUsuario(usuario);
+            Usuario saved = usuarioService.registrarUsuario(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
     // PUT actualizar usuario
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuarioDetails) {
