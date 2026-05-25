@@ -1,155 +1,131 @@
 package com.mus.backend.service;
 
+import com.mus.backend.model.Item;
+import com.mus.backend.model.PurchaseHistory;
+import com.mus.backend.model.UserGameProfile;
+import com.mus.backend.model.UserInventory;
+import com.mus.backend.repository.ItemRepository;
+import com.mus.backend.repository.PurchaseHistoryRepository;
+import com.mus.backend.repository.UserGameProfileRepository;
+import com.mus.backend.repository.UserInventoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ShopService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    @Autowired
+    private ItemRepository itemRepository;
+
+    @Autowired
+    private UserInventoryRepository userInventoryRepository;
+
+    @Autowired
+    private PurchaseHistoryRepository purchaseHistoryRepository;
+
+    @Autowired
+    private UserGameProfileRepository userGameProfileRepository;
 
     public List<Map<String, Object>> getShopItems() {
-        List<?> results = entityManager.createNativeQuery(
-            "SELECT i.item_id, i.name, i.price, c.name as category_name " +
-            "FROM items i " +
-            "JOIN categories c ON i.category_id = c.category_id"
-        ).getResultList();
-
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (Object obj : results) {
-            Object[] row = (Object[]) obj;
+        List<Item> items = itemRepository.findAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Item item : items) {
             Map<String, Object> map = new HashMap<>();
-            map.put("itemId", row[0]);
-            map.put("name", row[1]);
-            map.put("price", row[2]);
-            map.put("category", row[3]);
-            items.add(map);
+            map.put("itemId", item.getItemId());
+            map.put("name", item.getName());
+            map.put("price", item.getPrice());
+            map.put("category", item.getCategory() != null ? item.getCategory().getName() : null);
+            result.add(map);
         }
-        return items;
+        return result;
     }
 
-    public List<?> getUserInventory(Long userId) {
-        return entityManager.createNativeQuery(
-            "SELECT ui.item_id FROM user_inventory ui WHERE ui.user_id = :userId"
-        ).setParameter("userId", userId).getResultList();
+    public List<Long> getUserInventory(Long userId) {
+        return userInventoryRepository.findByUserId(userId).stream()
+                .map(ui -> ui.getItem().getItemId())
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public Map<String, Object> buyItem(Long userId, Long itemId) {
-        // Verificar si el usuario ya tiene el artículo
-        List<?> owned = entityManager.createNativeQuery(
-            "SELECT 1 FROM user_inventory WHERE user_id = :userId AND item_id = :itemId"
-        ).setParameter("userId", userId)
-         .setParameter("itemId", itemId)
-         .getResultList();
-
-        if (!owned.isEmpty()) {
+        if (userInventoryRepository.existsByUserIdAndItemItemId(userId, itemId)) {
             throw new IllegalArgumentException("Ya posees este objeto en tu inventario");
         }
 
-        // Obtener precio
-        List<?> itemData = entityManager.createNativeQuery(
-            "SELECT price FROM items WHERE item_id = :itemId"
-        ).setParameter("itemId", itemId)
-         .getResultList();
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Objeto no encontrado en la tienda"));
 
-        if (itemData.isEmpty()) {
-            throw new IllegalArgumentException("Objeto no encontrado en la tienda");
-        }
+        int price = item.getPrice() != null ? item.getPrice() : 0;
 
-        int price = ((Number) itemData.get(0)).intValue();
+        UserGameProfile profile = userGameProfileRepository.findById(userId).orElseGet(() -> {
+            UserGameProfile newProfile = new UserGameProfile(userId);
+            return userGameProfileRepository.save(newProfile);
+        });
 
-        // Obtener saldo
-        List<?> coinsData = entityManager.createNativeQuery(
-            "SELECT coins FROM user_game_profile WHERE user_id = :userId"
-        ).setParameter("userId", userId)
-         .getResultList();
-
-        int currentCoins = 0;
-        if (!coinsData.isEmpty()) {
-            currentCoins = ((Number) coinsData.get(0)).intValue();
-        } else {
-            entityManager.createNativeQuery(
-                "INSERT INTO user_game_profile (user_id, elo, coins, total_games_played, total_games_won) VALUES (:userId, 200, 1000, 0, 0)"
-            ).setParameter("userId", userId).executeUpdate();
-            currentCoins = 1000;
-        }
+        int currentCoins = profile.getCoins() != null ? profile.getCoins() : 0;
 
         if (currentCoins < price) {
             throw new IllegalArgumentException("No tienes suficientes monedas (tx) para realizar esta compra");
         }
 
-        // Transacción de compra
-        entityManager.createNativeQuery(
-            "UPDATE user_game_profile SET coins = coins - :price WHERE user_id = :userId"
-        ).setParameter("price", price).setParameter("userId", userId).executeUpdate();
+        profile.setCoins(currentCoins - price);
+        userGameProfileRepository.save(profile);
 
-        entityManager.createNativeQuery(
-            "INSERT INTO user_inventory (user_id, item_id) VALUES (:userId, :itemId)"
-        ).setParameter("userId", userId).setParameter("itemId", itemId).executeUpdate();
+        UserInventory inventory = new UserInventory();
+        inventory.setUserId(userId);
+        inventory.setItem(item);
+        userInventoryRepository.save(inventory);
 
-        entityManager.createNativeQuery(
-            "INSERT INTO purchase_history (user_id, item_id, coins_spent) VALUES (:userId, :itemId, :price)"
-        ).setParameter("userId", userId).setParameter("itemId", itemId).setParameter("price", price).executeUpdate();
+        PurchaseHistory history = new PurchaseHistory();
+        history.setUserId(userId);
+        history.setItem(item);
+        history.setCoinsSpent(price);
+        purchaseHistoryRepository.save(history);
 
         return Map.of("message", "Compra realizada con éxito", "newCoins", currentCoins - price);
     }
 
     @Transactional
     public Map<String, Object> equipItem(Long userId, Long itemId) {
-        List<?> owned = entityManager.createNativeQuery(
-            "SELECT 1 FROM user_inventory WHERE user_id = :userId AND item_id = :itemId"
-        ).setParameter("userId", userId).setParameter("itemId", itemId).getResultList();
-
-        if (owned.isEmpty()) {
+        if (!userInventoryRepository.existsByUserIdAndItemItemId(userId, itemId)) {
             throw new IllegalArgumentException("No puedes equipar un objeto que no posees");
         }
 
-        List<?> catData = entityManager.createNativeQuery(
-            "SELECT c.name FROM items i JOIN categories c ON i.category_id = c.category_id WHERE i.item_id = :itemId"
-        ).setParameter("itemId", itemId).getResultList();
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Objeto no encontrado"));
 
-        if (catData.isEmpty()) {
-            throw new IllegalArgumentException("Objeto no encontrado");
-        }
+        String category = item.getCategory() != null ? item.getCategory().getName() : "";
 
-        String category = (String) catData.get(0);
-        String column = "";
-        if (category.equals("profiles")) column = "equipped_avatar_item_id";
-        else if (category.equals("decks")) column = "equipped_deck_item_id";
-        else if (category.equals("aliases")) column = "equipped_title_item_id";
-        else if (category.equals("boards")) column = "equipped_board_item_id";
+        UserGameProfile profile = userGameProfileRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil no encontrado"));
 
-        if (column.isEmpty()) {
-            throw new IllegalArgumentException("Categoría no equipable");
-        }
+        if ("profiles".equals(category)) profile.setEquippedAvatarItemId(itemId.intValue());
+        else if ("decks".equals(category)) profile.setEquippedDeckItemId(itemId.intValue());
+        else if ("aliases".equals(category)) profile.setEquippedTitleItemId(itemId.intValue());
+        else if ("boards".equals(category)) profile.setEquippedBoardItemId(itemId.intValue());
+        else throw new IllegalArgumentException("Categoría no equipable");
 
-        entityManager.createNativeQuery(
-            "UPDATE user_game_profile SET " + column + " = :itemId WHERE user_id = :userId"
-        ).setParameter("itemId", itemId).setParameter("userId", userId).executeUpdate();
+        userGameProfileRepository.save(profile);
 
         return Map.of("message", "Objeto equipado con éxito");
     }
 
     @Transactional
     public Map<String, Object> unequipItem(Long userId, String category) {
-        String column = "";
-        if (category.equals("profiles")) column = "equipped_avatar_item_id";
-        else if (category.equals("decks")) column = "equipped_deck_item_id";
-        else if (category.equals("aliases")) column = "equipped_title_item_id";
-        else if (category.equals("boards")) column = "equipped_board_item_id";
+        UserGameProfile profile = userGameProfileRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil no encontrado"));
 
-        if (column.isEmpty()) {
-            throw new IllegalArgumentException("Categoría no equipable");
-        }
+        if ("profiles".equals(category)) profile.setEquippedAvatarItemId(null);
+        else if ("decks".equals(category)) profile.setEquippedDeckItemId(null);
+        else if ("aliases".equals(category)) profile.setEquippedTitleItemId(null);
+        else if ("boards".equals(category)) profile.setEquippedBoardItemId(null);
+        else throw new IllegalArgumentException("Categoría no equipable");
 
-        entityManager.createNativeQuery(
-            "UPDATE user_game_profile SET " + column + " = NULL WHERE user_id = :userId"
-        ).setParameter("userId", userId).executeUpdate();
+        userGameProfileRepository.save(profile);
 
         return Map.of("message", "Objeto desequipado con éxito");
     }
