@@ -2,13 +2,17 @@ package com.mus.backend.controller;
 
 import com.mus.backend.model.Usuario;
 import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.service.UserService;
+import com.mus.backend.model.LoginRequest;
+import com.mus.backend.repository.UserGameProfileRepository;
+import com.mus.backend.dto.UsuarioRegistroDto;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.mus.backend.service.UserService;
-import com.mus.backend.model.LoginRequest;
-import com.mus.backend.repository.UserGameProfileRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +24,10 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    
     @Autowired
     private UserService userService;
+    
     @Autowired
     private UserGameProfileRepository userGameProfileRepository;
 
@@ -42,12 +48,13 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<?> createUsuario(@Valid @RequestBody UsuarioRegistroDto dto) {
         try {
-            Usuario saved = usuarioService.registrarUsuario(dto);
+            Usuario saved = userService.registrarUsuario(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     // PUT actualizar usuario
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuarioDetails) {
@@ -84,18 +91,13 @@ public class UsuarioController {
     }
 
     // POST login
-    @PostMapping("/login")
+   @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Optional<Usuario> usuario = usuarioRepository.findByUsername(request.getUsername());
-        
-        if (usuario.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no encontrado");
-        }
-
-        if (!userService.verificarLogin(request.getPassword(),usuario.get().getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Contraseña incorrecta");
-        }
-
-        return ResponseEntity.ok(usuario.get());
+    try {
+        Usuario usuario = userService.authenticate(request.getUsername(), request.getPassword());
+        return ResponseEntity.ok(usuario);
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
+}
 }
