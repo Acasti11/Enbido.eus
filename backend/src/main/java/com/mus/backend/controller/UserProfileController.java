@@ -1,8 +1,7 @@
 package com.mus.backend.controller;
 
 import com.mus.backend.model.UserGameProfile;
-import com.mus.backend.repository.UserGameProfileRepository;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.service.UserProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,43 +12,21 @@ import org.springframework.web.bind.annotation.*;
 public class UserProfileController {
 
     @Autowired
-    private UserGameProfileRepository profileRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserProfileService userProfileService;
 
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {
-        if (!usuarioRepository.existsById(userId)) {
+        if (!userProfileService.userExists(userId)) {
             return ResponseEntity.notFound().build();
         }
 
-        // Si no existe perfil en la base de datos, lo inicializamos dinámicamente
-        UserGameProfile profile = profileRepository.findById(userId)
-                .orElseGet(() -> {
-                    UserGameProfile newProfile = new UserGameProfile(userId);
-                    return profileRepository.save(newProfile);
-                });
-
+        UserGameProfile profile = userProfileService.getOrCreateUserProfile(userId);
         return ResponseEntity.ok(profile);
     }
 
     @PutMapping("/{userId}/profile")
     public ResponseEntity<?> updateUserProfile(@PathVariable Long userId, @RequestBody UserGameProfile updatedDetails) {
-        return profileRepository.findById(userId).map(profile -> {
-            profile.setElo(updatedDetails.getElo());
-            profile.setCoins(updatedDetails.getCoins());
-            profile.setTotalGamesPlayed(updatedDetails.getTotalGamesPlayed());
-            profile.setTotalGamesWon(updatedDetails.getTotalGamesWon());
-            profile.setEquippedAvatarItemId(updatedDetails.getEquippedAvatarItemId());
-            profile.setEquippedDeckItemId(updatedDetails.getEquippedDeckItemId());
-            profile.setEquippedTitleItemId(updatedDetails.getEquippedTitleItemId());
-            UserGameProfile saved = profileRepository.save(profile);
-            return ResponseEntity.ok(saved);
-        }).orElseGet(() -> {
-            updatedDetails.setUserId(userId);
-            UserGameProfile saved = profileRepository.save(updatedDetails);
-            return ResponseEntity.ok(saved);
-        });
+        UserGameProfile saved = userProfileService.updateUserProfile(userId, updatedDetails);
+        return ResponseEntity.ok(saved);
     }
 }
