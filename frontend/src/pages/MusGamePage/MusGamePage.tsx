@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../../components/layout/Navbar';
 import GameScoreBoard from './components/GameScoreBoard';
 import GameConsoleLogs from './components/GameConsoleLogs';
 import ActionPanel from './components/ActionPanel';
@@ -57,7 +56,6 @@ const MusGamePage: React.FC = () => {
   if (roomId === '') {
     return (
       <>
-        <Navbar />
         <PremiumLobby 
           userId={currentUserId}
           username={username}
@@ -76,7 +74,6 @@ const MusGamePage: React.FC = () => {
   if (!isPlaying) {
     return (
       <>
-        <Navbar />
         <LobbyWaitingRoom 
           roomId={roomId}
           seats={seats}
@@ -92,7 +89,6 @@ const MusGamePage: React.FC = () => {
   // --- VISTA 3: EL TAPETE VERDE DE JUEGO MULTIJUGADOR ---
   return (
     <>
-      <Navbar />
       <div className="mus-view-container">
         
         {/* PANEL IZQUIERDO: LA MESA VERDE */}

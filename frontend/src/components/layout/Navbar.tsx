@@ -1,33 +1,43 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import './navbar.css';
 
 const NAV_LINKS = [
-  { label: 'Play', href: '#' },
-  { label: 'Learn', href: '#' },
-  { label: 'Ranking', href: '#' },
-  { label: 'Community', href: '#' },
+  { label: 'Home', to: '/jugar' },
+  { label: 'Jugar', to: '/jugar' },
+  { label: 'Torneos', to: '/torneos' },
+  { label: 'Quedadas', to: '/quedadas' },
 ];
 
-const renderNavLinks = (): React.JSX.Element[] => {
-  return NAV_LINKS.map((link) => (
-    <a key={link.label} href={link.href} className="navbar__link">
-      {link.label}
-    </a>
-  ));
-};
-
 const Navbar: React.FC = (): React.JSX.Element => {
+  const location = useLocation();
+
+  const renderNavLinks = (): React.JSX.Element[] => {
+    return NAV_LINKS.map((link) => {
+      const isActive = location.pathname === link.to;
+      return (
+        <Link
+          key={link.label}
+          to={link.to}
+          className={`navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+        >
+          {link.label}
+        </Link>
+      );
+    });
+  };
+
   return (
     <header className="navbar">
       <div className="navbar__brand">
-        <div className="navbar__logo">
+        <Link to="/" className="navbar__logo">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
             <line x1="3" y1="9" x2="21" y2="9" />
             <line x1="9" y1="21" x2="9" y2="9" />
           </svg>
-        </div>
-        <span className="navbar__title">ENBIDO</span>
+        </Link>
+        <Link to="/" className="navbar__title">ENBIDO</Link>
       </div>
 
       <nav className="navbar__nav">
@@ -41,7 +51,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
             <path d="m6 9 6 6 6-6" />
           </svg>
         </button>
-        <button className="navbar__login-btn">Access</button>
+        <Link to="/login" className="navbar__login-btn">Login</Link>
       </div>
     </header>
   );

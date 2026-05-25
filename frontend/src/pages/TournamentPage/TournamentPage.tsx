@@ -18,11 +18,6 @@ const TournamentPage = (): React.JSX.Element => {
 
   return (
     <div className="tournament-app-wrapper">
-      <nav className="tournament-nav-bar">
-        <div className="tournament-nav-brand" onClick={() => setCurrentView(CONST_VIEW_LIST)}>
-          <span className="tournament-nav-title">MUS PLATFORM</span>
-        </div>
-      </nav>
 
       <main className="page-content">
         {currentView === CONST_VIEW_LIST && (

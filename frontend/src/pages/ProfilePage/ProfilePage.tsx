@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import Navbar from '../../components/layout/Navbar';
 import ProfileCard from './components/ProfileCard';
 import BackgroundCards from './components/BackgroundCards';
 import ChatWidget from './components/ChatWidget';
@@ -61,7 +60,6 @@ const ProfilePage: React.FC = (): React.JSX.Element => {
   return (
     <div className="profile-page">
       <BackgroundCards />
-      <Navbar />
       <main className="profile-page__main">
         <ProfileCard
           username={username}
