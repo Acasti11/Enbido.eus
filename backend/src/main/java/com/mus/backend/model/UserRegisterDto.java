@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class UsuarioRegisterDto {
+public class UserRegisterDto {
 
     @NotBlank(message = "Name is required")
     private String name;

@@ -5,7 +5,7 @@ import com.mus.backend.repository.UsuarioRepository;
 import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
 import com.mus.backend.repository.UserGameProfileRepository;
-import com.mus.backend.dto.UsuarioRegistroDto;
+import com.mus.backend.dto.UserRegisterDto;
 
 import jakarta.validation.Valid;
 
@@ -46,7 +46,7 @@ public class UsuarioController {
 
     // POST crear usuario
     @PostMapping
-    public ResponseEntity<?> createUsuario(@Valid @RequestBody UsuarioRegistroDto dto) {
+    public ResponseEntity<?> createUsuario(@Valid @RequestBody UserRegisterDto dto) {
         try {
             Usuario saved = userService.registrarUsuario(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);

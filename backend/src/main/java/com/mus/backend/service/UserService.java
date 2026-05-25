@@ -1,6 +1,6 @@
 package com.mus.backend.service;
 
-import com.mus.backend.dto.UsuarioRegistroDto;
+import com.mus.backend.dto.UserRegisterDto;
 import com.mus.backend.model.Usuario;
 import com.mus.backend.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,7 +36,7 @@ public class UserService {
         usuarioRepository.deleteById(id);
     }
 
-    public Usuario registrarUsuario(UsuarioRegistroDto dto) {
+    public Usuario registrarUsuario(UserRegisterDto dto) {
         if (usuarioRepository.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }

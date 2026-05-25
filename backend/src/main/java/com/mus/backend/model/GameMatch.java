@@ -1,4 +1,5 @@
 package com.mus.backend.model;
+import lombok.Data;
 
 import jakarta.persistence.*;
 
