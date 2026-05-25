@@ -2,7 +2,7 @@ import React from 'react';
 import CardLogo from './CardLogo';
 import LoginForm from './LoginForm';
 import SocialDivider from './SocialDivider';
-import './login-card.css';
+import '../styles/login-card.css';
 
 interface LoginCardProps {
   onSwitchToRegister: () => void;

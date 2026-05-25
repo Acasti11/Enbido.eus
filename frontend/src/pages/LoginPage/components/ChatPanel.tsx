@@ -1,5 +1,5 @@
 import React from 'react';
-import './chat-panel.css';
+import '../styles/chat-panel.css';
 
 const INITIAL_MESSAGE = "Hello! I'm the Mus Master. Do you have questions about the rules, card values, or how to throw an 'ordago'?";
 

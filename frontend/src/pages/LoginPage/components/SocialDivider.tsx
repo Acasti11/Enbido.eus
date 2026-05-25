@@ -1,5 +1,5 @@
 import React from 'react';
-import './social-divider.css';
+import '../styles/social-divider.css';
 interface LoginFormProps {
   onSwitchToRegister: () => void; 
 }

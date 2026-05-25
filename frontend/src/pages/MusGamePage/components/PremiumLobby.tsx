@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../../services/api';
-import './premium-lobby.css';
+import '../styles/premium-lobby.css';
 
 interface PremiumLobbyProps {
   userId: number;

@@ -1,6 +1,6 @@
 import React from 'react';
 import ChatPanel from '../../LoginPage/components/ChatPanel';
-import '../../LoginPage/components/chat-widget.css';
+import '../../LoginPage/styles/chat-widget.css';
 
 const ChatWidget: React.FC = (): React.JSX.Element => {
   const [isOpen, setIsOpen] = React.useState(false);

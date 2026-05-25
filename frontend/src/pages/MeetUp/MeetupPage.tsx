@@ -3,7 +3,7 @@ import Navbar from '../../components/layout/Navbar';
 // Fíjate en la palabra "type" que he añadido dentro de las llaves en estas dos líneas:
 import MeetupAdCard, { type LocalMeetupAd } from './components/MeetupAdCard';
 import CreateAdPage, { type CreateAdFormState } from './components/CreateAdPage';
-import './meetup-page.css';
+import './styles/meetup-page.css';
 
 const CONST_CURRENT_USER_ID = 999; 
 

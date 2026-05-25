@@ -1,5 +1,5 @@
 import React from 'react';
-import './background-cards.css';
+import '../styles/background-cards.css';
 
 const BackgroundCards: React.FC = (): React.JSX.Element => {
   return (

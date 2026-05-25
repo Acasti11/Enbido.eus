@@ -1,6 +1,6 @@
 import React from 'react';
 import ChatPanel from './ChatPanel';
-import './chat-widget.css';
+import '../styles/chat-widget.css';
 
 const ChatWidget: React.FC = (): React.JSX.Element => {
   return (

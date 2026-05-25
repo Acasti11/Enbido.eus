@@ -1,7 +1,7 @@
 import React from 'react';
 import ProfileHeader from './ProfileHeader';
 import StatsGrid from './StatsGrid';
-import './profile-card.css';
+import '../styles/profile-card.css';
 
 interface ProfileCardProps {
   username?: string;

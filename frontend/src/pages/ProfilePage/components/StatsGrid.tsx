@@ -1,5 +1,5 @@
 import React from 'react';
-import './stats-grid.css';
+import '../styles/stats-grid.css';
 
 interface Stat {
   label: string;

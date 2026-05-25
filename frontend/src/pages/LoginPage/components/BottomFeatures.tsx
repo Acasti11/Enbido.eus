@@ -1,5 +1,5 @@
 import React from 'react';
-import './bottom-features.css';
+import '../styles/bottom-features.css';
 
 const FEATURES = [
   {

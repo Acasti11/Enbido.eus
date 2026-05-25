@@ -1,7 +1,7 @@
 import React from 'react';
 import CardLogo from './CardLogo';
 import CreateUserForm from './CreateUserForm';
-import './login-card.css';  // Reusa los mismos estilos
+import '../styles/login-card.css';  // Reusa los mismos estilos
 
 interface CreateUserCardProps {
   onSwitchToLogin: () => void;

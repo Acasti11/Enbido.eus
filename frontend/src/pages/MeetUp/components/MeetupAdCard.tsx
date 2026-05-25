@@ -1,5 +1,5 @@
 import React from 'react';
-import './meetup-ad-card.css';
+import '../styles/meetup-ad-card.css';
 
 // Integramos la interfaz aquí para evitar errores de archivos faltantes
 export interface LocalMeetupAd {

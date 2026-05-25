@@ -8,7 +8,7 @@ import PremiumLobby from './components/PremiumLobby';
 import LobbyWaitingRoom from './components/LobbyWaitingRoom';
 import { useMusGame } from './hooks/useMusGame';
 import api from '../../services/api';
-import './mus-game.css';
+import './styles/mus-game.css';
 
 const MusGamePage: React.FC = () => {
   // Extraemos el ID del usuario del localStorage, o usamos el 1 por defecto

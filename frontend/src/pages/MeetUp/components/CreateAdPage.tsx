@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './create-ad-page.css';
+import '../styles/create-ad-page.css';
 
 // Integramos la interfaz aquí
 export interface CreateAdFormState {

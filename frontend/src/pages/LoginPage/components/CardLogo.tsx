@@ -1,5 +1,5 @@
 import React from 'react';
-import './card-logo.css';
+import '../styles/card-logo.css';
 
 const CardLogo: React.FC = (): React.JSX.Element => {
   return (

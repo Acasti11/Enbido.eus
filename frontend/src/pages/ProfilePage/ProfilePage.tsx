@@ -4,7 +4,7 @@ import Navbar from '../../components/layout/Navbar';
 import ProfileCard from './components/ProfileCard';
 import BackgroundCards from './components/BackgroundCards';
 import ChatWidget from './components/ChatWidget';
-import './profile-page.css';
+import './styles/profile-page.css';
 
 interface UserProfile {
   elo: number;

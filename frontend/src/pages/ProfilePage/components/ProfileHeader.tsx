@@ -1,5 +1,5 @@
 import React from 'react';
-import './profile-header.css';
+import '../styles/profile-header.css';
 
 interface ProfileHeaderProps {
   username?: string;

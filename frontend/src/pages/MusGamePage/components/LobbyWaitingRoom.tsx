@@ -1,5 +1,5 @@
 import React from 'react';
-import './lobby-waiting-room.css';
+import '../styles/lobby-waiting-room.css';
 
 interface SeatInfo {
   chair: number;

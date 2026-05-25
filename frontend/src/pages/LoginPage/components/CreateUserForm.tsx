@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../../services/api';
 import type { User } from '../../../types/User';
-import './login-form.css';
+import '../styles/login-form.css';
 
 const UserIcon = () => (
   <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
