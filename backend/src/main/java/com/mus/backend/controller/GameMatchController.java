@@ -1,11 +1,10 @@
 package com.mus.backend.controller;
 
 import com.mus.backend.model.GameMatch;
-import com.mus.backend.repository.GameMatchRepository;
+import com.mus.backend.service.GameMatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/games")
@@ -13,21 +12,18 @@ import java.util.List;
 public class GameMatchController {
 
     @Autowired
-    private GameMatchRepository repository;
+    private GameMatchService gameMatchService;
 
     @PostMapping("/start")
     public ResponseEntity<GameMatch> createGameMatch(@RequestBody GameMatch game) {
-        GameMatch savedGame = repository.save(game);
+        GameMatch savedGame = gameMatchService.createGameMatch(game);
         return ResponseEntity.ok(savedGame);
     }
 
     @PutMapping("/{id}/score")
     public ResponseEntity<GameMatch> updateGameScore(@PathVariable Long id, @RequestBody GameMatch data) {
-        return repository.findById(id).map(game -> {
-            game.setScoreUs(data.getScoreUs());
-            game.setScoreThem(data.getScoreThem());
-            game.setStatus(data.getStatus());
-            return ResponseEntity.ok(repository.save(game));
-        }).orElse(ResponseEntity.notFound().build());
+        return gameMatchService.updateGameScore(id, data)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
