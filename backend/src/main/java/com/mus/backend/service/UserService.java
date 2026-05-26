@@ -1,89 +1,73 @@
 package com.mus.backend.service;
 
-import com.mus.backend.dto.UserRegisterDto;
 import com.mus.backend.model.Usuario;
 import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.security.JwtTokenProvider;
+import com.mus.backend.dto.UserRegisterDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
 
     private final UsuarioRepository usuarioRepository;
+    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UsuarioRepository usuarioRepository,
+                       JwtTokenProvider jwtTokenProvider,
+                       PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<Usuario> findAll() {
-        return usuarioRepository.findAll();
-    }
-
-    public Optional<Usuario> findById(Long id) {
-        return usuarioRepository.findById(id);
-    }
-
-    public boolean existsById(Long id) {
-        return usuarioRepository.existsById(id);
-    }
-
-    public void deleteById(Long id) {
-        usuarioRepository.deleteById(id);
-    }
-
-    public Usuario registrarUsuario(UserRegisterDto dto) {
+    // ============================================
+    // REGISTRO: solo devuelve mensaje
+    // ============================================
+    public String registrarUsuario(UserRegisterDto dto) {
         if (usuarioRepository.existsByUsername(dto.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new IllegalArgumentException("Username ya existe");
         }
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("Email ya existe");
         }
 
         Usuario usuario = new Usuario();
+        usuario.setUsername(dto.getUsername());
         usuario.setName(dto.getName());
         usuario.setSurname(dto.getSurname());
         usuario.setEmail(dto.getEmail());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setPhoneNumber(dto.getPhoneNumber());
         usuario.setPostalCode(dto.getPostalCode());
-        usuario.setBirthDate(dto.getBirthDate());
-        usuario.setUsername(dto.getUsername());
-        usuario.setRole("user");
+        usuario.setRole("USER");
         usuario.setIsBanned(false);
 
-        return usuarioRepository.save(usuario);
+        usuarioRepository.save(usuario);
+        return "Usuario registrado correctamente";
     }
 
-    public Usuario updateUsuario(Long id, Usuario usuarioDetails) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        usuario.setName(usuarioDetails.getName());
-        usuario.setSurname(usuarioDetails.getSurname());
-        usuario.setEmail(usuarioDetails.getEmail());
-        usuario.setPhoneNumber(usuarioDetails.getPhoneNumber());
-        usuario.setPostalCode(usuarioDetails.getPostalCode());
-        usuario.setBirthDate(usuarioDetails.getBirthDate());
-        usuario.setUsername(usuarioDetails.getUsername());
-        usuario.setRole(usuarioDetails.getRole());
-        usuario.setIsBanned(usuarioDetails.getIsBanned());
-
-        return usuarioRepository.save(usuario);
-    }
-
-    public Usuario authenticate(String username, String rawPassword) {
+    // ============================================
+    // LOGIN: devuelve SOLO el token
+    // ============================================
+    public String authenticate(String username, String password) {
         Usuario usuario = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-        if (!passwordEncoder.matches(rawPassword, usuario.getPassword())) {
-            throw new RuntimeException("Invalid password");
+        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+            throw new RuntimeException("Credenciales inválidas");
         }
 
-        return usuario;
+        if (usuario.getIsBanned()) {
+            throw new RuntimeException("Usuario baneado");
+        }
+
+        // SOLO token. Nada más.
+        return jwtTokenProvider.generateToken(
+            usuario.getId(),
+            usuario.getUsername(),
+            usuario.getRole()
+        );
     }
 }

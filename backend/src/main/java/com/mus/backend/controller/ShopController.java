@@ -4,7 +4,10 @@ import com.mus.backend.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @RestController
@@ -15,7 +18,9 @@ public class ShopController {
     @Autowired
     private ShopService shopService;
 
-    // 1. Obtener todos los items de la tienda
+    // ============================================
+    // PÚBLICO: Ver items de la tienda (sin token)
+    // ============================================
     @GetMapping("/shop/items")
     public ResponseEntity<?> getShopItems() {
         try {
@@ -25,9 +30,13 @@ public class ShopController {
         }
     }
 
-    // 2. Obtener el inventario del usuario
-    @GetMapping("/usuarios/{userId}/inventory")
-    public ResponseEntity<?> getUserInventory(@PathVariable Long userId) {
+    // ============================================
+    // PROTEGIDO: Mi inventario (userId del token)
+    // Antes: /usuarios/{userId}/inventory
+    // ============================================
+    @GetMapping("/usuarios/me/inventory")
+    public ResponseEntity<?> getMyInventory() {
+        Long userId = getCurrentUserId();
         try {
             return ResponseEntity.ok(shopService.getUserInventory(userId));
         } catch (Exception e) {
@@ -35,9 +44,13 @@ public class ShopController {
         }
     }
 
-    // 3. Comprar un artículo de la tienda
-    @PostMapping("/usuarios/{userId}/buy/{itemId}")
-    public ResponseEntity<?> buyItem(@PathVariable Long userId, @PathVariable Long itemId) {
+    // ============================================
+    // PROTEGIDO: Comprar item (userId del token)
+    // Antes: /usuarios/{userId}/buy/{itemId}
+    // ============================================
+    @PostMapping("/usuarios/me/buy/{itemId}")
+    public ResponseEntity<?> buyItem(@PathVariable Long itemId) {
+        Long userId = getCurrentUserId();
         try {
             Map<String, Object> result = shopService.buyItem(userId, itemId);
             return ResponseEntity.ok(result);
@@ -48,9 +61,13 @@ public class ShopController {
         }
     }
 
-    // 4. Equipar un artículo del inventario
-    @PostMapping("/usuarios/{userId}/equip/{itemId}")
-    public ResponseEntity<?> equipItem(@PathVariable Long userId, @PathVariable Long itemId) {
+    // ============================================
+    // PROTEGIDO: Equipar item (userId del token)
+    // Antes: /usuarios/{userId}/equip/{itemId}
+    // ============================================
+    @PostMapping("/usuarios/me/equip/{itemId}")
+    public ResponseEntity<?> equipItem(@PathVariable Long itemId) {
+        Long userId = getCurrentUserId();
         try {
             Map<String, Object> result = shopService.equipItem(userId, itemId);
             return ResponseEntity.ok(result);
@@ -61,9 +78,13 @@ public class ShopController {
         }
     }
 
-    // 5. Desequipar un artículo de una categoría
-    @PostMapping("/usuarios/{userId}/unequip/{category}")
-    public ResponseEntity<?> unequipItem(@PathVariable Long userId, @PathVariable String category) {
+    // ============================================
+    // PROTEGIDO: Desequipar item (userId del token)
+    // Antes: /usuarios/{userId}/unequip/{category}
+    // ============================================
+    @PostMapping("/usuarios/me/unequip/{category}")
+    public ResponseEntity<?> unequipItem(@PathVariable String category) {
+        Long userId = getCurrentUserId();
         try {
             Map<String, Object> result = shopService.unequipItem(userId, category);
             return ResponseEntity.ok(result);
@@ -72,5 +93,16 @@ public class ShopController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+    // ============================================
+    // HELPER: extrae userId del SecurityContext
+    // ============================================
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new RuntimeException("No autenticado");
+        }
+        return (Long) auth.getPrincipal();
     }
 }
