@@ -183,11 +183,11 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
         postalCode: formData.postal_code?.trim() || null,     // ← camelCase
         birthDate: formData.birthDate,
         username: formData.username
-};
+  };
       
       console.log('Sending JSON:', JSON.stringify(payload, null, 2));
       
-      await api.post('/usuarios', payload);
+      await api.post('/usuarios', payload); 
       
       setSuccess('Account created! Redirecting to login...');
       

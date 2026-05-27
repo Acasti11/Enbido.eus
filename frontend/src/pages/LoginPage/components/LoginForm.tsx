@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import api from '../../../services/api';
 import '../styles/login-form.css';
+import { useNavigate } from 'react-router-dom';
+
 
 const UserIcon = () => (
   <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -37,6 +39,7 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +50,28 @@ const LoginForm: React.FC = () => {
         username,
         password
       });
+
+      // ========== CAMBIO: Guardar token y datos del usuario ==========
+      const { accessToken } = response.data;
       
-      // Guardar el usuario y recargar la página para que App.tsx lea la sesión
-      localStorage.setItem('user', JSON.stringify(response.data));
-      window.location.reload(); 
+      // Guardar token
+      localStorage.setItem('token', accessToken);
       
+      // Decodificar payload del JWT para extraer datos del usuario
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      
+      // Guardar datos útiles del usuario
+      localStorage.setItem('userId', payload.sub);
+      localStorage.setItem('username', payload.username);
+      localStorage.setItem('role', payload.role);
+      
+      console.log('Login exitoso. UserId:', payload.sub, 'Role:', payload.role);
+    
+      navigate('/jugar');
+    
     } catch (err: any) {
-      setError(err.response?.data || 'Error al iniciar sesión');
+      const msg = err.response?.data?.error || err.response?.data || 'Error al iniciar sesión';
+      setError(msg);
     }
   };
 
