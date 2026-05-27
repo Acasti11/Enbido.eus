@@ -33,6 +33,12 @@ export const useMusGame = (userId: number) => {
   const [isMyTurn, setIsMyTurn] = useState<boolean>(false);
   const [betState, setBetState] = useState<number>(0);
   const [currentBetSize, setCurrentBetSize] = useState<number>(0);
+  
+  // Nuevos estados para configuración de reyes y marcador de chicos
+  const [reyesOption, setReyesOption] = useState<'4' | '8'>('8');
+  const [maxRounds, setMaxRounds] = useState<number>(3);
+  const [roundsWonUs, setRoundsWonUs] = useState<number>(0);
+  const [roundsWonThem, setRoundsWonThem] = useState<number>(0);
 
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -46,7 +52,7 @@ export const useMusGame = (userId: number) => {
 
   // --- CONEXIÓN DE WEBSOCKET ---
 
-  const connectWebSocket = useCallback((targetRoomId: string, joinAsMatchmaker: boolean = false) => {
+  const connectWebSocket = useCallback((targetRoomId: string, joinAsMatchmaker: boolean = false, chosenReyes: '4' | '8' = '8') => {
     // Si ya existe socket, lo cerramos
     if (socketRef.current) {
       socketRef.current.close();
@@ -65,7 +71,8 @@ export const useMusGame = (userId: number) => {
         socket.send(JSON.stringify({
           type: 'MATCHMAKING_JOIN',
           userId,
-          username
+          username,
+          reyesOption: chosenReyes
         }));
       } else {
         socket.send(JSON.stringify({
@@ -109,6 +116,10 @@ export const useMusGame = (userId: number) => {
           setIsMyTurn(data.isMyTurn || false);
           setBetState(data.betState || 0);
           setCurrentBetSize(data.currentBetSize || 0);
+          setReyesOption(data.reyesOption || '8');
+          setMaxRounds(data.maxRounds || 3);
+          setRoundsWonUs(data.roundsWonUs || 0);
+          setRoundsWonThem(data.roundsWonThem || 0);
           setIsSearching(false);
         } 
         else if (type === 'QUEUEING') {
@@ -214,9 +225,19 @@ export const useMusGame = (userId: number) => {
     connectWebSocket(roomCode);
   };
 
-  const onStartMatchmaking = () => {
+  const onStartMatchmaking = (selectedReyes: '4' | '8' = '8') => {
     setIsSearching(true);
-    connectWebSocket('', true);
+    connectWebSocket('', true, selectedReyes);
+  };
+
+  const updateRoomConfig = (reyes: '4' | '8', rounds: number) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'UPDATE_CONFIG',
+        reyesOption: reyes,
+        maxRounds: rounds
+      }));
+    }
   };
 
   const onCancelMatchmaking = () => {
@@ -263,6 +284,11 @@ export const useMusGame = (userId: number) => {
     betState,
     currentBetSize,
     
+    reyesOption,
+    maxRounds,
+    roundsWonUs,
+    roundsWonThem,
+    
     handleStartMatch,
     startNewHand,
     handleUserMusDecision,
@@ -275,5 +301,6 @@ export const useMusGame = (userId: number) => {
     onStartMatchmaking,
     onCancelMatchmaking,
     onLeaveRoom,
+    updateRoomConfig,
   };
 };

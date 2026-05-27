@@ -9,7 +9,7 @@ interface PremiumLobbyProps {
   queueSize: number;
   onJoinRoom: (roomId: string) => void;
   onCreateRoom: (roomId: string) => void;
-  onStartMatchmaking: () => void;
+  onStartMatchmaking: (reyes: '4' | '8') => void;
   onCancelMatchmaking: () => void;
 }
 
@@ -33,6 +33,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedReyes, setSelectedReyes] = useState<'4' | '8'>('8');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -117,9 +118,54 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 </button>
               </div>
             ) : (
-              <button className="join-queue-btn" onClick={onStartMatchmaking}>
-                Buscar Partida Online
-              </button>
+              <>
+                <div className="reyes-selector-matchmaking" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px', width: '100%' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#888', fontWeight: 700, letterSpacing: '0.5px' }}>REGLAS DE REYES:</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedReyes('8')} 
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: selectedReyes === '8' ? '2px solid #d4af37' : '1px solid #333',
+                        backgroundColor: selectedReyes === '8' ? 'rgba(212, 175, 55, 0.12)' : '#161616',
+                        color: selectedReyes === '8' ? '#d4af37' : '#aaa',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        transition: 'all 0.2s',
+                        boxShadow: selectedReyes === '8' ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none'
+                      }}
+                    >
+                      👑 8 Reyes
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedReyes('4')} 
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: selectedReyes === '4' ? '2px solid #d4af37' : '1px solid #333',
+                        backgroundColor: selectedReyes === '4' ? 'rgba(212, 175, 55, 0.12)' : '#161616',
+                        color: selectedReyes === '4' ? '#d4af37' : '#aaa',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        transition: 'all 0.2s',
+                        boxShadow: selectedReyes === '4' ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none'
+                      }}
+                    >
+                      ⚔️ 4 Reyes
+                    </button>
+                  </div>
+                </div>
+                <button className="join-queue-btn" onClick={() => onStartMatchmaking(selectedReyes)}>
+                  Buscar Partida Online
+                </button>
+              </>
             )}
           </section>
 

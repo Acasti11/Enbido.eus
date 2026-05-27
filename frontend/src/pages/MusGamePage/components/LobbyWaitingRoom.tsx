@@ -15,6 +15,9 @@ interface LobbyWaitingRoomProps {
   onAddBot: (chair: number) => void;
   onStartGame: () => void;
   onLeaveRoom: () => void;
+  reyesOption: '4' | '8';
+  maxRounds: number;
+  onUpdateConfig: (reyes: '4' | '8', rounds: number) => void;
 }
 
 const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
@@ -24,6 +27,9 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
   onAddBot,
   onStartGame,
   onLeaveRoom,
+  reyesOption,
+  maxRounds,
+  onUpdateConfig,
 }) => {
   // El host es el primer jugador real (normalmente en la silla 0)
   const hostPlayer = seats.find(s => s.userId !== null && !s.isBot);
@@ -58,6 +64,70 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
             {totalPlayersCount}/4 Sentados
           </div>
         </header>
+
+        {/* SETTINGS CARD SECTION */}
+        <div className="room-settings-bar" style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          padding: '12px 20px',
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          gap: '20px',
+          fontSize: '0.85rem'
+        }}>
+          {isHost ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#888', fontWeight: 600 }}>REGLA REYES:</span>
+                <select 
+                  value={reyesOption} 
+                  onChange={(e) => onUpdateConfig(e.target.value as '4' | '8', maxRounds)}
+                  style={{
+                    backgroundColor: '#161616',
+                    color: '#fff',
+                    border: '1px solid #444',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <option value="8">👑 8 Reyes (Español)</option>
+                  <option value="4">⚔️ 4 Reyes (Vasco)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#888', fontWeight: 600 }}>CHICOS A GANAR:</span>
+                <select 
+                  value={maxRounds} 
+                  onChange={(e) => onUpdateConfig(reyesOption, parseInt(e.target.value))}
+                  style={{
+                    backgroundColor: '#161616',
+                    color: '#fff',
+                    border: '1px solid #444',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <option value="1">1 Chico (Partida rápida)</option>
+                  <option value="2">2 Chicos (Al mejor de 3)</option>
+                  <option value="3">3 Chicos (Al mejor de 5)</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', width: '100%', color: '#aaa', fontWeight: 700, letterSpacing: '0.5px' }}>
+              <span>REGLAS: <strong style={{ color: '#d4af37' }}>{reyesOption} REYES</strong></span>
+              <span>OBJETIVO: <strong style={{ color: '#d4af37' }}>GANAR {maxRounds} {maxRounds === 1 ? 'CHICO' : 'CHICOS'} (MEJOR DE {maxRounds === 1 ? 1 : maxRounds === 2 ? 3 : 5})</strong></span>
+            </div>
+          )}
+        </div>
 
         {/* GREEN MESA PREVIEW */}
         <div className="mesa-felt-preview">

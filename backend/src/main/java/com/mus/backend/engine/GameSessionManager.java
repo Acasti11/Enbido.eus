@@ -23,8 +23,9 @@ public class GameSessionManager {
 
     private final Map<String, GameSession> sessions = new ConcurrentHashMap<>();
     
-    // Cola de Matchmaking Online
-    private final List<MatchmakerEntry> matchmakingQueue = new ArrayList<>();
+    // Cola de Matchmaking Online segmentada
+    private final List<MatchmakerEntry> matchmakingQueue4 = new ArrayList<>();
+    private final List<MatchmakerEntry> matchmakingQueue8 = new ArrayList<>();
 
     @Autowired
     private PlayGameRepository playGameRepository;
@@ -39,10 +40,12 @@ public class GameSessionManager {
         public Long userId;
         public String username;
         public String socketId; // will be resolved in socket mapping
+        public String reyesOption; // "4" or "8"
 
-        public MatchmakerEntry(Long userId, String username) {
+        public MatchmakerEntry(Long userId, String username, String reyesOption) {
             this.userId = userId;
             this.username = username;
+            this.reyesOption = reyesOption;
         }
     }
 
@@ -71,18 +74,34 @@ public class GameSessionManager {
     // --- COLA DE MATCHMAKING LOBBY ---
 
     public synchronized String addToMatchmaking(Long userId, String username) {
-        // Evitamos duplicados en la cola
-        matchmakingQueue.removeIf(entry -> entry.userId.equals(userId));
-        matchmakingQueue.add(new MatchmakerEntry(userId, username));
+        return addToMatchmaking(userId, username, "8");
+    }
+
+    public synchronized String addToMatchmaking(Long userId, String username, String reyesOption) {
+        if (reyesOption == null || (!reyesOption.equals("4") && !reyesOption.equals("8"))) {
+            reyesOption = "8";
+        }
         
-        if (matchmakingQueue.size() >= 4) {
+        List<MatchmakerEntry> targetQueue = "4".equals(reyesOption) ? matchmakingQueue4 : matchmakingQueue8;
+        
+        // Evitamos duplicados en ambas colas
+        matchmakingQueue4.removeIf(entry -> entry.userId.equals(userId));
+        matchmakingQueue8.removeIf(entry -> entry.userId.equals(userId));
+        
+        targetQueue.add(new MatchmakerEntry(userId, username, reyesOption));
+        
+        if (targetQueue.size() >= 4) {
             // Creamos sala automática de Matchmaking
-            String autoRoomId = "PARTIDA-" + Math.floor(100 + Math.random() * 900);
+            String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-") + (int)Math.floor(100 + Math.random() * 900);
             GameSession session = createRoom(autoRoomId);
+            
+            // Configurar modo de reyes y rondas por defecto (3 chicos a ganar - mejor de 5)
+            session.getConfig().setReyesOption(reyesOption);
+            session.getConfig().setMaxRounds(3);
             
             // Sentamos a los 4 jugadores
             for (int chair = 0; chair < 4; chair++) {
-                MatchmakerEntry player = matchmakingQueue.remove(0);
+                MatchmakerEntry player = targetQueue.remove(0);
                 session.addPlayer(chair, player.userId, player.username);
             }
             
@@ -96,11 +115,19 @@ public class GameSessionManager {
     }
 
     public synchronized void removeFromMatchmaking(Long userId) {
-        matchmakingQueue.removeIf(entry -> entry.userId.equals(userId));
+        matchmakingQueue4.removeIf(entry -> entry.userId.equals(userId));
+        matchmakingQueue8.removeIf(entry -> entry.userId.equals(userId));
     }
 
     public synchronized int getMatchmakingQueueSize() {
-        return matchmakingQueue.size();
+        return getMatchmakingQueueSize("8");
+    }
+
+    public synchronized int getMatchmakingQueueSize(String reyesOption) {
+        if ("4".equals(reyesOption)) {
+            return matchmakingQueue4.size();
+        }
+        return matchmakingQueue8.size();
     }
 
     // --- BASE DE DATOS PERSISTENCE SYNC ---
@@ -130,7 +157,7 @@ public class GameSessionManager {
     public void logActionToDb(GameSession session, int playerIdx, String action) {
         if (session.getGameDatabaseId() == null) return;
         try {
-            GameSession.GamePlayer p = session.getPlayers().get(playerIdx);
+            GamePlayer p = session.getPlayers().get(playerIdx);
             Long uId = p != null ? p.getUserId() : null; // null represents Bot
             
             GameActionLog log = new GameActionLog(session.getGameDatabaseId(), uId, action);
@@ -164,7 +191,7 @@ public class GameSessionManager {
         boolean usWon = session.getScoreUs() >= 30;
         
         for (int chair = 0; chair < 4; chair++) {
-            GameSession.GamePlayer gp = session.getPlayers().get(chair);
+            GamePlayer gp = session.getPlayers().get(chair);
             if (gp != null && !gp.isBot() && gp.getUserId() != null) {
                 Long uId = gp.getUserId();
                 boolean isUsTeam = (chair % 2 == 0);
