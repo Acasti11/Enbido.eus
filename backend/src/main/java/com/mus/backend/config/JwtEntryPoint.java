@@ -1,4 +1,4 @@
-package com.mus.backend.security;
+package com.mus.backend.config;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -2,7 +2,7 @@ package com.mus.backend.service;
 
 import com.mus.backend.model.Usuario;
 import com.mus.backend.repository.UsuarioRepository;
-import com.mus.backend.security.JwtTokenProvider;
+import com.mus.backend.service.JwtService;
 import com.mus.backend.dto.UserRegisterDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,14 +11,14 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UsuarioRepository usuarioRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(UsuarioRepository usuarioRepository,
-                       JwtTokenProvider jwtTokenProvider,
+                       JwtService jwtService,
                        PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -40,6 +40,7 @@ public class UserService {
         usuario.setEmail(dto.getEmail());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setPhoneNumber(dto.getPhoneNumber());
+        usuario.setBirthDate(dto.getBirthDate());
         usuario.setPostalCode(dto.getPostalCode());
         usuario.setRole("USER");
         usuario.setIsBanned(false);
@@ -64,8 +65,8 @@ public class UserService {
         }
 
         // SOLO token. Nada más.
-        return jwtTokenProvider.generateToken(
-            usuario.getId(),
+        return jwtService.generateToken(
+            usuario.getUserId(),
             usuario.getUsername(),
             usuario.getRole()
         );

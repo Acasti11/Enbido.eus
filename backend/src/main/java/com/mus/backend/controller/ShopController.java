@@ -1,11 +1,10 @@
 package com.mus.backend.controller;
 
 import com.mus.backend.service.ShopService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -32,11 +31,10 @@ public class ShopController {
 
     // ============================================
     // PROTEGIDO: Mi inventario (userId del token)
-    // Antes: /usuarios/{userId}/inventory
     // ============================================
     @GetMapping("/usuarios/me/inventory")
-    public ResponseEntity<?> getMyInventory() {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> getMyInventory(HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         try {
             return ResponseEntity.ok(shopService.getUserInventory(userId));
         } catch (Exception e) {
@@ -46,11 +44,10 @@ public class ShopController {
 
     // ============================================
     // PROTEGIDO: Comprar item (userId del token)
-    // Antes: /usuarios/{userId}/buy/{itemId}
     // ============================================
     @PostMapping("/usuarios/me/buy/{itemId}")
-    public ResponseEntity<?> buyItem(@PathVariable Long itemId) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> buyItem(@PathVariable Long itemId, HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         try {
             Map<String, Object> result = shopService.buyItem(userId, itemId);
             return ResponseEntity.ok(result);
@@ -63,11 +60,10 @@ public class ShopController {
 
     // ============================================
     // PROTEGIDO: Equipar item (userId del token)
-    // Antes: /usuarios/{userId}/equip/{itemId}
     // ============================================
     @PostMapping("/usuarios/me/equip/{itemId}")
-    public ResponseEntity<?> equipItem(@PathVariable Long itemId) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> equipItem(@PathVariable Long itemId, HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         try {
             Map<String, Object> result = shopService.equipItem(userId, itemId);
             return ResponseEntity.ok(result);
@@ -80,11 +76,10 @@ public class ShopController {
 
     // ============================================
     // PROTEGIDO: Desequipar item (userId del token)
-    // Antes: /usuarios/{userId}/unequip/{category}
     // ============================================
     @PostMapping("/usuarios/me/unequip/{category}")
-    public ResponseEntity<?> unequipItem(@PathVariable String category) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> unequipItem(@PathVariable String category, HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         try {
             Map<String, Object> result = shopService.unequipItem(userId, category);
             return ResponseEntity.ok(result);
@@ -96,13 +91,13 @@ public class ShopController {
     }
 
     // ============================================
-    // HELPER: extrae userId del SecurityContext
+    // HELPER: extrae userId del request attribute
     // ============================================
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getPrincipal() == null) {
+    private Long getCurrentUserId(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
             throw new RuntimeException("No autenticado");
         }
-        return (Long) auth.getPrincipal();
+        return userId;
     }
 }

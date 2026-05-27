@@ -2,10 +2,9 @@ package com.mus.backend.controller;
 
 import com.mus.backend.model.GameMatch;
 import com.mus.backend.service.GameMatchService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,15 +16,11 @@ public class GameMatchController {
     private GameMatchService gameMatchService;
 
     // ============================================
-    // PROTEGIDO: Crear partida (userId del token)
+    // PROTEGIDO: Crear partida
     // ============================================
     @PostMapping("/start")
-    public ResponseEntity<?> createGameMatch(@RequestBody GameMatch game) {
-        Long userId = getCurrentUserId();
-        
-        // El creador de la partida es el usuario del token
-        game.setCreatorId(userId);
-        
+    public ResponseEntity<GameMatch> createGameMatch(@RequestBody GameMatch game, HttpServletRequest request) {
+        // La partida se crea sola al buscar cola
         GameMatch savedGame = gameMatchService.createGameMatch(game);
         return ResponseEntity.ok(savedGame);
     }
@@ -34,25 +29,20 @@ public class GameMatchController {
     // PROTEGIDO: Actualizar score
     // ============================================
     @PutMapping("/{id}/score")
-    public ResponseEntity<?> updateGameScore(@PathVariable Long id, @RequestBody GameMatch data) {
-        Long userId = getCurrentUserId();
-        
-        // Opcional: verificar que el usuario es participante de la partida
-        // gameMatchService.verifyParticipant(id, userId);
-        
+    public ResponseEntity<?> updateGameScore(@PathVariable Long id, @RequestBody GameMatch data, HttpServletRequest request) {
         return gameMatchService.updateGameScore(id, data)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // ============================================
-    // HELPER: extrae userId del SecurityContext
+    // HELPER: extrae userId del request attribute
     // ============================================
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getPrincipal() == null) {
+    private Long getCurrentUserId(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
             throw new RuntimeException("No autenticado");
         }
-        return (Long) auth.getPrincipal();
+        return userId;
     }
 }

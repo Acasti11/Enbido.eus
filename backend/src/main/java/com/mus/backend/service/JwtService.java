@@ -1,4 +1,4 @@
-package com.mus.backend.security;
+package com.mus.backend.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

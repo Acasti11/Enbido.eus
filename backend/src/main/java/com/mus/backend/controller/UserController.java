@@ -6,13 +6,13 @@ import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
 import com.mus.backend.dto.UserRegisterDto;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -71,8 +71,8 @@ public class UserController {
     // PROTEGIDO: Obtener MI perfil (del token)
     // ============================================
     @GetMapping("/me")
-    public ResponseEntity<?> getMyProfile() {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> getMyProfile(HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         
         Usuario usuario = usuarioRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -85,18 +85,16 @@ public class UserController {
     // PROTEGIDO: Actualizar MI perfil (del token)
     // ============================================
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyProfile(@RequestBody Usuario datos) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> updateMyProfile(@RequestBody Usuario datos, HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         
         Usuario usuario = usuarioRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Solo permite cambiar estos campos
         usuario.setName(datos.getName());
         usuario.setSurname(datos.getSurname());
         usuario.setPhoneNumber(datos.getPhoneNumber());
         usuario.setPostalCode(datos.getPostalCode());
-        // NO permite: username, email, password, role, isBanned
         
         Usuario updated = usuarioRepository.save(usuario);
         updated.setPassword(null);
@@ -107,8 +105,8 @@ public class UserController {
     // PROTEGIDO: Eliminar MI cuenta (del token)
     // ============================================
     @DeleteMapping("/me")
-    public ResponseEntity<?> deleteMyAccount() {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> deleteMyAccount(HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
         usuarioRepository.deleteById(userId);
         return ResponseEntity.noContent().build();
     }
@@ -118,20 +116,20 @@ public class UserController {
     // ============================================
     @GetMapping
     public ResponseEntity<?> getAllUsuarios() {
-        List<<Usuario> usuarios = usuarioRepository.findAll();
+        List<Usuario> usuarios = usuarioRepository.findAll();
         usuarios.forEach(u -> u.setPassword(null));
         return ResponseEntity.ok(usuarios);
     }
 
     // ============================================
-    // HELPER: extrae userId del SecurityContext
-    // Lo guarda JwtAuthenticationFilter al validar token
+    // HELPER: extrae userId del request attribute
+    // Lo guarda JwtInterceptor al validar token
     // ============================================
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getPrincipal() == null) {
+    private Long getCurrentUserId(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
             throw new RuntimeException("No autenticado");
         }
-        return (Long) auth.getPrincipal();
+        return userId;
     }
 }

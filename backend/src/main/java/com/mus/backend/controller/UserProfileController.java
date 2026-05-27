@@ -1,108 +1,56 @@
 package com.mus.backend.controller;
 
-import com.mus.backend.service.ShopService;
+import com.mus.backend.model.UserGameProfile;
+import com.mus.backend.service.UserProfileService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "*")
-public class ShopController {
+public class UserProfileController {
 
     @Autowired
-    private ShopService shopService;
+    private UserProfileService userProfileService;
 
     // ============================================
-    // PÚBLICO: Ver items de la tienda (sin token)
+    // PROTEGIDO: Obtener MI perfil de juego
     // ============================================
-    @GetMapping("/shop/items")
-    public ResponseEntity<?> getShopItems() {
-        try {
-            return ResponseEntity.ok(shopService.getShopItems());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    @GetMapping("/me/profile")
+    public ResponseEntity<?> getMyProfile(HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
+
+        if (!userProfileService.userExists(userId)) {
+            return ResponseEntity.notFound().build();
         }
+
+        UserGameProfile profile = userProfileService.getOrCreateUserProfile(userId);
+        return ResponseEntity.ok(profile);
     }
 
     // ============================================
-    // PROTEGIDO: Mi inventario (userId del token)
-    // Antes: /usuarios/{userId}/inventory
+    // PROTEGIDO: Actualizar MI perfil de juego
     // ============================================
-    @GetMapping("/usuarios/me/inventory")
-    public ResponseEntity<?> getMyInventory() {
-        Long userId = getCurrentUserId();
-        try {
-            return ResponseEntity.ok(shopService.getUserInventory(userId));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+    @PutMapping("/me/profile")
+    public ResponseEntity<?> updateMyProfile(@RequestBody UserGameProfile updatedDetails, HttpServletRequest request) {
+        Long userId = getCurrentUserId(request);
+        
+        updatedDetails.setUserId(userId);
+        
+        UserGameProfile saved = userProfileService.updateUserProfile(userId, updatedDetails);
+        return ResponseEntity.ok(saved);
     }
 
     // ============================================
-    // PROTEGIDO: Comprar item (userId del token)
-    // Antes: /usuarios/{userId}/buy/{itemId}
+    // HELPER: extrae userId del request attribute
     // ============================================
-    @PostMapping("/usuarios/me/buy/{itemId}")
-    public ResponseEntity<?> buyItem(@PathVariable Long itemId) {
-        Long userId = getCurrentUserId();
-        try {
-            Map<String, Object> result = shopService.buyItem(userId, itemId);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-    // ============================================
-    // PROTEGIDO: Equipar item (userId del token)
-    // Antes: /usuarios/{userId}/equip/{itemId}
-    // ============================================
-    @PostMapping("/usuarios/me/equip/{itemId}")
-    public ResponseEntity<?> equipItem(@PathVariable Long itemId) {
-        Long userId = getCurrentUserId();
-        try {
-            Map<String, Object> result = shopService.equipItem(userId, itemId);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-    // ============================================
-    // PROTEGIDO: Desequipar item (userId del token)
-    // Antes: /usuarios/{userId}/unequip/{category}
-    // ============================================
-    @PostMapping("/usuarios/me/unequip/{category}")
-    public ResponseEntity<?> unequipItem(@PathVariable String category) {
-        Long userId = getCurrentUserId();
-        try {
-            Map<String, Object> result = shopService.unequipItem(userId, category);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-    // ============================================
-    // HELPER: extrae userId del SecurityContext
-    // ============================================
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getPrincipal() == null) {
+    private Long getCurrentUserId(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
             throw new RuntimeException("No autenticado");
         }
-        return (Long) auth.getPrincipal();
+        return userId;
     }
 }

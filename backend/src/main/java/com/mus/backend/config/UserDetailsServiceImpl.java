@@ -1,4 +1,4 @@
-package com.mus.backend.security;
+package com.mus.backend.config;
 
 import com.mus.backend.model.Usuario;
 import com.mus.backend.repository.UsuarioRepository;
