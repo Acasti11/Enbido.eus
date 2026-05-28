@@ -36,7 +36,7 @@ public class UserProfileService {
             profile.setEquippedAvatarItemId(updatedDetails.getEquippedAvatarItemId());
             profile.setEquippedDeckItemId(updatedDetails.getEquippedDeckItemId());
             profile.setEquippedTitleItemId(updatedDetails.getEquippedTitleItemId());
-            profile.setEquippedBoardItemId(updatedDetails.getEquippedBoardItemId());
+            //profile.setEquippedBoardItemId(updatedDetails.getEquippedBoardItemId());
             return profileRepository.save(profile);
         }).orElseGet(() -> {
             updatedDetails.setUserId(userId);

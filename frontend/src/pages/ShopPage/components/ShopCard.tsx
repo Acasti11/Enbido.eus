@@ -2,14 +2,14 @@ import React from 'react';
 import CoinIcon from './Coinicon';
 import type { ShopItem, ShopCategory } from '../../../types/shop';
 
-const ITEM_METADATA: Record<number, { description: string; accent: 'gold' | 'red' | 'green' }> = {
+/*const ITEM_METADATA: Record<number, { description: string; accent: 'gold' | 'red' | 'green' }> = {
     1: { description: 'Marco dorado y ficha premium para partidas ganadas.', accent: 'gold' },
     2: { description: 'Avatar sobrio con textura de pared verde.', accent: 'green' },
     3: { description: 'Cartas crema con palos marcados en rojo y verde.', accent: 'red' },
     4: { description: 'Reverso oscuro con detalles dorados para mesas nocturnas.', accent: 'gold' },
     5: { description: 'Alias visible bajo tu nombre en el perfil de jugador.', accent: 'green' },
     6: { description: 'Título para quien sabe cuándo apretar la apuesta.', accent: 'red' },
-};
+};*/
 
 const CATEGORY_LABELS: Record<ShopCategory, string> = {
     profiles: 'Profilak / Perfiles',

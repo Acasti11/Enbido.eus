@@ -106,7 +106,7 @@ public class ShopService {
         if ("profiles".equals(category)) profile.setEquippedAvatarItemId(itemId.intValue());
         else if ("decks".equals(category)) profile.setEquippedDeckItemId(itemId.intValue());
         else if ("aliases".equals(category)) profile.setEquippedTitleItemId(itemId.intValue());
-        else if ("boards".equals(category)) profile.setEquippedBoardItemId(itemId.intValue());
+        //else if ("boards".equals(category)) profile.setEquippedBoardItemId(itemId.intValue());
         else throw new IllegalArgumentException("Categoría no equipable");
 
         userGameProfileRepository.save(profile);
@@ -122,7 +122,7 @@ public class ShopService {
         if ("profiles".equals(category)) profile.setEquippedAvatarItemId(null);
         else if ("decks".equals(category)) profile.setEquippedDeckItemId(null);
         else if ("aliases".equals(category)) profile.setEquippedTitleItemId(null);
-        else if ("boards".equals(category)) profile.setEquippedBoardItemId(null);
+        //else if ("boards".equals(category)) profile.setEquippedBoardItemId(null);
         else throw new IllegalArgumentException("Categoría no equipable");
 
         userGameProfileRepository.save(profile);

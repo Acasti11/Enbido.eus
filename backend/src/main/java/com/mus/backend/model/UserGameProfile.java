@@ -34,8 +34,8 @@ public class UserGameProfile {
     @Column(name = "equipped_title_item_id")
     private Integer equippedTitleItemId;
 
-    @Column(name = "equipped_board_item_id")
-    private Integer equippedBoardItemId;
+   // @Column(name = "equipped_board_item_id")
+    //private Integer equippedBoardItemId;
 
     public UserGameProfile() {}
 

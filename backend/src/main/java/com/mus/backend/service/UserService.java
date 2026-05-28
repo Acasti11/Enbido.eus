@@ -1,29 +1,35 @@
 package com.mus.backend.service;
 
 import com.mus.backend.model.Usuario;
+import com.mus.backend.model.UserGameProfile;
 import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserGameProfileRepository;
 import com.mus.backend.service.JwtService;
 import com.mus.backend.dto.UserRegisterDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 
 @Service
 public class UserService {
 
     private final UsuarioRepository usuarioRepository;
+    private final UserGameProfileRepository userGameProfileRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(UsuarioRepository usuarioRepository,
+                       UserGameProfileRepository userGameProfileRepository,
                        JwtService jwtService,
                        PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.userGameProfileRepository = userGameProfileRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
     }
 
     // ============================================
-    // REGISTRO: solo devuelve mensaje
+    // REGISTRO: crea usuario + perfil de juego
     // ============================================
     public String registrarUsuario(UserRegisterDto dto) {
         if (usuarioRepository.existsByUsername(dto.getUsername())) {
@@ -44,8 +50,14 @@ public class UserService {
         usuario.setPostalCode(dto.getPostalCode());
         usuario.setRole("USER");
         usuario.setIsBanned(false);
+        usuario.setCreatedAt(LocalDateTime.now());
 
-        usuarioRepository.save(usuario);
+        Usuario savedUser = usuarioRepository.save(usuario);
+
+        // Crear perfil de juego con monedas iniciales
+        UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
+        userGameProfileRepository.save(profile);
+
         return "Usuario registrado correctamente";
     }
 
@@ -64,7 +76,6 @@ public class UserService {
             throw new RuntimeException("Usuario baneado");
         }
 
-        // SOLO token. Nada más.
         return jwtService.generateToken(
             usuario.getUserId(),
             usuario.getUsername(),

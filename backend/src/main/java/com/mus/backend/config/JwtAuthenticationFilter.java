@@ -20,7 +20,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtService jwtService;
     
-    // Rutas públicas que NO requieren token
     private static final List<String> PUBLIC_PATHS = List.of(
         "/api/usuarios/login",
         "/api/usuarios",
@@ -38,13 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String path = request.getRequestURI();
         
-        // Si es ruta pública, no hacer nada
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
         
-        // Resto del código igual...
         String token = getTokenFromRequest(request);
         
         if (StringUtils.hasText(token)) {
@@ -52,6 +49,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtService.isTokenValid(token)) {
                     Long userId = jwtService.extractUserId(token);
                     String username = jwtService.extractUsername(token);
+                    
+                    // ========== AÑADIR ESTO ==========
+                    // Guardar userId como atributo del request para que los controllers lo lean
+                    request.setAttribute("userId", userId);
+                    // ==================================
                     
                     UsernamePasswordAuthenticationToken auth = 
                         new UsernamePasswordAuthenticationToken(

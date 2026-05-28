@@ -6,7 +6,7 @@ const getApiBaseUrl = () => {
   }
   const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
   const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:';
-  const port = window.location.protocol === 'https:' ? '80' : '8080';
+  const port = window.location.protocol === 'https:' ? '443' : '8080';
   return `${protocol}//${host}:${port}/api`;
 };
 
@@ -18,6 +18,18 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// ========== INTERCEPTOR REQUEST: Añade token JWT ==========
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Interceptor para manejo de errores
 api.interceptors.response.use(
