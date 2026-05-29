@@ -1,0 +1,34 @@
+package com.mus.backend.model;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Table(name = "local_meetup_ad")
+@Data
+public class LocalMeetupAd {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ad_id")
+    private Long adId;
+
+    @Column(name = "creator_id")
+    private Long creatorId;
+
+    @Column(name = "location")
+    private String location;
+
+    @Column(name = "missing_players")
+    private Integer missingPlayers;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "creator_id", insertable = false, updatable = false)
+    private Usuario creator;
+}

@@ -36,8 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         
         String path = request.getRequestURI();
+        String method = request.getMethod();
         
-        if (isPublicPath(path)) {
+        if (isPublicPath(path, method)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -73,7 +74,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
     
-    private boolean isPublicPath(String path) {
+    private boolean isPublicPath(String path, String method) {
+        if ("GET".equalsIgnoreCase(method)) {
+            if (path.startsWith("/api/meetups") || path.startsWith("/api/tournaments")) {
+                return true;
+            }
+        }
         return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
     

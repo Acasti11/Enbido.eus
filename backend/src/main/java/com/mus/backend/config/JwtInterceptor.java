@@ -19,9 +19,10 @@ public class JwtInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         
         String path = request.getRequestURI();
+        String method = request.getMethod();
         
         // Rutas públicas que NO requieren token
-        if (isPublicPath(path)) {
+        if (isPublicPath(path, method)) {
             return true;
         }
         
@@ -48,7 +49,12 @@ public class JwtInterceptor implements HandlerInterceptor {
         return false;
     }
     
-    private boolean isPublicPath(String path) {
+    private boolean isPublicPath(String path, String method) {
+        if ("GET".equalsIgnoreCase(method)) {
+            if (path.startsWith("/api/meetups") || path.startsWith("/api/tournaments")) {
+                return true;
+            }
+        }
         return path.startsWith("/api/usuarios/login") ||
                path.equals("/api/usuarios") ||
                path.startsWith("/api/shop/items");
