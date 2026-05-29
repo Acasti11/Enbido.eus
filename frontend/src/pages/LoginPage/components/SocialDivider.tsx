@@ -8,11 +8,11 @@ const SocialDivider: React.FC<LoginFormProps> = ({ onSwitchToRegister }): React.
     <div className="social-divider">
       <div className="social-divider__row">
         <div className="social-divider__line" />
-        <span className="social-divider__text">New Player</span>
+        <span className="social-divider__text">Nuevo Jugador / Jokalari Berria</span>
         <div className="social-divider__line" />
       </div>
       <button type="button" className="social-divider__register" onClick={onSwitchToRegister}>
-        Create free account
+        Crear cuenta gratis / Sortu doako kontua
       </button>
     </div>
   );

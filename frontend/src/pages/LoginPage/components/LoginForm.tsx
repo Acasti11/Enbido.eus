@@ -78,7 +78,7 @@ const LoginForm: React.FC = () => {
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <div className="login-form__field">
-        <label className="login-form__label">User or Email</label>
+        <label className="login-form__label">Usuario o Email / Erabiltzailea edo Emaila</label>
         <div className="login-form__input-wrapper">
           <UserIcon />
           <input
@@ -93,8 +93,8 @@ const LoginForm: React.FC = () => {
       </div>
       <div className="login-form__field">
         <div className="login-form__label-row">
-          <label className="login-form__label">Password</label>
-          <a href="#" className="login-form__forgot">Forgot password?</a>
+          <label className="login-form__label">Contraseña / Pasahitza</label>
+          <a href="#" className="login-form__forgot">¿Olvidaste la contraseña? / Ahaztu zaizu?</a>
         </div>
         <div className="login-form__input-wrapper">
           <LockIcon />

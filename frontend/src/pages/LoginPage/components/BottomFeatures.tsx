@@ -8,8 +8,8 @@ const FEATURES = [
         <polygon points="5 3 19 12 5 21 5 3" />
       </svg>
     ),
-    title: 'Play online',
-    description: 'Fast and secure matches',
+    title: 'Juega Online / Online Jokatu',
+    description: 'Partidas de Mus rápidas y seguras',
   },
   {
     icon: (
@@ -18,8 +18,8 @@ const FEATURES = [
         <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
       </svg>
     ),
-    title: 'Compete',
-    description: 'Leagues and global ELO ranking',
+    title: 'Compite / Lehiatu',
+    description: 'Ligas y clasificación global de ELO',
   },
   {
     icon: (
@@ -27,8 +27,8 @@ const FEATURES = [
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
       </svg>
     ),
-    title: 'Analysis',
-    description: 'Improve your strategies',
+    title: 'Análisis / Estrategia',
+    description: 'Mejora tus jugadas y tácticas de Mus',
   },
   {
     icon: (
@@ -39,8 +39,8 @@ const FEATURES = [
         <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     ),
-    title: 'Community',
-    description: 'Join clubs and teams',
+    title: 'Comunidad / Kluba',
+    description: 'Únete a clubes, equipos y torneos de Mus',
   },
 ];
 

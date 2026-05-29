@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mus.backend.engine.GameSession;
 import com.mus.backend.engine.GameSessionManager;
 import com.mus.backend.service.JwtService;
+import com.mus.backend.engine.GamePlayer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -79,6 +80,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             else if ("BET".equals(type)) {
                 handleBet(conn, data);
             }
+            else if ("UPDATE_CONFIG".equals(type)) {
+                handleUpdateConfig(conn, data);
+            }
             else if ("CHAT".equals(type)) {
                 handleChat(conn, data);
             }
@@ -104,7 +108,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     
                     // Si la sala está vacía de jugadores reales, la eliminamos
                     boolean hasRealPlayers = false;
-                    for (GameSession.GamePlayer gp : room.getPlayers()) {
+                    for (GamePlayer gp : room.getPlayers()) {
                         if (gp != null && !gp.isBot()) {
                             hasRealPlayers = true;
                             break;
@@ -145,7 +149,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         // Evitamos que el mismo jugador se siente dos veces
         int seatedChair = -1;
         for (int i = 0; i < 4; i++) {
-            GameSession.GamePlayer gp = room.getPlayers().get(i);
+            GamePlayer gp = room.getPlayers().get(i);
             if (gp != null && userId.equals(gp.getUserId())) {
                 seatedChair = i;
                 break;
@@ -178,11 +182,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             userId = Long.valueOf(data.get("userId").toString());
             username = (String) data.get("username");
         }
+        String reyesOption = data.containsKey("reyesOption") ? (String) data.get("reyesOption") : "8";
         
         conn.userId = userId;
         conn.username = username;
 
-        String matchedRoomId = sessionManager.addToMatchmaking(userId, username);
+        String matchedRoomId = sessionManager.addToMatchmaking(userId, username, reyesOption);
         if (matchedRoomId != null) {
             // Match encontrado! Informamos a los 4 jugadores
             Map<String, Object> matchEvent = new HashMap<>();
@@ -194,7 +199,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 if (otherConn.roomId == null && otherConn.userId != null) {
                     GameSession room = sessionManager.getRoom(matchedRoomId);
                     if (room != null) {
-                        for (GameSession.GamePlayer gp : room.getPlayers()) {
+                        for (GamePlayer gp : room.getPlayers()) {
                             if (gp != null && gp.getUserId().equals(otherConn.userId)) {
                                 otherConn.roomId = matchedRoomId;
                                 otherConn.chair = room.getPlayers().indexOf(gp);
@@ -208,9 +213,28 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             // Confirmamos que está en cola
             Map<String, Object> queueEvent = new HashMap<>();
             queueEvent.put("type", "QUEUEING");
-            queueEvent.put("queueSize", sessionManager.getMatchmakingQueueSize());
+            queueEvent.put("queueSize", sessionManager.getMatchmakingQueueSize(reyesOption));
             sendJsonMessage(conn.session, queueEvent);
         }
+    }
+
+    private void handleUpdateConfig(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null || room.isPlaying()) return;
+
+        if (conn.chair == -1) return;
+
+        if (data.containsKey("reyesOption")) {
+            String reyesOption = (String) data.get("reyesOption");
+            room.getConfig().setReyesOption(reyesOption);
+        }
+        if (data.containsKey("maxRounds")) {
+            int maxRounds = Integer.parseInt(data.get("maxRounds").toString());
+            room.getConfig().setMaxRounds(maxRounds);
+        }
+
+        broadcastRoomState(room);
     }
 
     private void handleMatchmakingLeave(UserConnection conn) {
@@ -235,7 +259,16 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     private void handleStartGame(UserConnection conn) {
         if (conn.roomId == null) return;
         GameSession room = sessionManager.getRoom(conn.roomId);
-        if (room == null || room.isPlaying()) return;
+        if (room == null) return;
+
+        if (room.isPlaying()) {
+            if ("round-over".equals(room.getPhase())) {
+                room.startNewHand();
+                broadcastRoomState(room);
+                triggerBotTurnsRecursively(room);
+            }
+            return;
+        }
 
         // Persistir la partida en la Base de Datos antes de empezar
         sessionManager.saveNewGameToDb(room);

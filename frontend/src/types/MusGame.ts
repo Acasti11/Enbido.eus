@@ -25,6 +25,8 @@ export type BettingStage = 'grande' | 'chica' | 'pares' | 'juego' | 'punto';
 export interface GameScore {
   us: number;
   them: number;
+  roundsUs?: number;
+  roundsThem?: number;
 }
 
 export interface LogEntry {

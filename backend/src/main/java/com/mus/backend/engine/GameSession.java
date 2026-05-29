@@ -12,8 +12,15 @@ public class GameSession {
     private boolean isPlaying = false;
     private String phase = "init"; // init, dealing, mus-check, discarding, betting, round-over
     private String stage = "grande"; // grande, chica, pares, juego, punto
+    
+    // Points in the current Chico/Round (up to 30)
     private int scoreUs = 0; // Chairs 0 and 2
     private int scoreThem = 0; // Chairs 1 and 3
+    
+    // Chicos (sets) won in the current Match
+    private int roundsWonUs = 0;
+    private int roundsWonThem = 0;
+
     private List<String> logs = new ArrayList<>();
     private List<Card> deck = new ArrayList<>();
     private List<Card> discardPile = new ArrayList<>();
@@ -23,48 +30,24 @@ public class GameSession {
     private int musVotesCount = 0;
     
     // Betting details
-    private int currentBetPhase = 0; // Index in LANCES: grande, chica, pares, juego/punto
+    private int currentBetPhase = 0; // Index in LANCES
     private int currentBetSize = 0; // Current bet size on table for the active lance
-    private int betState = 0; // 0 = not bet yet (Paso is possible), 1 = envidado, 2 = ordago
+    private int betState = 0; // 0 = Paso/not bet yet, 1 = envidado, 2 = ordago
     private int lastBettedPlayer = -1; // Who envidó or órdagó last
     
     private Map<String, LanceBet> apuestas = new HashMap<>();
-
-    private static final String[] LANCES = {"grande", "chica", "pares", "juego"};
-
-    @Data
-    public static class GamePlayer {
-        private Long userId; // null if Bot
-        private String username;
-        private boolean isBot;
-        private List<Card> hand = new ArrayList<>();
-        private String speechBubble = "";
-
-        public GamePlayer(Long userId, String username, boolean isBot) {
-            this.userId = userId;
-            this.username = username;
-            this.isBot = isBot;
-        }
-    }
-
-    @Data
-    public static class LanceBet {
-        private String ganadaPor = null; // us, them, or null
-        private int puntos = 0;
-        private int deje = 0;
-        private boolean apostado = false;
-        private boolean esPunto = false;
-    }
+    private GameConfig config = new GameConfig(); // Dynamic game settings
 
     public GameSession(String roomId) {
         this.roomId = roomId;
         resetApuestas();
-        appendLog("Sala creada: " + roomId);
+        appendLog("Mesa privada creada: " + roomId);
     }
 
-    private void resetApuestas() {
+    public void resetApuestas() {
         apuestas.clear();
-        for (String lance : LANCES) {
+        String[] lances = {"grande", "chica", "pares", "juego"};
+        for (String lance : lances) {
             apuestas.put(lance, new LanceBet());
         }
     }
@@ -116,7 +99,21 @@ public class GameSession {
         return c;
     }
 
-    // --- GAME ENGINE PROCESSES ---
+    // --- DELEGACIÓN DE ACCIONES ---
+
+    public void handleMusDecision(int playerIdx, boolean wantsMus) {
+        DiscardHandler.handleMusDecision(this, playerIdx, wantsMus);
+    }
+
+    public void handleDiscards(int playerIdx, List<String> cardIds) {
+        DiscardHandler.handleDiscards(this, playerIdx, cardIds);
+    }
+
+    public void handleBetAction(int playerIdx, String action) {
+        BettingHandler.handleBetAction(this, playerIdx, action);
+    }
+
+    // --- GAME ENGINE LOOP ---
 
     public void startMatch() {
         if (getPlayersCount() < 4) {
@@ -125,381 +122,189 @@ public class GameSession {
         }
         scoreUs = 0;
         scoreThem = 0;
+        roundsWonUs = 0;
+        roundsWonThem = 0;
         isPlaying = true;
         dealerIdx = 0;
+        appendLog("--- COMIENZA LA PARTIDA ---");
+        appendLog("Configuración: Mus a " + (config.getReyesOption().equals("8") ? "8 Reyes" : "4 Reyes") + " | Ganar a " + config.getMaxRounds() + " chicos.");
         startNewHand();
     }
 
     public void startNewHand() {
+        if (scoreUs >= 30 || scoreThem >= 30) {
+            scoreUs = 0;
+            scoreThem = 0;
+        }
         resetApuestas();
         phase = "dealing";
         appendLog("--- NUEVA MANO ---");
 
         // Create and shuffle deck
         deck = Deck.shuffle(Deck.createNewDeck());
+        
+        // Ensure card score values are up to date with config
+        for (Card c : deck) {
+            c.updateScoreValue(config.getReyesOption());
+        }
         discardPile.clear();
 
         // Clear hands and bubbles
         for (GamePlayer p : players) {
-            p.getHand().clear();
-            p.setSpeechBubble("");
+            if (p != null) {
+                p.getHand().clear();
+                p.setSpeechBubble("");
+            }
         }
 
         // Deal 4 cards to each player starting next to dealer
         for (int c = 0; c < 4; c++) {
             for (int p = 0; p < 4; p++) {
                 int targetIdx = (dealerIdx + 1 + p) % 4;
-                if (!deck.isEmpty()) {
-                    players.get(targetIdx).getHand().add(deck.remove(deck.size() - 1));
+                if (!deck.isEmpty() && players.get(targetIdx) != null) {
+                    Card card = deck.remove(deck.size() - 1);
+                    card.updateScoreValue(config.getReyesOption());
+                    players.get(targetIdx).getHand().add(card);
                 }
             }
         }
 
         appendLog("Cartas repartidas.");
-        startMusPhase();
+        DiscardHandler.startMusPhase(this);
     }
-
-    private void startMusPhase() {
-        phase = "mus-check";
-        musVotesCount = 0;
-        for (GamePlayer p : players) {
-            p.setSpeechBubble("");
-        }
-        activeTurnIdx = (dealerIdx + 1) % 4;
-        appendLog("Ronda de Mus. Turno de: " + players.get(activeTurnIdx).getUsername());
-    }
-
-    public void handleMusDecision(int playerIdx, boolean wantsMus) {
-        if (playerIdx != activeTurnIdx || !phase.equals("mus-check")) return;
-
-        GamePlayer p = players.get(playerIdx);
-        p.setSpeechBubble(wantsMus ? "¡Mus!" : "¡Corto!");
-        appendLog(p.getUsername() + " dice: " + (wantsMus ? "Mus" : "Corto"));
-
-        if (!wantsMus) {
-            // Cut Mus immediately, proceed to betting
-            appendLog("Mus cortado por " + p.getUsername() + ". Comienzan los lances.");
-            startLances();
-        } else {
-            musVotesCount++;
-            if (musVotesCount == 4) {
-                // All 4 players want Mus, proceed to discard phase
-                startDiscardPhase();
-            } else {
-                activeTurnIdx = (activeTurnIdx + 1) % 4;
-            }
-        }
-    }
-
-    private void startDiscardPhase() {
-        phase = "discarding";
-        activeTurnIdx = (dealerIdx + 1) % 4;
-        appendLog("Fase de descartes. Turno de: " + players.get(activeTurnIdx).getUsername());
-    }
-
-    public void handleDiscards(int playerIdx, List<String> cardIds) {
-        if (playerIdx != activeTurnIdx || !phase.equals("discarding")) return;
-
-        GamePlayer p = players.get(playerIdx);
-        
-        // Remove discarded cards from hand
-        List<Card> newHand = new ArrayList<>();
-        List<Card> discardedList = new ArrayList<>();
-        for (Card card : p.getHand()) {
-            if (cardIds.contains(card.getId())) {
-                discardedList.add(card);
-            } else {
-                newHand.add(card);
-            }
-        }
-        p.setHand(newHand);
-        discardPile.addAll(discardedList);
-
-        int descCount = cardIds.size();
-        p.setSpeechBubble(descCount == 0 ? "¡Servido!" : "Me doy " + descCount);
-        appendLog(p.getUsername() + " se descarta de " + descCount + " cartas.");
-
-        // Deal replacement cards
-        for (int i = 0; i < descCount; i++) {
-            if (deck.isEmpty()) {
-                // Reshuffle discard pile if deck runs out
-                deck.addAll(discardPile);
-                Collections.shuffle(deck);
-                discardPile.clear();
-            }
-            if (!deck.isEmpty()) {
-                p.getHand().add(deck.remove(deck.size() - 1));
-            }
-        }
-
-        // Move to next discard turn
-        if (playerIdx == dealerIdx) {
-            // Everyone finished discarding, go back to mus-check
-            startMusPhase();
-        } else {
-            activeTurnIdx = (activeTurnIdx + 1) % 4;
-        }
-    }
-
-    // --- LANCES (BETTING PHASE) ---
-
-    private void startLances() {
-        currentBetPhase = 0;
-        playNextLance();
-    }
-
-    private void playNextLance() {
-        if (currentBetPhase >= LANCES.length) {
-            calculateFinalScores();
-            return;
-        }
-
-        String lance = LANCES[currentBetPhase];
-        stage = lance;
-        phase = "betting";
-        currentBetSize = 0;
-        betState = 0; // 0 = no bets yet, 1 = envidado, 2 = ordago
-        lastBettedPlayer = -1;
-
-        for (GamePlayer p : players) {
-            p.setSpeechBubble("");
-        }
-
-        if (lance.equals("pares")) {
-            appendLog("-- Declaración de Pares --");
-            boolean equipoUsTiene = false;
-            boolean equipoThemTiene = false;
-
-            for (int i = 0; i < 4; i++) {
-                boolean hasPares = evaluatePares(players.get(i).getHand()).isHas();
-                players.get(i).setSpeechBubble(hasPares ? "¡Pares sí!" : "¡Pares no!");
-                if (hasPares) {
-                    if (i % 2 == 0) equipoUsTiene = true;
-                    else equipoThemTiene = true;
-                }
-            }
-
-            if (!equipoUsTiene && !equipoThemTiene) {
-                appendLog("Nadie tiene pares. Siguiente lance.");
-                currentBetPhase++;
-                playNextLance();
-                return;
-            } else if (equipoUsTiene && !equipoThemTiene) {
-                appendLog("Solo el Equipo Nosotros tiene Pares.");
-                apuestas.get("pares").setGanadaPor("us");
-                currentBetPhase++;
-                playNextLance();
-                return;
-            } else if (!equipoUsTiene && equipoThemTiene) {
-                appendLog("Solo el Equipo Rivales tiene Pares.");
-                apuestas.get("pares").setGanadaPor("them");
-                currentBetPhase++;
-                playNextLance();
-                return;
-            }
-        }
-
-        if (lance.equals("juego")) {
-            appendLog("-- Declaración de Juego --");
-            boolean equipoUsTiene = false;
-            boolean equipoThemTiene = false;
-
-            for (int i = 0; i < 4; i++) {
-                boolean hasJuego = evaluateJuego(players.get(i).getHand()).isHasJuego();
-                players.get(i).setSpeechBubble(hasJuego ? "¡Juego sí!" : "¡Juego no!");
-                if (hasJuego) {
-                    if (i % 2 == 0) equipoUsTiene = true;
-                    else equipoThemTiene = true;
-                }
-            }
-
-            if (!equipoUsTiene && !equipoThemTiene) {
-                appendLog("Nadie tiene Juego. ¡Se juega al PUNTO!");
-                stage = "punto";
-                apuestas.get("juego").setEsPunto(true);
-            } else if (equipoUsTiene && !equipoThemTiene) {
-                appendLog("Solo el Equipo Nosotros tiene Juego.");
-                apuestas.get("juego").setGanadaPor("us");
-                currentBetPhase++;
-                playNextLance();
-                return;
-            } else if (!equipoUsTiene && equipoThemTiene) {
-                appendLog("Solo el Equipo Rivales tiene Juego.");
-                apuestas.get("juego").setGanadaPor("them");
-                currentBetPhase++;
-                playNextLance();
-                return;
-            }
-        }
-
-        activeTurnIdx = (dealerIdx + 1) % 4;
-        appendLog("Apuestas de la " + stage.toUpperCase() + ". Turno de: " + players.get(activeTurnIdx).getUsername());
-    }
-
-    public void handleBetAction(int playerIdx, String action) {
-        if (playerIdx != activeTurnIdx || !phase.equals("betting")) return;
-
-        GamePlayer p = players.get(playerIdx);
-        String lance = LANCES[currentBetPhase];
-        
-        if (action.equalsIgnoreCase("Paso")) {
-            p.setSpeechBubble("¡Paso!");
-            appendLog(p.getUsername() + " pasa.");
-            
-            if (betState == 0) {
-                // If it is the last player to act and all passed, go to next lance
-                if (playerIdx == dealerIdx) {
-                    appendLog("Todos pasan a la " + stage.toUpperCase() + ".");
-                    apuestas.get(lance).setPuntos(1); // Se juega por el paso (vale 1 punto al final)
-                    currentBetPhase++;
-                    playNextLance();
-                } else {
-                    activeTurnIdx = (activeTurnIdx + 1) % 4;
-                }
-            } else {
-                // Paso while someone bet means NO QUIERO
-                handleNoQuiero(playerIdx);
-            }
-        } 
-        else if (action.equalsIgnoreCase("Envido")) {
-            if (betState == 1) {
-                currentBetSize += 2;
-                p.setSpeechBubble("¡Envido más!");
-                appendLog(p.getUsername() + " re-envida. Apuesta total: " + currentBetSize + " a la " + stage.toUpperCase());
-            } else {
-                p.setSpeechBubble("¡Envido!");
-                appendLog(p.getUsername() + " envida 2 a la " + stage.toUpperCase());
-                currentBetSize = 2;
-                betState = 1;
-            }
-            lastBettedPlayer = playerIdx;
-            
-            // Move turn to the other team's player (preferring humans over bots)
-            int opp1 = (playerIdx + 1) % 4;
-            int opp2 = (playerIdx + 3) % 4;
-            if (players.get(opp1).isBot() && !players.get(opp2).isBot()) {
-                activeTurnIdx = opp2;
-            } else if (!players.get(opp1).isBot() && players.get(opp2).isBot()) {
-                activeTurnIdx = opp1;
-            } else {
-                activeTurnIdx = opp1;
-            }
-        } 
-        else if (action.equalsIgnoreCase("Ordago")) {
-            p.setSpeechBubble("¡ÓRDAGO!");
-            appendLog(p.getUsername() + " lanza un ÓRDAGO a la " + stage.toUpperCase());
-            currentBetSize = 40; // Representing Game Win/Lose
-            betState = 2;
-            lastBettedPlayer = playerIdx;
-            
-            // Move turn to the other team's player (preferring humans over bots)
-            int opp1 = (playerIdx + 1) % 4;
-            int opp2 = (playerIdx + 3) % 4;
-            if (players.get(opp1).isBot() && !players.get(opp2).isBot()) {
-                activeTurnIdx = opp2;
-            } else if (!players.get(opp1).isBot() && players.get(opp2).isBot()) {
-                activeTurnIdx = opp1;
-            } else {
-                activeTurnIdx = opp1;
-            }
-        } 
-        else if (action.equalsIgnoreCase("Quiero")) {
-            p.setSpeechBubble("¡Quiero!");
-            appendLog(p.getUsername() + " acepta el envite de " + currentBetSize + " a la " + stage.toUpperCase());
-            
-            apuestas.get(lance).setApostado(true);
-            apuestas.get(lance).setPuntos(currentBetSize);
-            
-            currentBetPhase++;
-            playNextLance();
-        } 
-        else if (action.equalsIgnoreCase("No Quiero")) {
-            handleNoQuiero(playerIdx);
-        }
-    }
-
-    private void handleNoQuiero(int playerIdx) {
-        GamePlayer p = players.get(playerIdx);
-        p.setSpeechBubble("¡No quiero!");
-        String lance = LANCES[currentBetPhase];
-        
-        appendLog(p.getUsername() + " rechaza la apuesta. Rival gana 1 punto de deje.");
-        
-        // The team of the last player who betted wins the deje
-        String winners = (lastBettedPlayer % 2 == 0) ? "us" : "them";
-        apuestas.get(lance).setGanadaPor(winners);
-        apuestas.get(lance).setDeje(1);
-        
-        if (betState == 2) {
-            // Ordago refused
-            appendLog("Órdago no aceptado.");
-        }
-
-        currentBetPhase++;
-        playNextLance();
-    }
-
-    // --- RULES EVALUATION & SHOWDOWN ---
 
     public void calculateFinalScores() {
         phase = "round-over";
         appendLog("--- RECUENTO FINAL DE PUNTOS ---");
 
+        String reyesOpt = config.getReyesOption();
+
         // 1. Evaluate Grande
-        CardItemInfo usBestGrande = getBestGrande(0, 2);
-        CardItemInfo themBestGrande = getBestGrande(1, 3);
-        
+        int bestUsGrandeIdx = RulesEvaluator.compareGrande(players.get(0).getHand(), 0, players.get(2).getHand(), 2, dealerIdx, reyesOpt) >= 0 ? 0 : 2;
+        int bestThemGrandeIdx = RulesEvaluator.compareGrande(players.get(1).getHand(), 1, players.get(3).getHand(), 3, dealerIdx, reyesOpt) >= 0 ? 1 : 3;
+        boolean usWinsGrande = RulesEvaluator.compareGrande(players.get(bestUsGrandeIdx).getHand(), bestUsGrandeIdx, players.get(bestThemGrandeIdx).getHand(), bestThemGrandeIdx, dealerIdx, reyesOpt) >= 0;
+
         if (apuestas.get("grande").getGanadaPor() == null) {
-            apuestas.get("grande").setGanadaPor(compareGrande(usBestGrande, themBestGrande) >= 0 ? "us" : "them");
+            apuestas.get("grande").setGanadaPor(usWinsGrande ? "us" : "them");
         }
 
         // 2. Evaluate Chica
-        CardItemInfo usBestChica = getBestChica(0, 2);
-        CardItemInfo themBestChica = getBestChica(1, 3);
-        
+        int bestUsChicaIdx = RulesEvaluator.compareChica(players.get(0).getHand(), 0, players.get(2).getHand(), 2, dealerIdx, reyesOpt) >= 0 ? 0 : 2;
+        int bestThemChicaIdx = RulesEvaluator.compareChica(players.get(1).getHand(), 1, players.get(3).getHand(), 3, dealerIdx, reyesOpt) >= 0 ? 1 : 3;
+        boolean usWinsChica = RulesEvaluator.compareChica(players.get(bestUsChicaIdx).getHand(), bestUsChicaIdx, players.get(bestThemChicaIdx).getHand(), bestThemChicaIdx, dealerIdx, reyesOpt) >= 0;
+
         if (apuestas.get("chica").getGanadaPor() == null) {
-            apuestas.get("chica").setGanadaPor(compareChica(usBestChica, themBestChica) >= 0 ? "us" : "them");
+            apuestas.get("chica").setGanadaPor(usWinsChica ? "us" : "them");
         }
 
         // 3. Evaluate Pares
-        ParesResult usBestPares = getBestPares(0, 2);
-        ParesResult themBestPares = getBestPares(1, 3);
-        
+        RulesEvaluator.ParesResult[] paresResults = new RulesEvaluator.ParesResult[4];
+        for (int i = 0; i < 4; i++) {
+            paresResults[i] = RulesEvaluator.evaluatePares(players.get(i).getHand(), reyesOpt);
+        }
+
         if (apuestas.get("pares").getGanadaPor() == null) {
-            if (usBestPares != null && themBestPares != null) {
-                apuestas.get("pares").setGanadaPor(comparePares(usBestPares, themBestPares) >= 0 ? "us" : "them");
-            } else if (usBestPares != null) {
+            RulesEvaluator.ParesResult bestUsPares = null;
+            int bestUsParesIdx = -1;
+            if (paresResults[0].isHas() && paresResults[2].isHas()) {
+                int cmp = RulesEvaluator.comparePares(paresResults[0], 0, paresResults[2], 2, dealerIdx);
+                bestUsParesIdx = cmp >= 0 ? 0 : 2;
+                bestUsPares = paresResults[bestUsParesIdx];
+            } else if (paresResults[0].isHas()) {
+                bestUsParesIdx = 0;
+                bestUsPares = paresResults[0];
+            } else if (paresResults[2].isHas()) {
+                bestUsParesIdx = 2;
+                bestUsPares = paresResults[2];
+            }
+
+            RulesEvaluator.ParesResult bestThemPares = null;
+            int bestThemParesIdx = -1;
+            if (paresResults[1].isHas() && paresResults[3].isHas()) {
+                int cmp = RulesEvaluator.comparePares(paresResults[1], 1, paresResults[3], 3, dealerIdx);
+                bestThemParesIdx = cmp >= 0 ? 1 : 3;
+                bestThemPares = paresResults[bestThemParesIdx];
+            } else if (paresResults[1].isHas()) {
+                bestThemParesIdx = 1;
+                bestThemPares = paresResults[1];
+            } else if (paresResults[3].isHas()) {
+                bestThemParesIdx = 3;
+                bestThemPares = paresResults[3];
+            }
+
+            if (bestUsPares != null && bestThemPares != null) {
+                boolean usWinsPares = RulesEvaluator.comparePares(bestUsPares, bestUsParesIdx, bestThemPares, bestThemParesIdx, dealerIdx) >= 0;
+                apuestas.get("pares").setGanadaPor(usWinsPares ? "us" : "them");
+            } else if (bestUsPares != null) {
                 apuestas.get("pares").setGanadaPor("us");
-            } else if (themBestPares != null) {
+            } else if (bestThemPares != null) {
                 apuestas.get("pares").setGanadaPor("them");
             }
         }
 
         // 4. Evaluate Juego or Punto
-        JuegoResult usBestJuego = getBestJuego(0, 2);
-        JuegoResult themBestJuego = getBestJuego(1, 3);
-        
+        RulesEvaluator.JuegoResult[] juegoResults = new RulesEvaluator.JuegoResult[4];
+        for (int i = 0; i < 4; i++) {
+            juegoResults[i] = RulesEvaluator.evaluateJuego(players.get(i).getHand(), reyesOpt);
+        }
+        boolean isPunto = apuestas.get("juego").isEsPunto();
+
         if (apuestas.get("juego").getGanadaPor() == null) {
-            if (apuestas.get("juego").isEsPunto()) {
-                // Compares Punto
-                apuestas.get("juego").setGanadaPor(compareJuegoPunto(usBestJuego, themBestJuego) >= 0 ? "us" : "them");
-            } else {
-                // Compares Juego
-                if (usBestJuego.isHasJuego() && themBestJuego.isHasJuego()) {
-                    apuestas.get("juego").setGanadaPor(compareJuegoPunto(usBestJuego, themBestJuego) >= 0 ? "us" : "them");
-                } else if (usBestJuego.isHasJuego()) {
-                    apuestas.get("juego").setGanadaPor("us");
-                } else if (themBestJuego.isHasJuego()) {
-                    apuestas.get("juego").setGanadaPor("them");
+            RulesEvaluator.JuegoResult bestUsJuego = null;
+            int bestUsJuegoIdx = -1;
+            if (!isPunto) {
+                if (juegoResults[0].isHasJuego() && juegoResults[2].isHasJuego()) {
+                    int cmp = RulesEvaluator.compareJuegoPunto(juegoResults[0], 0, juegoResults[2], 2, dealerIdx);
+                    bestUsJuegoIdx = cmp >= 0 ? 0 : 2;
+                    bestUsJuego = juegoResults[bestUsJuegoIdx];
+                } else if (juegoResults[0].isHasJuego()) {
+                    bestUsJuegoIdx = 0;
+                    bestUsJuego = juegoResults[0];
+                } else if (juegoResults[2].isHasJuego()) {
+                    bestUsJuegoIdx = 2;
+                    bestUsJuego = juegoResults[2];
                 }
+            } else {
+                int cmp = RulesEvaluator.compareJuegoPunto(juegoResults[0], 0, juegoResults[2], 2, dealerIdx);
+                bestUsJuegoIdx = cmp >= 0 ? 0 : 2;
+                bestUsJuego = juegoResults[bestUsJuegoIdx];
+            }
+
+            RulesEvaluator.JuegoResult bestThemJuego = null;
+            int bestThemJuegoIdx = -1;
+            if (!isPunto) {
+                if (juegoResults[1].isHasJuego() && juegoResults[3].isHasJuego()) {
+                    int cmp = RulesEvaluator.compareJuegoPunto(juegoResults[1], 1, juegoResults[3], 3, dealerIdx);
+                    bestThemJuegoIdx = cmp >= 0 ? 1 : 3;
+                    bestThemJuego = juegoResults[bestThemJuegoIdx];
+                } else if (juegoResults[1].isHasJuego()) {
+                    bestThemJuegoIdx = 1;
+                    bestThemJuego = juegoResults[1];
+                } else if (juegoResults[3].isHasJuego()) {
+                    bestThemJuegoIdx = 3;
+                    bestThemJuego = juegoResults[3];
+                }
+            } else {
+                int cmp = RulesEvaluator.compareJuegoPunto(juegoResults[1], 1, juegoResults[3], 3, dealerIdx);
+                bestThemJuegoIdx = cmp >= 0 ? 1 : 3;
+                bestThemJuego = juegoResults[bestThemJuegoIdx];
+            }
+
+            if (bestUsJuego != null && bestThemJuego != null) {
+                boolean usWinsJuego = RulesEvaluator.compareJuegoPunto(bestUsJuego, bestUsJuegoIdx, bestThemJuego, bestThemJuegoIdx, dealerIdx) >= 0;
+                apuestas.get("juego").setGanadaPor(usWinsJuego ? "us" : "them");
+            } else if (bestUsJuego != null) {
+                apuestas.get("juego").setGanadaPor("us");
+            } else if (bestThemJuego != null) {
+                apuestas.get("juego").setGanadaPor("them");
             }
         }
 
-        // Payout the points
+        // Payout the points for bets
         int pointsRoundUs = 0;
         int pointsRoundThem = 0;
 
-        for (String lance : LANCES) {
+        for (String lance : apuestas.keySet()) {
             LanceBet lb = apuestas.get(lance);
             int gain = lb.getDeje() > 0 ? lb.getDeje() : (lb.getPuntos() == 0 ? 1 : lb.getPuntos());
             if ("us".equals(lb.getGanadaPor())) {
@@ -509,230 +314,81 @@ public class GameSession {
             }
         }
 
-        // Additional points for having Pares and Juego/Punto
-        for (int i = 0; i < 4; i++) {
-            List<Card> h = players.get(i).getHand();
-            ParesResult pr = evaluatePares(h);
-            if (pr.isHas()) {
-                if (i % 2 == 0) pointsRoundUs += pr.getValue();
-                else pointsRoundThem += pr.getValue();
-                appendLog(players.get(i).getUsername() + " suma +" + pr.getValue() + " por sus Pares (" + pr.getType() + ").");
-            }
-
-            JuegoResult jr = evaluateJuego(h);
-            if (jr.isHasJuego() && !apuestas.get("juego").isEsPunto()) {
-                int bonus = jr.getSum() == 31 ? 3 : 2;
-                if (i % 2 == 0) pointsRoundUs += bonus;
-                else pointsRoundThem += bonus;
-                appendLog(players.get(i).getUsername() + " suma +" + bonus + " por su Juego de " + jr.getSum() + ".");
-            } else if (apuestas.get("juego").isEsPunto() && "us".equals(apuestas.get("juego").getGanadaPor()) && i == 0) {
-                // Winner of Punto gets +1 bonus
-                pointsRoundUs += 1;
-                appendLog(players.get(0).getUsername() + " suma +1 por ganar el Punto.");
-            } else if (apuestas.get("juego").isEsPunto() && "them".equals(apuestas.get("juego").getGanadaPor()) && i == 1) {
-                pointsRoundThem += 1;
-                appendLog(players.get(1).getUsername() + " suma +1 por ganar el Punto.");
+        // Additional points for having Pares and Juego/Punto (Official Mus Rules: ONLY WINNING TEAM SCORES!)
+        String paresWinner = apuestas.get("pares").getGanadaPor();
+        if (paresWinner != null) {
+            for (int i = 0; i < 4; i++) {
+                boolean isUs = (i % 2 == 0);
+                boolean isWinnerTeam = (isUs && "us".equals(paresWinner)) || (!isUs && "them".equals(paresWinner));
+                if (isWinnerTeam) {
+                    RulesEvaluator.ParesResult pr = paresResults[i];
+                    if (pr.isHas()) {
+                        if (isUs) pointsRoundUs += pr.getValue();
+                        else pointsRoundThem += pr.getValue();
+                        appendLog(players.get(i).getUsername() + " suma +" + pr.getValue() + " por sus Pares (" + pr.getType() + ").");
+                    }
+                }
             }
         }
 
+        String juegoWinner = apuestas.get("juego").getGanadaPor();
+        if (juegoWinner != null) {
+            if (!isPunto) {
+                for (int i = 0; i < 4; i++) {
+                    boolean isUs = (i % 2 == 0);
+                    boolean isWinnerTeam = (isUs && "us".equals(juegoWinner)) || (!isUs && "them".equals(juegoWinner));
+                    if (isWinnerTeam) {
+                        RulesEvaluator.JuegoResult jr = juegoResults[i];
+                        if (jr.isHasJuego()) {
+                            int bonus = jr.getSum() == 31 ? 3 : 2;
+                            if (isUs) pointsRoundUs += bonus;
+                            else pointsRoundThem += bonus;
+                            appendLog(players.get(i).getUsername() + " suma +" + bonus + " por su Juego de " + jr.getSum() + ".");
+                        }
+                    }
+                }
+            } else {
+                // Punto: +1 point to the winning team of Punto
+                if ("us".equals(juegoWinner)) {
+                    pointsRoundUs += 1;
+                    appendLog("Nosotros sumamos +1 por ganar el Punto.");
+                } else {
+                    pointsRoundThem += 1;
+                    appendLog("Rivales sumaron +1 por ganar el Punto.");
+                }
+            }
+        }
+
+        // Update score of the current Chico
         scoreUs = Math.min(scoreUs + pointsRoundUs, 30);
         scoreThem = Math.min(scoreThem + pointsRoundThem, 30);
 
-        appendLog(String.format("Puntos sumados -> Nosotros: %d | Rivales: %d", pointsRoundUs, pointsRoundThem));
+        appendLog(String.format("Puntos sumados en el chico -> Nosotros: %d | Rivales: %d", pointsRoundUs, pointsRoundThem));
         
-        // Check game over
+        // Check chico over
         if (scoreUs >= 30 || scoreThem >= 30) {
-            isPlaying = false;
-            appendLog("--- FIN DE LA PARTIDA ---");
             if (scoreUs >= 30) {
-                appendLog("🏆 ¡NOSOTROS HEMOS GANADO EL ENCUENTRO!");
+                roundsWonUs++;
+                appendLog("🏆 ¡NOSOTROS HEMOS GANADO ESTE CHICO! (" + roundsWonUs + " - " + roundsWonThem + ")");
             } else {
-                appendLog("💔 ¡RIVALES GANAN EL ENCUENTRO!");
+                roundsWonThem++;
+                appendLog("💔 ¡RIVALES GANAN ESTE CHICO! (" + roundsWonUs + " - " + roundsWonThem + ")");
             }
-        }
-    }
 
-    // --- CARD DETAILS UTILS ---
-
-    @Data
-    public static class CardItemInfo {
-        private Card card;
-        private int realOrder; // 3=12, 12=12, 11=11, 10=10, 2=1, 1=1...
-    }
-
-    public static CardItemInfo getCardDetails(Card c) {
-        CardItemInfo info = new CardItemInfo();
-        info.setCard(c);
-        int r = c.getRank();
-        if (r == 3) info.setRealOrder(12); // 3 es Rey
-        else if (r == 2) info.setRealOrder(1); // 2 es As
-        else if (r == 1) info.setRealOrder(1);
-        else info.setRealOrder(r);
-        return info;
-    }
-
-    public static List<CardItemInfo> getSortedGrande(List<Card> hand) {
-        List<CardItemInfo> list = new ArrayList<>();
-        for (Card c : hand) {
-            list.add(getCardDetails(c));
-        }
-        list.sort((a, b) -> b.getRealOrder() - a.getRealOrder());
-        return list;
-    }
-
-    public static List<CardItemInfo> getSortedChica(List<Card> hand) {
-        List<CardItemInfo> list = new ArrayList<>();
-        for (Card c : hand) {
-            list.add(getCardDetails(c));
-        }
-        list.sort((a, b) -> a.getRealOrder() - b.getRealOrder());
-        return list;
-    }
-
-    private CardItemInfo getBestGrande(int p1, int p2) {
-        List<CardItemInfo> h1 = getSortedGrande(players.get(p1).getHand());
-        List<CardItemInfo> h2 = getSortedGrande(players.get(p2).getHand());
-        return compareGrande(h1.get(0), h2.get(0)) >= 0 ? h1.get(0) : h2.get(0);
-    }
-
-    private int compareGrande(CardItemInfo a, CardItemInfo b) {
-        return a.getRealOrder() - b.getRealOrder();
-    }
-
-    private CardItemInfo getBestChica(int p1, int p2) {
-        List<CardItemInfo> h1 = getSortedChica(players.get(p1).getHand());
-        List<CardItemInfo> h2 = getSortedChica(players.get(p2).getHand());
-        return compareChica(h1.get(0), h2.get(0)) >= 0 ? h1.get(0) : h2.get(0);
-    }
-
-    private int compareChica(CardItemInfo a, CardItemInfo b) {
-        return b.getRealOrder() - a.getRealOrder(); // Smaller realOrder is better
-    }
-
-    @Data
-    public static class ParesResult {
-        private boolean has;
-        private String type; // Par, Medias, Duples
-        private int value; // 1, 2, 3
-        private int orderVal;
-    }
-
-    public static ParesResult evaluatePares(List<Card> hand) {
-        ParesResult pr = new ParesResult();
-        Map<Integer, Integer> counts = new HashMap<>();
-        for (Card c : hand) {
-            int order = getCardDetails(c).getRealOrder();
-            counts.put(order, counts.getOrDefault(order, 0) + 1);
-        }
-        List<Integer> frequencies = new ArrayList<>(counts.values());
-        frequencies.sort(Collections.reverseOrder());
-        
-        List<CardItemInfo> sorted = getSortedGrande(hand);
-        int maxVal = sorted.get(0).getCard().getRank();
-
-        if (frequencies.isEmpty()) {
-            pr.setHas(false);
-            pr.setType("Nada");
-            pr.setValue(0);
-            return pr;
-        }
-
-        if (frequencies.get(0) == 4) {
-            pr.setHas(true);
-            pr.setType("Duples");
-            pr.setValue(3);
-            pr.setOrderVal(maxVal);
-            return pr;
-        }
-        if (frequencies.get(0) == 3) {
-            pr.setHas(true);
-            pr.setType("Medias");
-            pr.setValue(2);
-            pr.setOrderVal(maxVal);
-            return pr;
-        }
-        if (frequencies.get(0) == 2 && frequencies.size() >= 2 && frequencies.get(1) == 2) {
-            pr.setHas(true);
-            pr.setType("Duples");
-            pr.setValue(3);
-            pr.setOrderVal(maxVal);
-            return pr;
-        }
-        if (frequencies.get(0) == 2) {
-            int pairRank = 0;
-            for (Map.Entry<Integer, Integer> e : counts.entrySet()) {
-                if (e.getValue() == 2) {
-                    pairRank = e.getKey();
-                    break;
+            // Check match over
+            if (roundsWonUs >= config.getMaxRounds() || roundsWonThem >= config.getMaxRounds()) {
+                isPlaying = false;
+                appendLog("--- FIN DE LA PARTIDA ---");
+                if (roundsWonUs >= config.getMaxRounds()) {
+                    appendLog("🏆 🏆 ¡NOSOTROS GANAMOS EL ENCUENTRO!");
+                } else {
+                    appendLog("💔 💔 ¡RIVALES GANAN EL ENCUENTRO!");
                 }
             }
-            pr.setHas(true);
-            pr.setType("Par");
-            pr.setValue(1);
-            pr.setOrderVal(pairRank);
-            return pr;
         }
 
-        pr.setHas(false);
-        pr.setType("Nada");
-        pr.setValue(0);
-        return pr;
-    }
-
-    private ParesResult getBestPares(int p1, int p2) {
-        ParesResult r1 = evaluatePares(players.get(p1).getHand());
-        ParesResult r2 = evaluatePares(players.get(p2).getHand());
-        if (r1.isHas() && r2.isHas()) {
-            return comparePares(r1, r2) >= 0 ? r1 : r2;
-        }
-        return r1.isHas() ? r1 : (r2.isHas() ? r2 : null);
-    }
-
-    private int comparePares(ParesResult a, ParesResult b) {
-        if (a.getValue() != b.getValue()) return a.getValue() - b.getValue();
-        return a.getOrderVal() - b.getOrderVal();
-    }
-
-    @Data
-    public static class JuegoResult {
-        private boolean hasJuego;
-        private int sum;
-        private int strength; // 31=8, 32=7, 40=6, 37=5...
-    }
-
-    public static JuegoResult evaluateJuego(List<Card> hand) {
-        JuegoResult jr = new JuegoResult();
-        int sum = 0;
-        for (Card c : hand) {
-            sum += getCardDetails(c).getCard().getScoreValue();
-        }
-        jr.setSum(sum);
-        
-        if (sum >= 31) {
-            jr.setHasJuego(true);
-            // Strength ordering: 31 (8) > 32 (7) > 40 (6) > 37 (5) > 36 (4) > 35 (3) > 34 (2) > 33 (1)
-            int str = 0;
-            if (sum == 31) str = 8;
-            else if (sum == 32) str = 7;
-            else if (sum == 40) str = 6;
-            else str = sum - 30; // 37 -> 7, 36 -> 6... wait, the original formula in frontend was sum - 30.
-            // Let's copy frontend exactly: strength = sum === 31 ? 8 : (sum === 32 ? 7 : (sum === 40 ? 6 : sum - 30));
-            jr.setStrength(str);
-        } else {
-            jr.setHasJuego(false);
-            jr.setStrength(sum); // for punto, higher sum is better (30 is best)
-        }
-        return jr;
-    }
-
-    private JuegoResult getBestJuego(int p1, int p2) {
-        JuegoResult r1 = evaluateJuego(players.get(p1).getHand());
-        JuegoResult r2 = evaluateJuego(players.get(p2).getHand());
-        return compareJuegoPunto(r1, r2) >= 0 ? r1 : r2;
-    }
-
-    private int compareJuegoPunto(JuegoResult a, JuegoResult b) {
-        return a.getStrength() - b.getStrength();
+        // Shift dealer for the next hand
+        dealerIdx = (dealerIdx + 1) % 4;
     }
 
     // --- SECURE STATE SERIALIZATION FOR EACH CLIENT ---
@@ -748,14 +404,19 @@ public class GameSession {
         state.put("dealerIdx", dealerIdx);
         state.put("betState", betState);
         state.put("currentBetSize", currentBetSize);
+        state.put("reyesOption", config.getReyesOption());
+        state.put("maxRounds", config.getMaxRounds());
+        state.put("roundsWonUs", roundsWonUs);
+        state.put("roundsWonThem", roundsWonThem);
         
-        Map<String, Integer> score = new HashMap<>();
+        Map<String, Object> score = new HashMap<>();
         score.put("us", scoreUs);
         score.put("them", scoreThem);
+        score.put("roundsUs", roundsWonUs);
+        score.put("roundsThem", roundsWonThem);
         state.put("score", score);
 
         // Speech bubbles
-        // [Tú, Oeste, Norte, Este] relative to playerIdx
         List<String> bubbles = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             int relativeIdx = (playerIdx + i) % 4;
@@ -769,10 +430,8 @@ public class GameSession {
         state.put("playerHand", self != null ? self.getHand() : new ArrayList<>());
 
         // Hands of the other players
-        // In the green felt representation: [Bot Norte, Bot Oeste, Bot Este] (or rather relative Chairs 2, 1, 3 relative to us)
-        // Let's build botHands array: [Chair 2 relative, Chair 1 relative, Chair 3 relative]
         List<List<Map<String, Object>>> otherHands = new ArrayList<>();
-        int[] relativeChairs = {2, 1, 3}; // North, West, East relative to South (0)
+        int[] relativeChairs = {2, 1, 3}; // North, West, East relative to us (South / 0)
         
         for (int offset : relativeChairs) {
             int targetIdx = (playerIdx + offset) % 4;
@@ -783,16 +442,14 @@ public class GameSession {
                 for (Card c : other.getHand()) {
                     Map<String, Object> cMap = new HashMap<>();
                     if (phase.equals("round-over")) {
-                        // REVEAL! Send actual cards at showdown
                         cMap.put("id", c.getId());
                         cMap.put("suit", c.getSuit());
                         cMap.put("rank", c.getRank());
                         cMap.put("imagePath", c.getImagePath());
                         cMap.put("scoreValue", c.getScoreValue());
                     } else {
-                        // CONCEALED! Hide other players' cards!
                         cMap.put("id", c.getId());
-                        cMap.put("imagePath", "/cards/back.png"); // Show card back
+                        cMap.put("imagePath", "/cards/back.png");
                     }
                     cardsMasked.add(cMap);
                 }
@@ -801,7 +458,7 @@ public class GameSession {
         }
         state.put("botHands", otherHands);
 
-        // Seat labels for the frontend
+        // Seat labels
         List<Map<String, Object>> seats = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             int relativeIdx = (playerIdx + i) % 4;
@@ -815,7 +472,6 @@ public class GameSession {
         }
         state.put("seats", seats);
         
-        // Is current user's turn?
         state.put("isMyTurn", activeTurnIdx == playerIdx);
 
         return state;
@@ -829,17 +485,14 @@ public class GameSession {
         GamePlayer current = players.get(activeTurnIdx);
         if (current == null || !current.isBot()) return false;
 
-        // Simulate Bot Turn based on active phase
         int botIdx = activeTurnIdx;
         
         if (phase.equals("mus-check")) {
-            // Bots want Mus 70% of time
-            boolean botWantsMus = Math.random() > 0.3;
+            boolean botWantsMus = Math.random() > 0.4;
             handleMusDecision(botIdx, botWantsMus);
             return true;
         } 
         else if (phase.equals("discarding")) {
-            // Bot discards 1 to 3 random cards
             List<String> cardIdsToDiscard = new ArrayList<>();
             List<Card> h = current.getHand();
             int numDiscards = Math.min((int)(Math.random() * 3) + 1, h.size());
@@ -850,19 +503,14 @@ public class GameSession {
             return true;
         } 
         else if (phase.equals("betting")) {
-            // Bot betting AI
             if (betState > 0) {
-                // An active bet is placed. Bot decides Quiero / No Quiero.
-                // 60% Quiero, 40% No Quiero
-                boolean accepts = Math.random() > 0.4;
+                boolean accepts = Math.random() > 0.35;
                 handleBetAction(botIdx, accepts ? "Quiero" : "No Quiero");
             } else {
-                // No bets placed. Bot decides Paso / Envido / Ordago.
-                // 70% Paso, 25% Envido, 5% Ordago
                 double r = Math.random();
-                if (r < 0.70) {
+                if (r < 0.75) {
                     handleBetAction(botIdx, "Paso");
-                } else if (r < 0.95) {
+                } else if (r < 0.97) {
                     handleBetAction(botIdx, "Envido");
                 } else {
                     handleBetAction(botIdx, "Ordago");

@@ -13,7 +13,7 @@ const CreateUserCard: React.FC<CreateUserCardProps> = ({ onSwitchToLogin }): Rea
       <div className="login-card__header">
         <CardLogo />
         <h1 className="login-card__title">ENBIDO</h1>
-        <p className="login-card__subtitle">Create your account...</p>
+        <p className="login-card__subtitle">Crea tu cuenta... / Sortu zure kontua...</p>
       </div>
       <CreateUserForm onSwitchToLogin={onSwitchToLogin} />
     </div>

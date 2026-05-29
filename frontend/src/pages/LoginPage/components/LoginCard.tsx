@@ -14,7 +14,7 @@ const LoginCard: React.FC<LoginCardProps> = ({ onSwitchToRegister }): React.JSX.
       <div className="login-card__header">
         <CardLogo />
         <h1 className="login-card__title">ENBIDO</h1>
-        <p className="login-card__subtitle">Connecting with the table...</p>
+        <p className="login-card__subtitle">Conectando con la mesa... / Mahaira konektatzen...</p>
       </div>
       <LoginForm/>
       <SocialDivider onSwitchToRegister={onSwitchToRegister} />

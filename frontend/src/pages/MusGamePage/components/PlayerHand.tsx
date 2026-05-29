@@ -64,7 +64,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           onClick={() => handleCardClick(card.id)}
         >
           <div className="card-suit-corner top-left">{card.suit[0]}</div>
-          <div className="card-rank">{card.rank === 12 ? 'R' : card.rank === 11 ? 'C' : card.rank === 10 ? 'S' : card.rank}</div>
+          <div className="card-rank">{card.rank}</div>
           <div className="card-suit-emblem">{card.suit}</div>
         </div>
       );

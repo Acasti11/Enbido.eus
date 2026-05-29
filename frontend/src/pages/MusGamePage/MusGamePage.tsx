@@ -32,7 +32,8 @@ const MusGamePage: React.FC = () => {
     isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
     roomId, seats, isSearching, queueSize, username, isMyTurn, betState,
     handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
-    onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom
+    onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
+    reyesOption, maxRounds, updateRoomConfig
   } = useMusGame(currentUserId);
 
   const handleActionPanelStart = () => {
@@ -79,6 +80,9 @@ const MusGamePage: React.FC = () => {
           onAddBot={onAddBot}
           onStartGame={handleStartMatch}
           onLeaveRoom={onLeaveRoom}
+          reyesOption={reyesOption}
+          maxRounds={maxRounds}
+          onUpdateConfig={updateRoomConfig}
         />
       </>
     );
@@ -163,7 +167,7 @@ const MusGamePage: React.FC = () => {
 
         {/* PANEL DERECHO: CONTROLES Y MARCADOR */}
         <aside className="sidebar-panel">
-          <GameScoreBoard score={score} />
+          <GameScoreBoard score={score} maxRounds={maxRounds} />
           
           <div className="game-logs-widget">
             <div className="logs-header">HISTORIAL DE PARTIDA</div>
