@@ -3,7 +3,6 @@ import api from '../../../services/api';
 import '../styles/premium-lobby.css';
 
 interface PremiumLobbyProps {
-  userId: number;
   username: string;
   isSearching: boolean;
   queueSize: number;
@@ -21,7 +20,6 @@ interface UserProfile {
 }
 
 const PremiumLobby: React.FC<PremiumLobbyProps> = ({
-  userId,
   username,
   isSearching,
   queueSize,
@@ -37,7 +35,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get(`/usuarios/${userId}/profile`);
+        const res = await api.get('/usuarios/me/profile');
         setProfile(res.data);
       } catch (err) {
         console.error('Error fetching player profile from DB:', err);
@@ -46,7 +44,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       }
     };
     fetchProfile();
-  }, [userId]);
+  }, []);
 
   const handleCreateRoomLocal = () => {
     const randomCode = 'SALA-' + Math.floor(100 + Math.random() * 900);

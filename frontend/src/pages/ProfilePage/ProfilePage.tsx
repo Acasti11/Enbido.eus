@@ -15,9 +15,7 @@ interface UserProfile {
 }
 
 const ProfilePage: React.FC = (): React.JSX.Element => {
-  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUserId = savedUser.userId || savedUser.user_id || 1;
-  const username = savedUser.username || 'Juan Pérez';
+  const username = localStorage.getItem('username') || 'Juan Pérez';
   const initials = username.slice(0, 2).toUpperCase();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -25,14 +23,14 @@ const ProfilePage: React.FC = (): React.JSX.Element => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get(`/usuarios/${currentUserId}/profile`);
+        const res = await api.get('/usuarios/me/profile');
         setProfile(res.data);
       } catch (err) {
         console.error('Error fetching player profile from DB:', err);
       }
     };
     fetchProfile();
-  }, [currentUserId]);
+  }, []);
 
   const stats = profile ? [
     {

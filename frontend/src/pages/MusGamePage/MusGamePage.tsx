@@ -11,8 +11,7 @@ import './styles/mus-game.css';
 
 const MusGamePage: React.FC = () => {
   // Extraemos el ID del usuario del localStorage, o usamos el 1 por defecto
-  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUserId = savedUser.userId || savedUser.user_id || 1;
+  const currentUserId = Number(localStorage.getItem('userId') || '1');
 
   // Cargar perfil para obtener equipamiento dinámico
   const [profile, setProfile] = useState<any>(null);
@@ -20,14 +19,14 @@ const MusGamePage: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get(`/usuarios/${currentUserId}/profile`);
+        const res = await api.get('/usuarios/me/profile');
         setProfile(res.data);
       } catch (err) {
         console.error('Error fetching player profile for game felt:', err);
       }
     };
     fetchProfile();
-  }, [currentUserId]);
+  }, []);
 
   const { 
     isPlaying, phase, stage, score, logs, selectedCards, speechBubbles, playerHand, botHands,
@@ -57,7 +56,6 @@ const MusGamePage: React.FC = () => {
     return (
       <>
         <PremiumLobby 
-          userId={currentUserId}
           username={username}
           isSearching={isSearching}
           queueSize={queueSize}

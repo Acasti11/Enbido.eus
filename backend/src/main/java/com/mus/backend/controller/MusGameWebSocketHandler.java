@@ -3,6 +3,7 @@ package com.mus.backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mus.backend.engine.GameSession;
 import com.mus.backend.engine.GameSessionManager;
+import com.mus.backend.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -21,6 +22,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private GameSessionManager sessionManager;
+
+    @Autowired
+    private JwtService jwtService;
 
     // Mapea id de sesión de WebSocket a su información de conexión activa
     private final Map<String, UserConnection> activeConnections = new ConcurrentHashMap<>();
@@ -119,8 +123,18 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
     private void handleJoinAction(UserConnection conn, Map<String, Object> data) {
         String roomId = ((String) data.get("roomId")).toUpperCase().trim();
-        Long userId = Long.valueOf(data.get("userId").toString());
-        String username = (String) data.get("username");
+        
+        Long userId;
+        String username;
+
+        String token = (String) data.get("token");
+        if (token != null && jwtService.isTokenValid(token)) {
+            userId = jwtService.extractUserId(token);
+            username = jwtService.extractUsername(token);
+        } else {
+            userId = Long.valueOf(data.get("userId").toString());
+            username = (String) data.get("username");
+        }
 
         conn.userId = userId;
         conn.username = username;
@@ -153,8 +167,18 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleMatchmakingJoin(UserConnection conn, Map<String, Object> data) {
-        Long userId = Long.valueOf(data.get("userId").toString());
-        String username = (String) data.get("username");
+        Long userId;
+        String username;
+
+        String token = (String) data.get("token");
+        if (token != null && jwtService.isTokenValid(token)) {
+            userId = jwtService.extractUserId(token);
+            username = jwtService.extractUsername(token);
+        } else {
+            userId = Long.valueOf(data.get("userId").toString());
+            username = (String) data.get("username");
+        }
+        
         conn.userId = userId;
         conn.username = username;
 

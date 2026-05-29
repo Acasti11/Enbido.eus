@@ -37,8 +37,7 @@ export const useMusGame = (userId: number) => {
   const socketRef = useRef<WebSocket | null>(null);
 
   // Obtener el username guardado en localStorage
-  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const username = savedUser.username || `User-${userId}`;
+  const username = localStorage.getItem('username') || `User-${userId}`;
 
   const appendLog = useCallback((message: string) => {
     setLogs((prev) => [{ id: Math.random().toString(), message }, ...prev]);
@@ -60,10 +59,12 @@ export const useMusGame = (userId: number) => {
 
     socket.onopen = () => {
       console.log('Conexión de socket establecida con Spring Boot.');
+      const token = localStorage.getItem('token');
       
       if (joinAsMatchmaker) {
         socket.send(JSON.stringify({
           type: 'MATCHMAKING_JOIN',
+          token,
           userId,
           username
         }));
@@ -71,6 +72,7 @@ export const useMusGame = (userId: number) => {
         socket.send(JSON.stringify({
           type: 'JOIN',
           roomId: targetRoomId,
+          token,
           userId,
           username
         }));
