@@ -21,6 +21,8 @@ export interface CreateAdFormState {
   description: string;
   latitude?: number;
   longitude?: number;
+  scheduledAt?: string;
+  establishmentType?: string;
 }
 
 interface CreateAdPageProps {
@@ -32,11 +34,15 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
   const [formData, setFormData] = useState<CreateAdFormState>({
     location: '', 
     missingPlayers: '1', 
-    description: ''
+    description: '',
+    scheduledAt: '',
+    establishmentType: 'BAR'
   });
 
   const [latitude, setLatitude] = useState<number>(43.2630); // Centro por defecto en Bilbao
   const [longitude, setLongitude] = useState<number>(-2.9350);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState<boolean>(false);
 
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -77,9 +83,69 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
     };
   }, []);
 
-  const handleUpdateInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+  const handleUpdateInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const searchLocationOnOSM = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const query = formData.location.trim();
+    if (!query) return;
+    try {
+      setIsSearchingLocation(true);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', España')}&format=json&limit=5`);
+      const data = await res.json();
+      setSuggestions(data);
+    } catch (err) {
+      console.error('Error searching location:', err);
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
+
+  const handleSelectSuggestion = (s: any) => {
+    const lat = parseFloat(s.lat);
+    const lng = parseFloat(s.lon);
+    const shortName = s.display_name.split(',')[0] || s.display_name;
+    
+    setFormData(prev => ({
+      ...prev,
+      location: shortName
+    }));
+    
+    setLatitude(lat);
+    setLongitude(lng);
+    
+    if (markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+    }
+    if (mapRef.current) {
+      mapRef.current.flyTo([lat, lng], 15);
+    }
+    setSuggestions([]);
+  };
+
+  const handleUseCurrentLocation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!navigator.geolocation) {
+      alert('La geolocalización no está soportada por tu navegador');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude: lat, longitude: lng } = position.coords;
+      setLatitude(lat);
+      setLongitude(lng);
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      }
+      if (mapRef.current) {
+        mapRef.current.flyTo([lat, lng], 15);
+      }
+    }, (error) => {
+      console.error(error);
+      alert('No se pudo acceder a tu ubicación real. Por favor, actívala en tu navegador.');
+    });
   };
 
   const handleFormSubmit = (e: React.FormEvent): void => {
@@ -96,17 +162,87 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
       <div className="create-form-card">
         <form onSubmit={handleFormSubmit}>
           
-          <div className="form-group">
+          <div className="form-group" style={{ position: 'relative' }}>
             <label className="form-label">Ubicación (Bar, Local, Ciudad): *</label>
-            <input type="text" name="location" required className="form-input" placeholder="Ej: Taberna El Botxo" onChange={handleUpdateInput} />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input 
+                type="text" 
+                name="location" 
+                required 
+                className="form-input" 
+                placeholder="Ej: Taberna El Botxo" 
+                value={formData.location}
+                onChange={handleUpdateInput} 
+                style={{ flex: 1 }}
+              />
+              <button 
+                type="button" 
+                onClick={searchLocationOnOSM}
+                className="btn-search-osm"
+                disabled={isSearchingLocation}
+              >
+                {isSearchingLocation ? 'Buscando...' : '🔍 Buscar en Mapa'}
+              </button>
+            </div>
+
+            {/* SUGGESTIONS LIST */}
+            {suggestions.length > 0 && (
+              <ul className="osm-suggestions-list">
+                {suggestions.map((s, idx) => (
+                  <li key={idx} onClick={() => handleSelectSuggestion(s)} className="osm-suggestion-item">
+                    📍 {s.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="form-group create-map-section">
-            <label className="form-label">Ubica la partida en el mapa (Mueve el pin o haz clic):</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label className="form-label" style={{ margin: 0 }}>Ubica la partida en el mapa (Mueve el pin o haz clic):</label>
+              <button 
+                type="button" 
+                onClick={handleUseCurrentLocation}
+                className="btn-gps-locate"
+              >
+                🎯 Usar mi ubicación actual
+              </button>
+            </div>
             <div id="create-map" className="create-map-box"></div>
             <span className="create-map-coordinates-label">
               Latitud: {latitude.toFixed(6)} | Longitud: {longitude.toFixed(6)}
             </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+              <label className="form-label">Fecha y Hora del encuentro: *</label>
+              <input 
+                type="datetime-local" 
+                name="scheduledAt" 
+                required 
+                className="form-input" 
+                value={formData.scheduledAt}
+                onChange={handleUpdateInput} 
+              />
+            </div>
+
+            <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+              <label className="form-label">Tipo de establecimiento: *</label>
+              <select 
+                name="establishmentType" 
+                required 
+                className="form-input" 
+                value={formData.establishmentType || 'BAR'} 
+                onChange={handleUpdateInput}
+                style={{ background: '#121212', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', height: '42px' }}
+              >
+                <option value="BAR">🍻 Taberna / Bar</option>
+                <option value="TXOKO">🍽️ Sociedad Gastronómica / Txoko</option>
+                <option value="CAFE">☕ Cafetería</option>
+                <option value="OUTDOOR">🌳 Exterior / Parque</option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">
@@ -116,7 +252,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
 
           <div className="form-group">
             <label className="form-label">Descripción de la partida: *</label>
-            <textarea name="description" required className="form-textarea" placeholder="Reglas, nivel esperado, apuestas..." onChange={handleUpdateInput} />
+            <textarea name="description" required className="form-textarea" placeholder="Reglas, nivel esperado, apuestas..." value={formData.description} onChange={handleUpdateInput} />
           </div>
 
           <div className="form-actions">

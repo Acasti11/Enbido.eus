@@ -59,3 +59,44 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
   gap: var(--spacing-lg); 
 }
+
+/* Filters Panel styles */
+.meetup-filters-panel {
+  display: flex;
+  gap: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.filters-label {
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  font-weight: 700;
+}
+
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+.filter-checkbox-label:hover {
+  opacity: 0.85;
+}
+
+.filter-checkbox-input {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-brand-light);
+}

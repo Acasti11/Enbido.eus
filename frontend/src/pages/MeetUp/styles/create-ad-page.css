@@ -91,3 +91,73 @@
 .btn-submit-form:hover { 
   background: var(--color-brand-main); 
 }
+
+/* Autocomplete suggestions */
+.osm-suggestions-list {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-md);
+  margin: 4px 0 0 0;
+  padding: 0;
+  list-style: none;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: none;
+}
+
+.osm-suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #333333;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  transition: background-color var(--transition-fast);
+}
+
+.osm-suggestion-item:hover {
+  background-color: #f3f4f6;
+  color: var(--color-brand-main);
+}
+
+.btn-search-osm {
+  background-color: var(--color-brand-light);
+  color: var(--color-text-white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-search-osm:hover {
+  background-color: var(--color-brand-main);
+}
+
+.btn-gps-locate {
+  background: transparent;
+  color: var(--color-brand-main);
+  border: 1px solid var(--color-brand-light);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-gps-locate:hover {
+  background-color: var(--color-brand-light);
+  color: #fff;
+}

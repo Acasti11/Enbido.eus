@@ -34,6 +34,12 @@ public class LocalMeetupAd {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @Column(name = "scheduled_at")
+    private java.time.LocalDateTime scheduledAt;
+
+    @Column(name = "establishment_type")
+    private String establishmentType;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creator_id", insertable = false, updatable = false)
     private Usuario creator;

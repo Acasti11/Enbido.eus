@@ -189,3 +189,40 @@
     width: 100%;
   }
 }
+
+/* Custom Map Pin Styling */
+.custom-pin-container {
+  background: none !important;
+  border: none !important;
+}
+
+.custom-map-pin {
+  width: 24px;
+  height: 24px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  animation: bouncePin 0.4s ease-out forwards;
+}
+
+.custom-map-pin-inner {
+  width: 8px;
+  height: 8px;
+  background-color: #ffffff;
+  border-radius: 50%;
+}
+
+@keyframes bouncePin {
+  0% {
+    transform: translateY(-20px) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotate(-45deg);
+    opacity: 1;
+  }
+}

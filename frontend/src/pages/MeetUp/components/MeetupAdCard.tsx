@@ -13,14 +13,17 @@ export interface LocalMeetupAd {
   isActive: boolean;
   latitude?: number;
   longitude?: number;
+  scheduledAt?: string;
+  establishmentType?: string;
 }
 
 interface MeetupCardProps {
   ad: LocalMeetupAd;
   isHighlighted?: boolean;
+  onDelete?: (adId: number) => void;
 }
 
-const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.JSX.Element => {
+const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }): React.JSX.Element => {
   const navigate = useNavigate();
   const [adState, setAdState] = useState<LocalMeetupAd>(ad);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
@@ -95,7 +98,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.J
 
   const handleJoin = async () => {
     if (!isLoggedIn) {
-      alert('Debes iniciar sesión para unirte a una mesa');
+      alert('Debes iniciar sesión para unirse a una mesa');
       return;
     }
     try {
@@ -107,6 +110,43 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.J
       console.error('Error joining meetup:', err);
       alert(err.response?.data || 'Error al unirse');
     }
+  };
+
+  const handleLeave = async () => {
+    if (!isLoggedIn) return;
+    try {
+      const res = await api.post(`/meetups/${adState.adId}/leave`);
+      setAdState(res.data);
+      setHasJoined(false);
+      fetchParticipants();
+    } catch (err: any) {
+      console.error('Error leaving meetup:', err);
+      alert(err.response?.data || 'Error al abandonar la mesa');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('¿Seguro que deseas cancelar y eliminar esta quedada?')) return;
+    try {
+      await api.delete(`/meetups/${adState.adId}`);
+      if (onDelete) {
+        onDelete(adState.adId);
+      }
+    } catch (err: any) {
+      console.error('Error deleting meetup:', err);
+      alert('Error al eliminar la quedada');
+    }
+  };
+
+  const handleShare = () => {
+    const dateFormatted = adState.scheduledAt 
+      ? formatScheduledDate(adState.scheduledAt) 
+      : 'Fecha por coordinar';
+    const text = `¡Aupa! He organizado una quedada para jugar al Mus en ${adState.location} el ${dateFormatted}. ¡Faltan ${adState.missingPlayers} jugadores! Apúntate aquí en Enbido: ${window.location.origin}/meetups`;
+    
+    navigator.clipboard.writeText(text)
+      .then(() => alert('¡Mensaje para compartir copiado al portapapeles!'))
+      .catch(() => alert('No se pudo copiar al portapapeles'));
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -128,13 +168,65 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.J
   const isCreator = adState.creatorId === currentUserId;
   const isFull = adState.missingPlayers <= 0;
 
+  const getEstablishmentIcon = (type: string | undefined) => {
+    switch (type) {
+      case 'TXOKO': return '🍽️';
+      case 'CAFE': return '☕';
+      case 'OUTDOOR': return '🌳';
+      case 'BAR':
+      default:
+        return '🍻';
+    }
+  };
+
+  const getEstablishmentLabel = (type: string | undefined) => {
+    switch (type) {
+      case 'TXOKO': return 'Sociedad / Txoko';
+      case 'CAFE': return 'Cafetería';
+      case 'OUTDOOR': return 'Exterior / Parque';
+      case 'BAR':
+      default:
+        return 'Taberna / Bar';
+    }
+  };
+
+  const formatScheduledDate = (dateStr: string | undefined) => {
+    if (!dateStr) return 'Fecha por coordinar';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   return (
     <article className={`ad-card ${isHighlighted ? 'map-highlighted' : ''}`} id={`ad-card-${adState.adId}`}>
       <div className="ad-card__header">
-        <h3 className="ad-card__location">{adState.location}</h3>
-        <p className="ad-card__creator">
-          Organizado por: <strong>{adState.creatorName}</strong>
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+          <h3 className="ad-card__location" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{getEstablishmentIcon(adState.establishmentType)}</span>
+            <span>{adState.location}</span>
+          </h3>
+          <span className="establishment-type-tag">
+            {getEstablishmentLabel(adState.establishmentType)}
+          </span>
+        </div>
+        
+        <div className="ad-card__meta-info">
+          <span>Organizado por: <strong>{adState.creatorName}</strong></span>
+          {adState.scheduledAt && (
+            <span className="ad-card__date-tag">
+              📅 {formatScheduledDate(adState.scheduledAt)}
+            </span>
+          )}
+        </div>
       </div>
       
       <div className="ad-card__body">
@@ -145,24 +237,55 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.J
       </div>
 
       <div className="ad-card__actions">
-        <button 
-          className="btn-join" 
-          onClick={handleJoin}
-          disabled={hasJoined || isCreator || isFull || !isLoggedIn}
-        >
-          {hasJoined 
-            ? '✓ Te has unido' 
-            : isCreator 
+        {hasJoined ? (
+          <>
+            <button className="btn-join btn-joined" disabled>
+              ✓ Te has unido
+            </button>
+            <button className="btn-leave-meetup" onClick={handleLeave}>
+              ❌ Salir
+            </button>
+          </>
+        ) : (
+          <button 
+            className="btn-join" 
+            onClick={handleJoin}
+            disabled={isCreator || isFull || !isLoggedIn}
+          >
+            {isCreator 
               ? 'Organizador' 
               : isFull 
                 ? 'Mesa Completa' 
                 : 'Unirse a la mesa'}
+          </button>
+        )}
+
+        {isCreator && (
+          <button className="btn-delete-meetup" onClick={handleDelete} title="Eliminar anuncio de quedada">
+            ❌ Eliminar
+          </button>
+        )}
+
+        {adState.latitude && adState.longitude && (
+          <a 
+            href={`https://www.google.com/maps/search/?api=1&query=${adState.latitude},${adState.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-maps-link"
+            title="Abrir ruta en Google Maps"
+          >
+            📍 Cómo llegar
+          </a>
+        )}
+
+        <button className="btn-chat-toggle btn-share-link" onClick={handleShare} title="Copiar invitación al portapapeles">
+          🔗 Compartir
         </button>
+
         {!isCreator && (
           <button 
             type="button"
-            className="btn-chat-toggle"
-            style={{ backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#fac715', borderColor: '#fac715', border: '1px solid rgba(212, 175, 55, 0.3)' }}
+            className="btn-chat-toggle btn-chat-contact"
             onClick={handleContactOrganizer}
             title="Escribir mensaje privado al organizador"
           >

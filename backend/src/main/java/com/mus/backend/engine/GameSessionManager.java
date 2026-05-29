@@ -247,6 +247,28 @@ public class GameSessionManager {
             System.err.println("Migration check warning (longitude): " + e.getMessage());
         }
 
+        try {
+            Number countSched = (Number) entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'scheduled_at'"
+            ).getSingleResult();
+            if (countSched != null && countSched.intValue() == 0) {
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN scheduled_at TIMESTAMP NULL").executeUpdate();
+            }
+        } catch (Exception e) {
+            System.err.println("Migration check warning (scheduled_at): " + e.getMessage());
+        }
+
+        try {
+            Number countType = (Number) entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'establishment_type'"
+            ).getSingleResult();
+            if (countType != null && countType.intValue() == 0) {
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN establishment_type VARCHAR(50) DEFAULT 'BAR'").executeUpdate();
+            }
+        } catch (Exception e) {
+            System.err.println("Migration check warning (establishment_type): " + e.getMessage());
+        }
+
         System.out.println(">>> [BD] Migraciones de base de datos finalizadas con éxito.");
     }
 }

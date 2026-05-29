@@ -260,3 +260,133 @@
 .btn-send-message:hover {
   background: #2563eb;
 }
+
+/* Establishment and Date Tags */
+.establishment-type-tag {
+  background: rgba(255, 255, 255, 0.05);
+  color: #a3a3a3;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ad-card__meta-info {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 15px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.ad-card__date-tag {
+  color: var(--color-brand-main);
+  background: rgba(45, 107, 69, 0.15);
+  border: 1px solid rgba(45, 107, 69, 0.3);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+/* Leave button */
+.btn-leave-meetup {
+  flex: 1;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-fast) ease;
+}
+
+.btn-leave-meetup:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.btn-joined {
+  flex: 2 !important;
+  background: #1f2937 !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  cursor: default !important;
+  box-shadow: none !important;
+}
+
+/* Maps Navigation button */
+.btn-maps-link {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid var(--color-card-border);
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-fast) ease;
+}
+
+.btn-maps-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.btn-chat-contact {
+  background-color: rgba(212, 175, 55, 0.15) !important;
+  color: #fac715 !important;
+  border-color: rgba(212, 175, 55, 0.3) !important;
+}
+
+.btn-chat-contact:hover {
+  background-color: rgba(212, 175, 55, 0.25) !important;
+  border-color: #fac715 !important;
+  color: #fac715 !important;
+}
+
+.btn-delete-meetup {
+  flex: 1;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-fast) ease;
+}
+
+.btn-delete-meetup:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+}
+
+.btn-share-link {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #10B981 !important;
+}
+
+.btn-share-link:hover {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10B981 !important;
+}

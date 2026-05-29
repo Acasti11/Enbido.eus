@@ -233,7 +233,9 @@ CREATE TABLE IF NOT EXISTS local_meetup_ad (
     longitude DOUBLE NULL,
     missing_players INT,
     description TEXT,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    scheduled_at TIMESTAMP NULL,
+    establishment_type VARCHAR(50) DEFAULT 'BAR'
 );
 
 ALTER TABLE local_meetup_ad
