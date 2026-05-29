@@ -15,7 +15,9 @@ export const CONST_INITIAL_FORM_STATE: TournamentFormState = {
   inscriptionPrice: '',
   tournamentPrizes: '',
   otherDetails: '',
-  posterImage: ''
+  posterImage: '',
+  coinsFee: '0',
+  coinsReward: '0'
 };
 
 export const CONST_INITIAL_TOURNAMENTS: TournamentDto[] = [

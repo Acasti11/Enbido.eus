@@ -5,9 +5,10 @@ import TournamentCard from './TournamentCard';
 interface TournamentListProps {
   tournaments: TournamentDto[];
   onPublish?: () => void;
+  onClickDetail: (id: number) => void;
 }
 
-const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.JSX.Element => {
+const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentListProps): React.JSX.Element => {
   return (
     <div>
       <header className="page-header">
@@ -19,7 +20,7 @@ const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.
           <p className="empty-msg">Ez dago txapelketarik.</p>
         ) : (
           tournaments.map((t) => (
-            <TournamentCard key={t.id} tournamentData={t} />
+            <TournamentCard key={t.id} tournamentData={t} onClickDetail={onClickDetail} />
           ))
         )}
       </section>

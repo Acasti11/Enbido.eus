@@ -71,6 +71,24 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
         onChange={onChange}
         isRequired
       />
+      <div style={{ display: 'flex', gap: '15px' }}>
+        <TextInput
+          label="Izen-ematea (Monedas / tx)"
+          name="coinsFee"
+          type="number"
+          value={formState.coinsFee || '0'}
+          onChange={onChange}
+          isRequired
+        />
+        <TextInput
+          label="Saria Txapeldunarentzat (Monedas / tx)"
+          name="coinsReward"
+          type="number"
+          value={formState.coinsReward || '0'}
+          onChange={onChange}
+          isRequired
+        />
+      </div>
       <TextInput
         label="Izen-emate prezioa / Precio inscripción (€)"
         name="inscriptionPrice"

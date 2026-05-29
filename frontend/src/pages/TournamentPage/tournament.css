@@ -426,3 +426,70 @@
   background: #c82333;
   transform: scale(1.1);
 }
+
+/* ======================================================== */
+/* TOURNAMENT BRACKET & COIN FEE PREMIUM STYLES             */
+/* ======================================================== */
+
+.tag-playing {
+  background-color: rgba(250, 199, 21, 0.12) !important;
+  color: #fac715 !important;
+  border: 1px solid rgba(250, 199, 21, 0.3) !important;
+  text-shadow: 0 0 8px rgba(250, 199, 21, 0.25) !important;
+}
+
+.tag-finished {
+  background-color: rgba(74, 222, 128, 0.12) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(74, 222, 128, 0.3) !important;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.25) !important;
+}
+
+.tournament-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background-color: #0e120f !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.tournament-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: #d4af37 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.1) !important;
+}
+
+.tournament-card .card-poster {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.tournament-card .card-poster-overlay {
+  background: rgba(15, 41, 30, 0.7) !important;
+  backdrop-filter: blur(4px) !important;
+  color: #fac715 !important;
+  font-family: var(--font-display) !important;
+  letter-spacing: 0.5px !important;
+  font-size: 0.9rem !important;
+  text-transform: uppercase !important;
+}
+
+.tournament-card .card-title {
+  color: #fff !important;
+}
+
+/* Scrollbar customization for brackets scrollbox */
+div::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+div::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+div::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+div::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}

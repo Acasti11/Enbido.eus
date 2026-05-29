@@ -164,11 +164,37 @@ CREATE TABLE IF NOT EXISTS physical_tournament (
     start_datetime DATETIME,
     entry_fee DECIMAL(10,2) DEFAULT 0,
     max_teams INT,
-    status ENUM('open', 'playing', 'finished', 'cancelled') DEFAULT 'open'
+    status ENUM('open', 'playing', 'finished', 'cancelled') DEFAULT 'open',
+    coins_fee INT DEFAULT 0,
+    coins_reward INT DEFAULT 0
 );
 
 ALTER TABLE physical_tournament
     ADD CONSTRAINT physical_tournament_user_login_FK FOREIGN KEY (organizer_id) REFERENCES user_login (user_id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS physical_tournament_participant (
+    tournament_id INT,
+    user_id INT,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tournament_id, user_id),
+    FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS physical_tournament_match (
+    match_id INT AUTO_INCREMENT PRIMARY KEY,
+    tournament_id INT,
+    round_number INT,
+    match_index INT,
+    player1_id INT NULL,
+    player2_id INT NULL,
+    winner_id INT NULL,
+    score VARCHAR(20) DEFAULT '',
+    FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
+    FOREIGN KEY (player1_id) REFERENCES user_login (user_id) ON DELETE SET NULL,
+    FOREIGN KEY (player2_id) REFERENCES user_login (user_id) ON DELETE SET NULL,
+    FOREIGN KEY (winner_id) REFERENCES user_login (user_id) ON DELETE SET NULL
+);
 
 
 CREATE TABLE IF NOT EXISTS physical_tournament_team (
@@ -244,7 +270,7 @@ ALTER TABLE friendships
     ADD CONSTRAINT friendships_user_login_1_FK FOREIGN KEY (user_id_1) REFERENCES user_login (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT friendships_user_login_2_FK FOREIGN KEY (user_id_2) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
-INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '1234', 'juanito', '1990-01-01');
+INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'juanito', '1990-01-01');
 
 CREATE TABLE IF NOT EXISTS game_matches (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -279,3 +305,59 @@ INSERT IGNORE INTO game_states (game_state_id, name, description) VALUES
 (1, 'En Progreso', 'Partida en juego actualmente'),
 (2, 'Finalizada', 'Partida terminada por llegar a 30 puntos'),
 (3, 'Abandonada', 'Partida cancelada por abandono');
+
+-- Insertar categorías y artículos de la tienda
+INSERT IGNORE INTO categories (category_id, name, description) VALUES 
+(1, 'profiles', 'Profilak / Perfiles'), 
+(2, 'decks', 'Kartak / Cartas'), 
+(3, 'aliases', 'Ezizenak / Alias');
+
+INSERT IGNORE INTO items (item_id, category_id, name, price) VALUES 
+(1, 1, 'Perfil Txapeldun', 850), 
+(2, 1, 'Perfil Fronton', 620), 
+(3, 2, 'Baraja Euskal', 1200), 
+(4, 2, 'Baraja Gau Beltza', 1450), 
+(5, 3, 'Handia', 350), 
+(6, 3, 'Enbido Maisu', 700);
+
+-- Insertar usuarios de prueba
+INSERT IGNORE INTO user_login (user_id, name, email, password, username, birth_date) VALUES 
+(100, 'Mikel', 'mikel@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'mikel', '1995-05-12'), 
+(101, 'Ane', 'ane@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'ane', '1997-08-22'), 
+(102, 'Jon', 'jon@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'jon', '1994-03-15'), 
+(103, 'Gorka', 'gorka@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'gorka', '1996-11-02'), 
+(104, 'Amaia', 'amaia@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'amaia', '1998-02-14'), 
+(105, 'Ander', 'ander@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'ander', '1993-07-19'), 
+(106, 'Irati', 'irati@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'irati', '1995-09-30'), 
+(107, 'Koldo', 'koldo@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'koldo', '1992-12-05');
+
+-- Insertar perfiles de juego para los usuarios
+INSERT IGNORE INTO user_game_profile (user_id, elo, coins, total_games_played, total_games_won) VALUES 
+(100, 240, 1000, 20, 12), 
+(101, 280, 1200, 25, 18), 
+(102, 220, 800, 15, 7), 
+(103, 250, 1500, 30, 19), 
+(104, 210, 500, 10, 4), 
+(105, 190, 300, 8, 3), 
+(106, 260, 900, 18, 11), 
+(107, 235, 750, 22, 12);
+
+-- Insertar torneos de prueba
+INSERT IGNORE INTO physical_tournament (tournament_id, organizer_id, title, city, specific_location, start_datetime, entry_fee, max_teams, status, coins_fee, coins_reward) VALUES 
+(100, 100, 'Gran Copa Euskal Herria', 'Donostia', 'Gros Kiroldegia', '2026-06-15 18:00:00', 0, 8, 'open', 50, 400), 
+(101, 101, 'Kopa Bilbo Mus', 'Bilbo', 'Kasko Zaharra Cafe', '2026-05-30 19:30:00', 0, 8, 'playing', 100, 800);
+
+-- Insertar participantes de los torneos
+INSERT IGNORE INTO physical_tournament_participant (tournament_id, user_id) VALUES 
+(100, 100), (100, 101), (100, 102), (100, 103),
+(101, 100), (101, 101), (101, 102), (101, 103), (101, 104), (101, 105), (101, 106), (101, 107);
+
+-- Insertar emparejamientos/llaves del torneo 101
+INSERT IGNORE INTO physical_tournament_match (match_id, tournament_id, round_number, match_index, player1_id, player2_id, winner_id, score) VALUES 
+(1, 101, 1, 0, 100, 101, 100, '3-1'),
+(2, 101, 1, 1, 102, 103, 103, '3-2'),
+(3, 101, 1, 2, 104, 105, 104, '3-0'),
+(4, 101, 1, 3, 106, 107, NULL, ''),
+(5, 101, 2, 0, 100, 103, NULL, ''),
+(6, 101, 2, 1, 104, NULL, NULL, ''),
+(7, 101, 3, 0, NULL, NULL, NULL, '');

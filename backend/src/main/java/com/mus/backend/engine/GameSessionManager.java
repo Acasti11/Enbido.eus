@@ -247,38 +247,6 @@ public class GameSessionManager {
             System.err.println("Migration check warning (longitude): " + e.getMessage());
         }
 
-        try {
-            entityManager.createNativeQuery(
-                "INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots')"
-            ).executeUpdate();
-            
-            entityManager.createNativeQuery(
-                "INSERT IGNORE INTO game_states (game_state_id, name, description) VALUES " +
-                "(1, 'En Progreso', 'Partida en juego actualmente'), " +
-                "(2, 'Finalizada', 'Partida terminada por llegar a 30 puntos'), " +
-                "(3, 'Abandonada', 'Partida cancelada por abandono')"
-            ).executeUpdate();
-
-            entityManager.createNativeQuery(
-                "INSERT IGNORE INTO categories (category_id, name, description) VALUES " +
-                "(1, 'profiles', 'Profilak / Perfiles'), " +
-                "(2, 'decks', 'Kartak / Cartas'), " +
-                "(3, 'aliases', 'Ezizenak / Alias')"
-            ).executeUpdate();
-
-            entityManager.createNativeQuery(
-                "INSERT IGNORE INTO items (item_id, category_id, name, price) VALUES " +
-                "(1, 1, 'Perfil Txapeldun', 850), " +
-                "(2, 1, 'Perfil Fronton', 620), " +
-                "(3, 2, 'Baraja Euskal', 1200), " +
-                "(4, 2, 'Baraja Gau Beltza', 1450), " +
-                "(5, 3, 'Handia', 350), " +
-                "(6, 3, 'Enbido Maisu', 700)"
-            ).executeUpdate();
-            
-            System.out.println(">>> [BD] Datos maestros de game_mode, game_states y tienda inicializados con éxito.");
-        } catch (Exception e) {
-            System.err.println(">>> [BD] Advertencia al inicializar datos maestros: " + e.getMessage());
-        }
+        System.out.println(">>> [BD] Migraciones de base de datos finalizadas con éxito.");
     }
 }

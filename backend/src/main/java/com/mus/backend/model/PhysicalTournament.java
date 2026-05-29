@@ -39,6 +39,12 @@ public class PhysicalTournament {
     @Column(name = "status")
     private String status = "open";
 
+    @Column(name = "coins_fee")
+    private Integer coinsFee = 0;
+
+    @Column(name = "coins_reward")
+    private Integer coinsReward = 0;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organizer_id", insertable = false, updatable = false)
     private Usuario organizer;
