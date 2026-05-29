@@ -195,6 +195,8 @@ CREATE TABLE IF NOT EXISTS local_meetup_ad (
     ad_id INT AUTO_INCREMENT PRIMARY KEY,
     creator_id  INT, 
     location VARCHAR(255),
+    latitude DOUBLE NULL,
+    longitude DOUBLE NULL,
     missing_players INT,
     description TEXT,
     is_active BOOLEAN DEFAULT TRUE

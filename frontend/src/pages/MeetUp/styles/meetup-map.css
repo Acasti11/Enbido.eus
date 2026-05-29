@@ -1,0 +1,191 @@
+/* ==========================================================================
+   INTERACTIVE MEETUP MAP STYLING & PREMIUM CUSTOMIZATIONS
+   ========================================================================== */
+
+/* Split Panel Layout */
+.meetup-split-layout {
+  display: flex;
+  height: calc(100vh - 220px); /* Ajustado para caber perfectamente debajo del header */
+  min-height: 480px;
+  gap: 24px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.meetup-map-pane {
+  flex: 1.2;
+  height: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: #111111;
+}
+
+.meetup-list-pane {
+  flex: 0.8;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Custom Scrollbar for list pane */
+.meetup-list-pane::-webkit-scrollbar {
+  width: 6px;
+}
+
+.meetup-list-pane::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.meetup-list-pane::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.meetup-list-pane::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Premium Dark Mode OSM Map Tiles */
+.meetup-map-pane .leaflet-tile-container {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
+}
+
+.meetup-map-pane .leaflet-container {
+  background: #111111 !important;
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+}
+
+/* Leaflet Popup Premium Custom Styling */
+.meetup-map-pane .leaflet-popup-content-wrapper {
+  background: #161616 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(212, 175, 55, 0.45) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85) !important;
+  padding: 4px !important;
+}
+
+.meetup-map-pane .leaflet-popup-tip {
+  background: #161616 !important;
+  border-left: 1px solid rgba(212, 175, 55, 0.45) !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.45) !important;
+}
+
+.map-popup-content {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-popup-title {
+  color: #d4af37 !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: 0.5px;
+}
+
+.map-popup-text {
+  margin: 0 !important;
+  font-size: 0.75rem !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  line-height: 1.4 !important;
+}
+
+.map-popup-badge {
+  display: inline-block;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #fbbf24;
+  padding: 2px 6px;
+  font-size: 0.65rem;
+  border-radius: 4px;
+  font-weight: 700;
+  width: fit-content;
+  margin: 4px 0;
+}
+
+.map-popup-action-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.map-popup-action-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Map Selection container in creation form */
+.create-map-section {
+  margin-bottom: 20px;
+}
+
+.create-map-box {
+  height: 240px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  background: #141414;
+}
+
+.create-map-box .leaflet-tile-container {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
+}
+
+.create-map-coordinates-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #888888;
+  margin-top: 6px;
+  font-family: monospace;
+}
+
+/* Active Highlight Card effect */
+.ad-card.map-highlighted {
+  border: 1px solid rgba(212, 175, 55, 0.75) !important;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Responsive adjustment */
+@media (max-width: 900px) {
+  .meetup-split-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  
+  .meetup-map-pane {
+    height: 350px;
+    flex: none;
+    width: 100%;
+  }
+
+  .meetup-list-pane {
+    height: auto;
+    overflow: visible;
+    flex: none;
+    width: 100%;
+  }
+}

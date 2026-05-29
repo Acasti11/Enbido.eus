@@ -19,6 +19,12 @@ public class LocalMeetupAd {
     @Column(name = "location")
     private String location;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @Column(name = "missing_players")
     private Integer missingPlayers;
 

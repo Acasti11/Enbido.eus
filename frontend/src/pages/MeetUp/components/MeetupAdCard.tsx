@@ -10,13 +10,16 @@ export interface LocalMeetupAd {
   missingPlayers: number;
   description: string;
   isActive: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface MeetupCardProps {
   ad: LocalMeetupAd;
+  isHighlighted?: boolean;
 }
 
-const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad }): React.JSX.Element => {
+const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.JSX.Element => {
   const [adState, setAdState] = useState<LocalMeetupAd>(ad);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [participants, setParticipants] = useState<any[]>([]);
@@ -108,7 +111,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad }): React.JSX.Element => {
   const isFull = adState.missingPlayers <= 0;
 
   return (
-    <article className="ad-card">
+    <article className={`ad-card ${isHighlighted ? 'map-highlighted' : ''}`} id={`ad-card-${adState.adId}`}>
       <div className="ad-card__header">
         <h3 className="ad-card__location">{adState.location}</h3>
         <p className="ad-card__creator">

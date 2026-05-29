@@ -226,6 +226,28 @@ public class GameSessionManager {
     @Transactional
     public void initDatabaseDefaults() {
         try {
+            Number countLat = (Number) entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'latitude'"
+            ).getSingleResult();
+            if (countLat != null && countLat.intValue() == 0) {
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN latitude DOUBLE NULL").executeUpdate();
+            }
+        } catch (Exception e) {
+            System.err.println("Migration check warning (latitude): " + e.getMessage());
+        }
+
+        try {
+            Number countLng = (Number) entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'longitude'"
+            ).getSingleResult();
+            if (countLng != null && countLng.intValue() == 0) {
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN longitude DOUBLE NULL").executeUpdate();
+            }
+        } catch (Exception e) {
+            System.err.println("Migration check warning (longitude): " + e.getMessage());
+        }
+
+        try {
             entityManager.createNativeQuery(
                 "INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots')"
             ).executeUpdate();
