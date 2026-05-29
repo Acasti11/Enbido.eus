@@ -36,6 +36,16 @@ interface ChatMessage {
   timestamp: number;
 }
 
+interface UserLeaderboardDto {
+  userId: number;
+  username: string;
+  elo: number;
+  totalGamesPlayed: number;
+  totalGamesWon: number;
+  winRate: number;
+  equippedTitle: string;
+}
+
 const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   username,
   isSearching,
@@ -53,6 +63,11 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [loading, setLoading] = useState(true);
   const [selectedReyes, setSelectedReyes] = useState<'4' | '8'>('8');
 
+  // ---------- LEADERBOARD STATES ----------
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState<UserLeaderboardDto[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
   // ---------- SOCIAL STATES ----------
   const [socialTab, setSocialTab] = useState<'amigos' | 'buscar' | 'requests'>('amigos');
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +82,19 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [selectedProfileUser, setSelectedProfileUser] = useState<Friend | null>(null);
   
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  const handleOpenLeaderboard = async () => {
+    setShowLeaderboard(true);
+    setLoadingLeaderboard(true);
+    try {
+      const res = await api.get('/usuarios/leaderboard');
+      setLeaderboardData(res.data);
+    } catch (err) {
+      console.error('Error fetching ELO leaderboard:', err);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
 
   // ---------- INITIALIZE PROFILE & SOCIAL ----------
   useEffect(() => {
@@ -339,6 +367,17 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span className="badge-lbl">Monedas de Oro</span>
                 </div>
               </div>
+              <button 
+                className="lobby-badge leaderboard-trigger-btn"
+                onClick={handleOpenLeaderboard}
+                title="Ver clasificación general"
+              >
+                <span className="badge-icon">🏆</span>
+                <div className="badge-details">
+                  <span className="badge-val">Ver Ranking</span>
+                  <span className="badge-lbl">Clasificación</span>
+                </div>
+              </button>
             </div>
           )}
         </header>
@@ -705,6 +744,156 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               Enviar
             </button>
           </form>
+        </div>
+      )}
+
+      {/* ---------- LEADERBOARD MODAL ---------- */}
+      {showLeaderboard && (
+        <div className="leaderboard-modal-overlay" onClick={() => setShowLeaderboard(false)}>
+          <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()}>
+            
+            {/* MODAL HEADER */}
+            <header className="leaderboard-modal-header">
+              <div className="leaderboard-title-group">
+                <span style={{ fontSize: '28px' }}>🏆</span>
+                <div>
+                  <h2 className="leaderboard-modal-title">Clasificación General</h2>
+                  <span className="leaderboard-modal-subtitle">Euskadi Mus Arena</span>
+                </div>
+              </div>
+              <button className="leaderboard-close-x" onClick={() => setShowLeaderboard(false)}>
+                &times;
+              </button>
+            </header>
+
+            {/* PODIUM OF CHAMPIONS */}
+            {!loadingLeaderboard && leaderboardData.length > 0 && (
+              <div className="leaderboard-podium">
+                {/* 2ND PLACE */}
+                {leaderboardData.length >= 2 && (
+                  <div className="podium-pillar pillar-second">
+                    <div className="podium-medal">🥈</div>
+                    <div className="podium-avatar">
+                      {leaderboardData[1].username.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="podium-name">{leaderboardData[1].username}</div>
+                    {leaderboardData[1].equippedTitle && leaderboardData[1].equippedTitle !== 'Sin Título' && (
+                      <span className="podium-title-badge">{leaderboardData[1].equippedTitle}</span>
+                    )}
+                    <div className="podium-elo">{leaderboardData[1].elo} ELO</div>
+                    <div className="podium-bar">2</div>
+                  </div>
+                )}
+
+                {/* 1ST PLACE */}
+                {leaderboardData.length >= 1 && (
+                  <div className="podium-pillar pillar-first">
+                    <div className="podium-crown">👑</div>
+                    <div className="podium-medal">🥇</div>
+                    <div className="podium-avatar">
+                      {leaderboardData[0].username.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="podium-name">{leaderboardData[0].username}</div>
+                    {leaderboardData[0].equippedTitle && leaderboardData[0].equippedTitle !== 'Sin Título' && (
+                      <span className="podium-title-badge">{leaderboardData[0].equippedTitle}</span>
+                    )}
+                    <div className="podium-elo">{leaderboardData[0].elo} ELO</div>
+                    <div className="podium-bar">1</div>
+                  </div>
+                )}
+
+                {/* 3RD PLACE */}
+                {leaderboardData.length >= 3 && (
+                  <div className="podium-pillar pillar-third">
+                    <div className="podium-medal">🥉</div>
+                    <div className="podium-avatar">
+                      {leaderboardData[2].username.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="podium-name">{leaderboardData[2].username}</div>
+                    {leaderboardData[2].equippedTitle && leaderboardData[2].equippedTitle !== 'Sin Título' && (
+                      <span className="podium-title-badge">{leaderboardData[2].equippedTitle}</span>
+                    )}
+                    <div className="podium-elo">{leaderboardData[2].elo} ELO</div>
+                    <div className="podium-bar">3</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* FULL RANKING TABLE */}
+            <div className="leaderboard-table-container">
+              {loadingLeaderboard ? (
+                <div className="leaderboard-loading">
+                  <div className="lobby-loader"></div>
+                  <p>Cargando clasificación de campeones...</p>
+                </div>
+              ) : leaderboardData.length === 0 ? (
+                <div className="leaderboard-empty">No hay datos de clasificación disponibles.</div>
+              ) : (
+                <table className="leaderboard-table">
+                  <thead>
+                    <tr>
+                      <th>Puesto</th>
+                      <th>Jugador</th>
+                      <th>Título</th>
+                      <th>ELO</th>
+                      <th>Win Rate</th>
+                      <th>Jugadas</th>
+                      <th>Ganadas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leaderboardData.map((player, idx) => {
+                      const isMe = player.userId === currentUserId;
+                      let rankBadge = '';
+                      if (idx === 0) rankBadge = '🥇';
+                      else if (idx === 1) rankBadge = '🥈';
+                      else if (idx === 2) rankBadge = '🥉';
+                      
+                      return (
+                        <tr key={player.userId} className={`${isMe ? 'row-highlight-me' : ''}`}>
+                          <td className="col-rank">
+                            <span className="rank-number">{idx + 1}</span>
+                            {rankBadge && <span className="rank-emoji">{rankBadge}</span>}
+                          </td>
+                          <td className="col-player">
+                            <div className="player-cell">
+                              <div className="player-avatar-small">
+                                {player.username.substring(0, 2).toUpperCase()}
+                              </div>
+                              <span className="player-username">{player.username}</span>
+                              {isMe && <span className="me-badge">TÚ</span>}
+                            </div>
+                          </td>
+                          <td className="col-title">
+                            {player.equippedTitle && player.equippedTitle !== 'Sin Título' ? (
+                              <span className="title-item-badge">{player.equippedTitle}</span>
+                            ) : (
+                              <span className="no-title-badge">-</span>
+                            )}
+                          </td>
+                          <td className="col-elo">
+                            <span className="elo-value">{player.elo} ELO</span>
+                          </td>
+                          <td className="col-winrate">
+                            <div className="winrate-bar-container">
+                              <span className="winrate-value">{player.winRate}%</span>
+                              <div className="winrate-track">
+                                <div className="winrate-fill" style={{ width: `${player.winRate}%` }}></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="col-stats">{player.totalGamesPlayed}</td>
+                          <td className="col-stats">{player.totalGamesWon}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+          </div>
         </div>
       )}
 

@@ -44,6 +44,17 @@ public class UserProfileController {
     }
 
     // ============================================
+    // PROTEGIDO: Obtener Clasificación / Leaderboard
+    // ============================================
+    @GetMapping("/leaderboard")
+    public ResponseEntity<?> getLeaderboard(HttpServletRequest request) {
+        // Enforce JWT token verification by trying to extract the userId
+        getCurrentUserId(request);
+        
+        return ResponseEntity.ok(userProfileService.getLeaderboard());
+    }
+
+    // ============================================
     // HELPER: extrae userId del request attribute
     // ============================================
     private Long getCurrentUserId(HttpServletRequest request) {
