@@ -1244,4 +1244,13 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+.sortable-header {
+  transition: all 0.2s ease;
+}
+
+.sortable-header:hover {
+  background: rgba(212, 175, 55, 0.1) !important;
+  color: #d4af37 !important;
+}
+
 

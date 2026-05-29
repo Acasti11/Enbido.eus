@@ -37,7 +37,15 @@ CREATE TABLE IF NOT EXISTS user_game_profile (
     total_games_won INT DEFAULT 0,
     equipped_avatar_item_id INT NULL,
     equipped_deck_item_id INT NULL,
-    equipped_title_item_id INT NULL
+    equipped_title_item_id INT NULL,
+    equipped_board_item_id INT NULL,
+    music_enabled BOOLEAN DEFAULT TRUE,
+    music_volume DOUBLE DEFAULT 0.5,
+    sound_enabled BOOLEAN DEFAULT TRUE,
+    sound_volume DOUBLE DEFAULT 0.5,
+    view_mode VARCHAR(10) DEFAULT '2d',
+    language VARCHAR(5) DEFAULT 'es',
+    notifications_enabled BOOLEAN DEFAULT TRUE
 );
 
 ALTER TABLE user_game_profile
@@ -297,6 +305,16 @@ CREATE TABLE IF NOT EXISTS meetup_messages (
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS direct_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT NOT NULL,
+    receiver_id INT NOT NULL,
+    content TEXT NOT NULL,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES user_login(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES user_login(user_id) ON DELETE CASCADE
 );
 
 -- Insertar valores maestros por defecto

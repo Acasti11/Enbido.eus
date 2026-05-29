@@ -45,7 +45,14 @@ public class UserProfileService {
             profile.setEquippedAvatarItemId(updatedDetails.getEquippedAvatarItemId());
             profile.setEquippedDeckItemId(updatedDetails.getEquippedDeckItemId());
             profile.setEquippedTitleItemId(updatedDetails.getEquippedTitleItemId());
-            //profile.setEquippedBoardItemId(updatedDetails.getEquippedBoardItemId());
+            profile.setEquippedBoardItemId(updatedDetails.getEquippedBoardItemId());
+            profile.setMusicEnabled(updatedDetails.getMusicEnabled());
+            profile.setMusicVolume(updatedDetails.getMusicVolume());
+            profile.setSoundEnabled(updatedDetails.getSoundEnabled());
+            profile.setSoundVolume(updatedDetails.getSoundVolume());
+            profile.setViewMode(updatedDetails.getViewMode());
+            profile.setLanguage(updatedDetails.getLanguage());
+            profile.setNotificationsEnabled(updatedDetails.getNotificationsEnabled());
             return profileRepository.save(profile);
         }).orElseGet(() -> {
             updatedDetails.setUserId(userId);

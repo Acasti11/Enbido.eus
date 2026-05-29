@@ -34,8 +34,29 @@ public class UserGameProfile {
     @Column(name = "equipped_title_item_id")
     private Integer equippedTitleItemId;
 
-   // @Column(name = "equipped_board_item_id")
-    //private Integer equippedBoardItemId;
+    @Column(name = "equipped_board_item_id")
+    private Integer equippedBoardItemId;
+
+    @Column(name = "music_enabled")
+    private Boolean musicEnabled = true;
+
+    @Column(name = "music_volume")
+    private Double musicVolume = 0.5;
+
+    @Column(name = "sound_enabled")
+    private Boolean soundEnabled = true;
+
+    @Column(name = "sound_volume")
+    private Double soundVolume = 0.5;
+
+    @Column(name = "view_mode")
+    private String viewMode = "2d";
+
+    @Column(name = "language")
+    private String language = "es";
+
+    @Column(name = "notifications_enabled")
+    private Boolean notificationsEnabled = true;
 
     public UserGameProfile() {}
 
@@ -45,5 +66,12 @@ public class UserGameProfile {
         this.coins = 100; // Monedas iniciales de cortesía
         this.totalGamesPlayed = 0;
         this.totalGamesWon = 0;
+        this.musicEnabled = true;
+        this.musicVolume = 0.5;
+        this.soundEnabled = true;
+        this.soundVolume = 0.5;
+        this.viewMode = "2d";
+        this.language = "es";
+        this.notificationsEnabled = true;
     }
 }
