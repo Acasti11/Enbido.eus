@@ -244,12 +244,6 @@ ALTER TABLE friendships
 
 INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '1234', 'juanito', '1990-01-01');
 
-
-
-
-
-
-
 CREATE TABLE IF NOT EXISTS game_matches (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -259,6 +253,23 @@ CREATE TABLE IF NOT EXISTS game_matches (
     FOREIGN KEY (user_id) REFERENCES user_login(user_id)
 );
 
+CREATE TABLE IF NOT EXISTS meetup_participants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ad_id INT,
+    user_id INT,
+    FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS meetup_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    ad_id INT,
+    user_id INT,
+    content TEXT,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
+);
 
 -- Insertar valores maestros por defecto
 INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots');
