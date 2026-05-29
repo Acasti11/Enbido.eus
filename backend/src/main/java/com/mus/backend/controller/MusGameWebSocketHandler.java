@@ -339,7 +339,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         if (room == null) return;
 
         String message = (String) data.get("message");
-        room.appendLog(conn.username + ": " + message);
+        room.appendChatMessage(conn.username + ": " + message);
         broadcastRoomState(room);
     }
 

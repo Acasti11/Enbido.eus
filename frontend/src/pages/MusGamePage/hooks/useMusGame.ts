@@ -14,6 +14,7 @@ export const useMusGame = (userId: number) => {
   const [stage, setStage] = useState<BettingStage>('grande');
   const [score, setScore] = useState<GameScore>({ us: 0, them: 0 });
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [speechBubbles, setSpeechBubbles] = useState<string[]>(['', '', '', '']); // [Tú, Oeste, Norte, Este]
 
@@ -111,6 +112,7 @@ export const useMusGame = (userId: number) => {
             setLogs(uiLogs);
           }
 
+          setChatMessages(data.chatMessages || []);
           setSpeechBubbles(data.speechBubbles);
           setPlayerHand(data.playerHand);
           setBotHands(data.botHands);
@@ -259,6 +261,16 @@ export const useMusGame = (userId: number) => {
     setIsPlaying(false);
     setPhase('init');
     setLogs([]);
+    setChatMessages([]);
+  };
+
+  const sendChatMessage = (message: string) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'CHAT',
+        message
+      }));
+    }
   };
 
   const toggleCardSelection = (cardId: string) => {
@@ -273,6 +285,7 @@ export const useMusGame = (userId: number) => {
     stage,
     score,
     logs,
+    chatMessages,
     selectedCards,
     speechBubbles,
     playerHand,
@@ -304,5 +317,6 @@ export const useMusGame = (userId: number) => {
     onCancelMatchmaking,
     onLeaveRoom,
     updateRoomConfig,
+    sendChatMessage,
   };
 };

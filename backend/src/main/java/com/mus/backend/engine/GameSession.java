@@ -22,6 +22,7 @@ public class GameSession {
     private int roundsWonThem = 0;
 
     private List<String> logs = new ArrayList<>();
+    private List<String> chatMessages = new ArrayList<>();
     private List<Card> deck = new ArrayList<>();
     private List<Card> discardPile = new ArrayList<>();
     
@@ -54,6 +55,13 @@ public class GameSession {
 
     public void appendLog(String msg) {
         logs.add(0, msg); // New logs at index 0
+    }
+
+    public void appendChatMessage(String msg) {
+        chatMessages.add(msg);
+        if (chatMessages.size() > 50) {
+            chatMessages.remove(0);
+        }
     }
 
     public boolean addPlayer(int chair, Long userId, String username) {
@@ -400,6 +408,7 @@ public class GameSession {
         state.put("phase", phase);
         state.put("stage", stage);
         state.put("logs", logs);
+        state.put("chatMessages", chatMessages);
         state.put("activeTurnIdx", activeTurnIdx);
         state.put("dealerIdx", dealerIdx);
         state.put("betState", betState);
