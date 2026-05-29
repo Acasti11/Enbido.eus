@@ -42,10 +42,11 @@ const ShopIcon: React.FC = () => (
 // ========== DATOS ==========
 
 const NAV_LINKS = [
-  { label: 'Home', to: '/jugar' },
+  { label: 'Home', to: '/' },
   { label: 'Jugar', to: '/jugar' },
   { label: 'Torneos', to: '/torneos' },
   { label: 'Quedadas', to: '/quedadas' },
+  { label: 'Reglas', to: '/reglas' },
 ];
 
 // ========== COMPONENTE PRINCIPAL ==========

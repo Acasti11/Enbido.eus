@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MeetupAdCard, { type LocalMeetupAd } from './components/MeetupAdCard';
@@ -20,6 +21,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const MeetupPage: React.FC = (): React.JSX.Element => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'list' | 'create'>('list');
   const [ads, setAds] = useState<LocalMeetupAd[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -120,10 +122,34 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
         }
       };
 
+      const chatBtn = document.createElement('button');
+      chatBtn.className = 'map-popup-action-btn';
+      chatBtn.style.marginTop = '6px';
+      chatBtn.style.backgroundColor = 'rgba(212, 175, 55, 0.15)';
+      chatBtn.style.color = '#fac715';
+      chatBtn.style.border = '1px solid rgba(212, 175, 55, 0.4)';
+      chatBtn.innerText = '💬 Escribir Privado';
+      chatBtn.onclick = () => {
+        if (!localStorage.getItem('token')) {
+          alert('Debes iniciar sesión para contactar en privado');
+          return;
+        }
+        const target = {
+          id: ad.creatorId,
+          username: ad.creatorName,
+          elo: 1000 + Math.floor(Math.random() * 400),
+          totalGamesPlayed: 15,
+          totalGamesWon: 7
+        };
+        localStorage.setItem('enbido_open_dm_target', JSON.stringify(target));
+        navigate('/jugar');
+      };
+
       popupDiv.appendChild(titleEl);
       popupDiv.appendChild(creatorEl);
       popupDiv.appendChild(playersEl);
       popupDiv.appendChild(btnEl);
+      popupDiv.appendChild(chatBtn);
 
       const marker = L.marker([lat, lng])
         .addTo(map)

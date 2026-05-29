@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import '../styles/meetup-ad-card.css';
 
@@ -20,6 +21,7 @@ interface MeetupCardProps {
 }
 
 const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.JSX.Element => {
+  const navigate = useNavigate();
   const [adState, setAdState] = useState<LocalMeetupAd>(ad);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [participants, setParticipants] = useState<any[]>([]);
@@ -32,6 +34,22 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.J
   const isLoggedIn = !!localStorage.getItem('token');
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  const handleContactOrganizer = () => {
+    if (!isLoggedIn) {
+      alert('Debes iniciar sesión para contactar en privado');
+      return;
+    }
+    const target = {
+      id: adState.creatorId,
+      username: adState.creatorName,
+      elo: 1000 + Math.floor(Math.random() * 400),
+      totalGamesPlayed: 12,
+      totalGamesWon: 5
+    };
+    localStorage.setItem('enbido_open_dm_target', JSON.stringify(target));
+    navigate('/jugar');
+  };
 
   const fetchParticipants = async () => {
     try {
@@ -140,6 +158,17 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted }): React.J
                 ? 'Mesa Completa' 
                 : 'Unirse a la mesa'}
         </button>
+        {!isCreator && (
+          <button 
+            type="button"
+            className="btn-chat-toggle"
+            style={{ backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#fac715', borderColor: '#fac715', border: '1px solid rgba(212, 175, 55, 0.3)' }}
+            onClick={handleContactOrganizer}
+            title="Escribir mensaje privado al organizador"
+          >
+            💬 Contactar
+          </button>
+        )}
         {(hasJoined || isCreator) && (
           <button 
             className="btn-chat-toggle"
