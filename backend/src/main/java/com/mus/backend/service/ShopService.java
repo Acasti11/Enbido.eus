@@ -8,6 +8,9 @@ import com.mus.backend.repository.ItemRepository;
 import com.mus.backend.repository.PurchaseHistoryRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
 import com.mus.backend.repository.UserInventoryRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.StoredProcedureQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class ShopService {
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private ItemRepository itemRepository;
@@ -30,6 +36,7 @@ public class ShopService {
     @Autowired
     private UserGameProfileRepository userGameProfileRepository;
 
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getShopItems() {
         List<Item> items = itemRepository.findAll();
         List<Map<String, Object>> result = new ArrayList<>();
@@ -44,6 +51,7 @@ public class ShopService {
         return result;
     }
 
+    @Transactional(readOnly = true)
     public List<Long> getUserInventory(Long userId) {
         return userInventoryRepository.findByUserId(userId).stream()
                 .map(ui -> ui.getItem().getItemId())
@@ -56,37 +64,31 @@ public class ShopService {
             throw new IllegalArgumentException("Ya posees este objeto en tu inventario");
         }
 
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Objeto no encontrado en la tienda"));
+        StoredProcedureQuery query = entityManager.createStoredProcedureQuery("sp_buy_item");
+        query.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("p_item_id", Integer.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("p_status", String.class, ParameterMode.OUT);
+        query.registerStoredProcedureParameter("p_new_coins", Integer.class, ParameterMode.OUT);
 
-        int price = item.getPrice() != null ? item.getPrice() : 0;
+        query.setParameter("p_user_id", userId.intValue());
+        query.setParameter("p_item_id", itemId.intValue());
 
-        UserGameProfile profile = userGameProfileRepository.findById(userId).orElseGet(() -> {
-            UserGameProfile newProfile = new UserGameProfile(userId);
-            return userGameProfileRepository.save(newProfile);
-        });
+        query.execute();
 
-        int currentCoins = profile.getCoins() != null ? profile.getCoins() : 0;
+        String status = (String) query.getOutputParameterValue("p_status");
+        Integer newCoins = (Integer) query.getOutputParameterValue("p_new_coins");
 
-        if (currentCoins < price) {
+        if ("ITEM_NOT_FOUND".equals(status)) {
+            throw new IllegalArgumentException("Objeto no encontrado en la tienda");
+        } else if ("USER_NOT_FOUND".equals(status)) {
+            throw new IllegalArgumentException("Perfil de usuario no encontrado");
+        } else if ("INSUFFICIENT_FUNDS".equals(status)) {
             throw new IllegalArgumentException("No tienes suficientes monedas (tx) para realizar esta compra");
+        } else if ("ERROR".equals(status) || status == null) {
+            throw new IllegalArgumentException("Error al procesar la compra en la base de datos");
         }
 
-        profile.setCoins(currentCoins - price);
-        userGameProfileRepository.save(profile);
-
-        UserInventory inventory = new UserInventory();
-        inventory.setUserId(userId);
-        inventory.setItem(item);
-        userInventoryRepository.save(inventory);
-
-        PurchaseHistory history = new PurchaseHistory();
-        history.setUserId(userId);
-        history.setItem(item);
-        history.setCoinsSpent(price);
-        purchaseHistoryRepository.save(history);
-
-        return Map.of("message", "Compra realizada con éxito", "newCoins", currentCoins - price);
+        return Map.of("message", "Compra realizada con éxito", "newCoins", newCoins);
     }
 
     @Transactional

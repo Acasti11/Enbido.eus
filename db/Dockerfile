@@ -1,6 +1,7 @@
 FROM mysql:8.0
 
-COPY init/01-schema.sql /docker-entrypoint-initdb.d/
+COPY init/ /docker-entrypoint-initdb.d/
+COPY conf.d/primary.cnf /etc/mysql/conf.d/primary.cnf
 
 EXPOSE 3306
 

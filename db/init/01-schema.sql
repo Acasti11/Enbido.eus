@@ -381,3 +381,94 @@ INSERT IGNORE INTO physical_tournament_match (match_id, tournament_id, round_num
 (5, 101, 2, 0, 100, 103, NULL, ''),
 (6, 101, 2, 1, 104, NULL, NULL, ''),
 (7, 101, 3, 0, NULL, NULL, NULL, '');
+
+-- ==========================================
+-- ÍNDICES DE RENDIMIENTO (ACCESO EFICIENTE)
+-- ==========================================
+CREATE INDEX idx_user_game_profile_elo ON user_game_profile(elo DESC);
+CREATE INDEX idx_local_meetup_ad_active ON local_meetup_ad(is_active);
+
+-- ==========================================
+-- PROCEDIMIENTOS ALMACENADOS (PL/SQL)
+-- ==========================================
+DROP PROCEDURE IF EXISTS sp_buy_item;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_buy_item(
+    IN p_user_id INT,
+    IN p_item_id INT,
+    OUT p_status VARCHAR(50),
+    OUT p_new_coins INT
+)
+BEGIN
+    DECLARE v_price INT;
+    DECLARE v_coins INT;
+    
+    -- Manejador de errores para hacer ROLLBACK ante cualquier excepción SQL
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET p_status = 'ERROR';
+        SET p_new_coins = NULL;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Consultar precio del item
+    SELECT price INTO v_price FROM items WHERE item_id = p_item_id;
+    
+    IF v_price IS NULL THEN
+        SET p_status = 'ITEM_NOT_FOUND';
+        SET p_new_coins = NULL;
+        ROLLBACK;
+    ELSE
+        -- Consultar monedas actuales del usuario
+        SELECT coins INTO v_coins FROM user_game_profile WHERE user_id = p_user_id;
+        
+        IF v_coins IS NULL THEN
+            SET p_status = 'USER_NOT_FOUND';
+            SET p_new_coins = NULL;
+            ROLLBACK;
+        ELSEIF v_coins < v_price THEN
+            SET p_status = 'INSUFFICIENT_FUNDS';
+            SET p_new_coins = v_coins;
+            ROLLBACK;
+        ELSE
+            -- Descontar monedas
+            UPDATE user_game_profile SET coins = coins - v_price WHERE user_id = p_user_id;
+            
+            -- Añadir al inventario (evitando duplicados mediante IGNORE)
+            INSERT IGNORE INTO user_inventory (user_id, item_id) VALUES (p_user_id, p_item_id);
+            
+            -- Añadir al historial de compras
+            INSERT INTO purchase_history (user_id, item_id, coins_spent) VALUES (p_user_id, p_item_id, v_price);
+            
+            -- Retornar estado de éxito y nuevas monedas
+            SET p_status = 'SUCCESS';
+            SET p_new_coins = v_coins - v_price;
+            
+            COMMIT;
+        END IF;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- ==========================================
+-- PROCEDIMIENTOS DE EJECUCIÓN AUTOMÁTICA (TRIGGERS)
+-- ==========================================
+DROP TRIGGER IF EXISTS after_user_login_insert;
+
+DELIMITER //
+
+CREATE TRIGGER after_user_login_insert
+AFTER INSERT ON user_login
+FOR EACH ROW
+BEGIN
+    -- Inicializar perfil de juego de forma automática para el nuevo usuario
+    INSERT IGNORE INTO user_game_profile (user_id, elo, coins, total_games_played, total_games_won) 
+    VALUES (NEW.user_id, 200, 100, 0, 0);
+END //
+
+DELIMITER ;

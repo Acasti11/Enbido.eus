@@ -8,6 +8,7 @@ import com.mus.backend.repository.UserGameProfileRepository;
 import com.mus.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ public class UserProfileService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Transactional(readOnly = true)
     public boolean userExists(Long userId) {
         return usuarioRepository.existsById(userId);
     }
@@ -60,6 +62,7 @@ public class UserProfileService {
         });
     }
 
+    @Transactional(readOnly = true)
     public List<UserLeaderboardDto> getLeaderboard() {
         List<UserGameProfile> profiles = profileRepository.findAllOrderByEloDesc();
         return profiles.stream().map(profile -> {

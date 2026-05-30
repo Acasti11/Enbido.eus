@@ -19,6 +19,27 @@ services:
     networks:
       - app-network
 
+  db-replica:
+    build: ./db-replica
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_replica_data:/var/lib/mysql
+      - ./db-replica/init:/docker-entrypoint-initdb.d
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   backend:
     build: ./backend
     environment:
@@ -46,6 +67,7 @@ services:
 
 volumes:
   mysql_data:
+  mysql_replica_data:
 
 networks:
   app-network:
