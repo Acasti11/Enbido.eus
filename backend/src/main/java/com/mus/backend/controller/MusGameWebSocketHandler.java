@@ -128,17 +128,14 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     private void handleJoinAction(UserConnection conn, Map<String, Object> data) {
         String roomId = ((String) data.get("roomId")).toUpperCase().trim();
         
-        Long userId;
-        String username;
-
         String token = (String) data.get("token");
-        if (token != null && jwtService.isTokenValid(token)) {
-            userId = jwtService.extractUserId(token);
-            username = jwtService.extractUsername(token);
-        } else {
-            userId = Long.valueOf(data.get("userId").toString());
-            username = (String) data.get("username");
+        if (token == null || !jwtService.isTokenValid(token)) {
+            sendErrorMessage(conn.session, "No autorizado: token inválido o ausente.");
+            return;
         }
+        Long userId = jwtService.extractUserId(token);
+        String username = jwtService.extractUsername(token);
+
 
         conn.userId = userId;
         conn.username = username;
@@ -171,17 +168,13 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleMatchmakingJoin(UserConnection conn, Map<String, Object> data) {
-        Long userId;
-        String username;
-
         String token = (String) data.get("token");
-        if (token != null && jwtService.isTokenValid(token)) {
-            userId = jwtService.extractUserId(token);
-            username = jwtService.extractUsername(token);
-        } else {
-            userId = Long.valueOf(data.get("userId").toString());
-            username = (String) data.get("username");
+        if (token == null || !jwtService.isTokenValid(token)) {
+            sendErrorMessage(conn.session, "No autorizado: token inválido o ausente.");
+            return;
         }
+        Long userId = jwtService.extractUserId(token);
+        String username = jwtService.extractUsername(token);
         String reyesOption = data.containsKey("reyesOption") ? (String) data.get("reyesOption") : "8";
         
         conn.userId = userId;

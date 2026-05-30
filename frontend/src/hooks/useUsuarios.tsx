@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../services/api';
 import type { User } from '../types/User';
 
 interface UseUsuariosReturn {
@@ -15,10 +16,8 @@ export const useUsuarios = (): UseUsuariosReturn => {
   useEffect(() => {
     const fetchUsuarios = async (): Promise<void> => {
       try {
-        const response = await fetch('/api/usuarios');
-        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
-        const data: User[] = await response.json();
-        setUsuarios(data);
+        const response = await api.get('/usuarios');
+        setUsuarios(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {

@@ -20,12 +20,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtService jwtService;
     
-    private static final List<String> PUBLIC_PATHS = List.of(
-        "/api/usuarios/login",
-        "/api/usuarios",
-        "/api/shop/items"
-    );
-    
     public JwtAuthenticationFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
@@ -76,11 +70,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private boolean isPublicPath(String path, String method) {
         if ("GET".equalsIgnoreCase(method)) {
-            if (path.startsWith("/api/meetups") || path.startsWith("/api/tournaments")) {
+            if (path.startsWith("/api/meetups") || 
+                path.startsWith("/api/tournaments") || 
+                path.startsWith("/api/shop/items")) {
                 return true;
             }
         }
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        if ("POST".equalsIgnoreCase(method)) {
+            if (path.equals("/api/usuarios") || 
+                path.startsWith("/api/usuarios/login")) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private String getTokenFromRequest(HttpServletRequest request) {

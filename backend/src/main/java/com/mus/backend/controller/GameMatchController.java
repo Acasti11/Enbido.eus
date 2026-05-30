@@ -20,7 +20,8 @@ public class GameMatchController {
     // ============================================
     @PostMapping("/start")
     public ResponseEntity<GameMatch> createGameMatch(@RequestBody GameMatch game, HttpServletRequest request) {
-        // La partida se crea sola al buscar cola
+        Long userId = getCurrentUserId(request);
+        game.setUserId(userId);
         GameMatch savedGame = gameMatchService.createGameMatch(game);
         return ResponseEntity.ok(savedGame);
     }
@@ -30,7 +31,8 @@ public class GameMatchController {
     // ============================================
     @PutMapping("/{id}/score")
     public ResponseEntity<?> updateGameScore(@PathVariable Long id, @RequestBody GameMatch data, HttpServletRequest request) {
-        return gameMatchService.updateGameScore(id, data)
+        Long userId = getCurrentUserId(request);
+        return gameMatchService.updateGameScore(id, data, userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -42,8 +42,33 @@ const CardsIcon: React.FC = () => (
   </svg>
 );
 
+import { useSeo } from '../../hooks/useSeo';
+
 const HomePage: React.FC = (): React.JSX.Element => {
   const navigate = useNavigate();
+
+  useSeo({
+    title: 'Enbido - Juego de Mus Online Gratis | Mus Jokoa',
+    description: 'Juega al Mus online gratis en Enbido. Disfruta de partidas rápidas, torneos, ligas de ELO y la mejor comunidad de muslaris. ¡Entra y echa un enbido!',
+    keywords: 'mus online, jugar mus online, enbido, envido, juego de cartas, mus jokoa, euskadi, torneos de mus, mus euskadi, jugar mus, mus jugar',
+    canonical: 'https://enbido.eus/',
+    ogImage: 'https://enbido.eus/hero-mus.png',
+    lang: 'eu',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'VideoGame',
+      'name': 'Enbido - Juego de Mus Online',
+      'url': 'https://enbido.eus/',
+      'image': 'https://enbido.eus/hero-mus.png',
+      'description': 'Juega al Mus online gratis en Enbido. Disfruta de partidas rápidas, torneos, ligas de ELO y la mejor comunidad de muslaris. ¡Entra y echa un enbido!',
+      'genre': 'Card Game',
+      'gamePlatform': 'Web Browser',
+      'author': {
+        '@type': 'Organization',
+        'name': 'Enbido Team'
+      }
+    }
+  });
 
   // Estadísticas dinámicas del juego para simular un servidor activo (estilo chess.com)
   const [onlinePlayers, setOnlinePlayers] = useState(1482);

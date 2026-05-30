@@ -1,11 +1,43 @@
 import React from 'react';
 import './rules.css';
+import { useSeo } from '../../hooks/useSeo';
 
 const RulesPage: React.FC = (): React.JSX.Element => {
+  useSeo({
+    title: 'Reglas del Mus: Cómo Jugar, Señas y Variantes | Enbido',
+    description: 'Guía oficial del reglamento del Mus. Aprende las señas permitidas, los 4 lances (Grande, Chica, Pares, Juego) y diferencias entre 4 Reyes y 8 Reyes.',
+    keywords: 'reglas del mus, como jugar al mus, senas del mus, variantes del mus, 8 reyes, 4 reyes, mus euskadi',
+    canonical: 'https://enbido.eus/reglas',
+    ogImage: 'https://enbido.eus/hero-mus.png',
+    lang: 'es',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': '¿Qué es la variante de 8 reyes en el Mus?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Es la modalidad más jugada en Vizcaya y Guipúzcoa. Los Treses equivalen a Reyes, y los Dues equivalen a Ases. Esto hace que haya 8 Reyes y 8 Ases en la baraja, provocando muchas más manos con parejas altas y agilizando la partida.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': '¿Cuáles son los 4 lances del Mus?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Cada mano de Mus consta de 4 lances consecutivos: Grande (Handia), Chica (Txikia), Pares (Pareak), y Juego o Punto (Jokoa edo Puntua).'
+          }
+        }
+      ]
+    }
+  });
+
   return (
     <div className="rules-container">
       <header className="rules-header">
-        <h1 className="rules-title">Mus Jokoaren Arauak</h1>
+        <h1 className="rules-title">Reglas del Mus - Mus Jokoaren Arauak</h1>
         <span className="rules-subtitle">Reglas oficiales y guía de aprendizaje para jugar al Mus</span>
       </header>
 

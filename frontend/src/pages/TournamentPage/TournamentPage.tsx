@@ -17,7 +17,32 @@ interface TournamentDetails {
   participants: ParticipantInfo[];
 }
 
+import { useSeo } from '../../hooks/useSeo';
+
 const TournamentPage = (): React.JSX.Element => {
+  useSeo({
+    title: 'Torneos de Mus Online y Presenciales - Brackets | Enbido',
+    description: 'Participa en nuestros torneos de Mus online y presenciales en Euskadi. Consulta clasificaciones, brackets, reglas y gana grandes recompensas.',
+    keywords: 'torneos de mus, txapelketa, competicion mus, mus online, enbido, brackets de mus',
+    canonical: 'https://enbido.eus/torneos',
+    ogImage: 'https://images.unsplash.com/photo-1599839619722-39751411ea63?auto=format&fit=crop&w=600&q=80',
+    lang: 'es',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      'name': 'Lista de Torneos de Mus - Enbido',
+      'url': 'https://enbido.eus/torneos',
+      'description': 'Torneos oficiales y populares de Mus en línea y presenciales en Euskadi.',
+      'itemListElement': [
+        {
+          '@type': 'ListItem',
+          'position': 1,
+          'name': 'Torneo de Mus Enbido'
+        }
+      ]
+    }
+  });
+
   const [currentView, setCurrentView] = useState<string>(CONST_VIEW_LIST);
   const [tournamentsList, setTournamentsList] = useState<TournamentDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

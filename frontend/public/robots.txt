@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
+Allow: /reglas
+Allow: /torneos
+Allow: /quedadas
+Allow: /tienda
+Disallow: /perfil
+Disallow: /api/
 
-# Sitemap location
 Sitemap: https://enbido.eus/sitemap.xml

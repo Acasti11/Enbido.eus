@@ -51,12 +51,18 @@ public class JwtInterceptor implements HandlerInterceptor {
     
     private boolean isPublicPath(String path, String method) {
         if ("GET".equalsIgnoreCase(method)) {
-            if (path.startsWith("/api/meetups") || path.startsWith("/api/tournaments")) {
+            if (path.startsWith("/api/meetups") || 
+                path.startsWith("/api/tournaments") || 
+                path.startsWith("/api/shop/items")) {
                 return true;
             }
         }
-        return path.startsWith("/api/usuarios/login") ||
-               path.equals("/api/usuarios") ||
-               path.startsWith("/api/shop/items");
+        if ("POST".equalsIgnoreCase(method)) {
+            if (path.equals("/api/usuarios") || 
+                path.startsWith("/api/usuarios/login")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

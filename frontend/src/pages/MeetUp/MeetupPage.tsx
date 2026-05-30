@@ -20,8 +20,27 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+import { useSeo } from '../../hooks/useSeo';
+
 const MeetupPage: React.FC = (): React.JSX.Element => {
   const navigate = useNavigate();
+
+  useSeo({
+    title: 'Quedadas de Mus en Euskadi - Meetups Presenciales | Enbido',
+    description: 'Encuentra y organiza quedadas presenciales de Mus en Euskadi. Busca mesas completas o libres con nuestro mapa interactivo y únete a partidas locales.',
+    keywords: 'mus euskadi, quedadas de mus, meetups mus, mapa de mus, jugar mus presencial',
+    canonical: 'https://enbido.eus/quedadas',
+    ogImage: 'https://enbido.eus/hero-mus.png',
+    lang: 'es',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      'name': 'Quedadas y Mesas Físicas de Mus - Enbido',
+      'url': 'https://enbido.eus/quedadas',
+      'description': 'Eventos y encuentros locales de jugadores de Mus en Euskadi.'
+    }
+  });
+
   const [currentView, setCurrentView] = useState<'list' | 'create'>('list');
   const [ads, setAds] = useState<LocalMeetupAd[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

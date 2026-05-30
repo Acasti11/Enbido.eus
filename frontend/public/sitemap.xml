@@ -2,8 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://enbido.eus/</loc>
-    <lastmod>2026-05-26</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://enbido.eus/jugar</loc>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://enbido.eus/torneos</loc>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://enbido.eus/quedadas</loc>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://enbido.eus/reglas</loc>
+    <priority>0.70</priority>
   </url>
 </urlset>
