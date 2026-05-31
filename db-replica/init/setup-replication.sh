@@ -22,7 +22,11 @@ CHANGE REPLICATION SOURCE TO
   SOURCE_PASSWORD='replpass',
   SOURCE_AUTO_POSITION=1;
 START REPLICA;
+SET PERSIST read_only = ON;
+SET PERSIST super_read_only = ON;
 SQL_SCRIPT
+
+
 
 echo "============================================="
 echo "¡REPLICACIÓN INICIADA CON ÉXITO!"

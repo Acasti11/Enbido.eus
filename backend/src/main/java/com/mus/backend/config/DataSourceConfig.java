@@ -51,6 +51,7 @@ public class DataSourceConfig {
         
         routingDataSource.setTargetDataSources(dataSourceMap);
         routingDataSource.setDefaultTargetDataSource(primaryDataSource());
+        routingDataSource.afterPropertiesSet();
         
         return new LazyConnectionDataSourceProxy(routingDataSource);
     }

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS user_login (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     surname VARCHAR(100),
     email VARCHAR(150) UNIQUE NOT NULL,
@@ -12,33 +12,34 @@ CREATE TABLE IF NOT EXISTS user_login (
     birth_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 CREATE TABLE IF NOT EXISTS categories (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(250)
 );
 
 CREATE TABLE IF NOT EXISTS items (
-    item_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_id INT,
+    item_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    category_id BIGINT,
     name VARCHAR(100) NOT NULL,
     price INT UNSIGNED NOT NULL
 );
 
 ALTER TABLE items 
-    ADD CONSTRAINT  items_categoies_FK FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL;
+    ADD CONSTRAINT items_categories_FK FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL;
 
 
 CREATE TABLE IF NOT EXISTS user_game_profile (
-    user_id INT PRIMARY KEY,
+    user_id BIGINT PRIMARY KEY,
     elo INT DEFAULT 200, 
     coins INT UNSIGNED DEFAULT 0,
     total_games_played INT DEFAULT 0,
     total_games_won INT DEFAULT 0,
-    equipped_avatar_item_id INT NULL,
-    equipped_deck_item_id INT NULL,
-    equipped_title_item_id INT NULL,
-    equipped_board_item_id INT NULL,
+    equipped_avatar_item_id BIGINT NULL,
+    equipped_deck_item_id BIGINT NULL,
+    equipped_title_item_id BIGINT NULL,
+    equipped_board_item_id BIGINT NULL,
     music_enabled BOOLEAN DEFAULT TRUE,
     music_volume DOUBLE DEFAULT 0.5,
     sound_enabled BOOLEAN DEFAULT TRUE,
@@ -56,20 +57,20 @@ ALTER TABLE user_game_profile
 
 
 CREATE TABLE IF NOT EXISTS user_inventory (
-    user_id INT, 
-    item_id INT,
+    user_id BIGINT, 
+    item_id BIGINT,
     PRIMARY KEY (user_id, item_id)
 );
 
 ALTER TABLE user_inventory
-    ADD CONSTRAINT user_inventory_items_FK  FOREIGN KEY (item_id) REFERENCES items (item_id) ON DELETE CASCADE,
-    ADD CONSTRAINT user_inventory_user_login_FK  FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT user_inventory_items_FK FOREIGN KEY (item_id) REFERENCES items (item_id) ON DELETE CASCADE,
+    ADD CONSTRAINT user_inventory_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS purchase_history (
-    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT, 
-    item_id INT NULL,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT, 
+    item_id BIGINT NULL,
     coins_spent INT UNSIGNED NOT NULL,
     purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -80,7 +81,7 @@ ALTER TABLE purchase_history
 
 
 CREATE TABLE IF NOT EXISTS tournaments (
-    tournament_id INT AUTO_INCREMENT PRIMARY KEY,
+    tournament_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     start_date DATETIME,
     end_date DATETIME,
@@ -88,30 +89,31 @@ CREATE TABLE IF NOT EXISTS tournaments (
 );
 
 CREATE TABLE IF NOT EXISTS game_mode (
-    game_mode_id INT AUTO_INCREMENT PRIMARY KEY,
+    game_mode_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description varchar(200)
 );
+
 CREATE TABLE IF NOT EXISTS game_states (
-    game_state_id INT AUTO_INCREMENT PRIMARY KEY,
+    game_state_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description varchar(200)
 );
 
 
 CREATE TABLE IF NOT EXISTS play_game (
-    game_id INT AUTO_INCREMENT PRIMARY KEY,
-    player1 INT, 
-    player2 INT, 
-    player3 INT, 
-    player4 INT,
-    game_state_id INT, 
-    game_mode_id INT,
+    game_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    player1 BIGINT, 
+    player2 BIGINT, 
+    player3 BIGINT, 
+    player4 BIGINT,
+    game_state_id BIGINT, 
+    game_mode_id BIGINT,
     points_team_12 INT DEFAULT 0,
     points_team_34 INT DEFAULT 0,
     total_time_seconds INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    tournament_id INT NULL 
+    tournament_id BIGINT NULL 
 );
 
 ALTER TABLE play_game
@@ -124,25 +126,24 @@ ALTER TABLE play_game
     ADD CONSTRAINT play_game_tournaments_FK FOREIGN KEY (tournament_id) REFERENCES tournaments (tournament_id);
 
 
-
 CREATE TABLE IF NOT EXISTS tournament_participant (
-    tournament_id INT, 
-    user_id INT,        
+    tournament_id BIGINT, 
+    user_id BIGINT,        
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 ALTER TABLE tournament_participant
-    ADD CONSTRAINT tournament_participant_PK PRIMARY KEY (tournament_id,user_id),
+    ADD CONSTRAINT tournament_participant_PK PRIMARY KEY (tournament_id, user_id),
     ADD CONSTRAINT tournament_participant_tournaments_FK FOREIGN KEY (tournament_id) REFERENCES tournaments (tournament_id) ON DELETE CASCADE,
     ADD CONSTRAINT tournament_participant_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS chat (
-    message_id INT AUTO_INCREMENT PRIMARY KEY,
-    game_id INT,
+    message_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    game_id BIGINT,
     content TEXT, 
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id INT 
+    user_id BIGINT 
 );
 
 ALTER TABLE chat   
@@ -151,10 +152,10 @@ ALTER TABLE chat
 
 
 CREATE TABLE IF NOT EXISTS matchmaking_queue (
-    queue_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT, 
+    queue_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT, 
     looking_for ENUM ('partner', 'opponent') DEFAULT 'partner',
-    game_mode_id INT, 
+    game_mode_id BIGINT, 
     status ENUM('searching', 'cancelled', 'matched') DEFAULT 'searching',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -163,9 +164,10 @@ ALTER TABLE matchmaking_queue
     ADD CONSTRAINT matchmaking_queue_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT matchmaking_queue_game_mode_FK FOREIGN KEY (game_mode_id) REFERENCES game_mode (game_mode_id);
 
+
 CREATE TABLE IF NOT EXISTS physical_tournament (
-    tournament_id INT AUTO_INCREMENT PRIMARY KEY,
-    organizer_id INT,
+    tournament_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    organizer_id BIGINT,
     title VARCHAR(100) NOT NULL,
     city VARCHAR(100),
     specific_location VARCHAR(255),
@@ -180,23 +182,25 @@ CREATE TABLE IF NOT EXISTS physical_tournament (
 ALTER TABLE physical_tournament
     ADD CONSTRAINT physical_tournament_user_login_FK FOREIGN KEY (organizer_id) REFERENCES user_login (user_id) ON DELETE SET NULL;
 
+
 CREATE TABLE IF NOT EXISTS physical_tournament_participant (
-    tournament_id INT,
-    user_id INT,
+    tournament_id BIGINT,
+    user_id BIGINT,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tournament_id, user_id),
     FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE IF NOT EXISTS physical_tournament_match (
-    match_id INT AUTO_INCREMENT PRIMARY KEY,
-    tournament_id INT,
+    match_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tournament_id BIGINT,
     round_number INT,
     match_index INT,
-    player1_id INT NULL,
-    player2_id INT NULL,
-    winner_id INT NULL,
+    player1_id BIGINT NULL,
+    player2_id BIGINT NULL,
+    winner_id BIGINT NULL,
     score VARCHAR(20) DEFAULT '',
     FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
     FOREIGN KEY (player1_id) REFERENCES user_login (user_id) ON DELETE SET NULL,
@@ -206,14 +210,13 @@ CREATE TABLE IF NOT EXISTS physical_tournament_match (
 
 
 CREATE TABLE IF NOT EXISTS physical_tournament_team (
-    team_id INT AUTO_INCREMENT PRIMARY KEY,
-    tournament_id  INT,
-    player_1_id INT, 
-    player_2_id INT, 
+    team_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tournament_id BIGINT,
+    player_1_id BIGINT, 
+    player_2_id BIGINT, 
     team_name VARCHAR(100),
     is_paid BOOLEAN DEFAULT FALSE,
     CHECK (player_1_id <> player_2_id)
-
 );
 
 ALTER TABLE physical_tournament_team
@@ -222,12 +225,9 @@ ALTER TABLE physical_tournament_team
     ADD CONSTRAINT physical_tournament_team_user_login_2_FK FOREIGN KEY (player_2_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
 
-
-
-
 CREATE TABLE IF NOT EXISTS local_meetup_ad (
-    ad_id INT AUTO_INCREMENT PRIMARY KEY,
-    creator_id  INT, 
+    ad_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    creator_id BIGINT, 
     location VARCHAR(255),
     latitude DOUBLE NULL,
     longitude DOUBLE NULL,
@@ -241,23 +241,24 @@ CREATE TABLE IF NOT EXISTS local_meetup_ad (
 ALTER TABLE local_meetup_ad
     ADD CONSTRAINT local_meetup_ad_user_login_FK FOREIGN KEY (creator_id) REFERENCES user_login (user_id);
 
+
 CREATE TABLE IF NOT EXISTS meetup_request (
-    request_id INT AUTO_INCREMENT PRIMARY KEY,
-    ad_id INT, 
-    applicant_id INT, 
+    request_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ad_id BIGINT, 
+    applicant_id BIGINT, 
     message TEXT,
     status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending'
 );
 
 ALTER TABLE meetup_request
-    ADD CONSTRAINT meetup_request_local_meetup_ad_FK FOREIGN KEY  (ad_id) REFERENCES local_meetup_ad (ad_id) ON DELETE CASCADE,
+    ADD CONSTRAINT meetup_request_local_meetup_ad_FK FOREIGN KEY (ad_id) REFERENCES local_meetup_ad (ad_id) ON DELETE CASCADE,
     ADD CONSTRAINT meetup_request_user_login_FK FOREIGN KEY (applicant_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS game_action_log (
-    log_id INT AUTO_INCREMENT PRIMARY KEY,
-    game_id INT,
-    user_id INT, 
+    log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    game_id BIGINT,
+    user_id BIGINT, 
     action TEXT NOT NULL,
     action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -268,56 +269,61 @@ ALTER TABLE game_action_log
 
 
 CREATE TABLE IF NOT EXISTS friendships (
-    friendship_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id_1 INT,
-    user_id_2 INT ,
+    friendship_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id_1 BIGINT,
+    user_id_2 BIGINT,
     status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
     CHECK (user_id_1 <> user_id_2)
-
 );
 
 ALTER TABLE friendships
     ADD CONSTRAINT friendships_user_login_1_FK FOREIGN KEY (user_id_1) REFERENCES user_login (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT friendships_user_login_2_FK FOREIGN KEY (user_id_2) REFERENCES user_login (user_id) ON DELETE CASCADE;
 
+
 INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'juanito', '1990-01-01');
 
+
 CREATE TABLE IF NOT EXISTS game_matches (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
     score_us INT DEFAULT 0,
     score_them INT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'IN_PROGRESS',
     FOREIGN KEY (user_id) REFERENCES user_login(user_id)
 );
 
+
 CREATE TABLE IF NOT EXISTS meetup_participants (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ad_id INT,
-    user_id INT,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ad_id BIGINT,
+    user_id BIGINT,
     FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE IF NOT EXISTS meetup_messages (
-    message_id INT AUTO_INCREMENT PRIMARY KEY,
-    ad_id INT,
-    user_id INT,
+    message_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ad_id BIGINT,
+    user_id BIGINT,
     content TEXT,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE IF NOT EXISTS direct_messages (
-    message_id INT AUTO_INCREMENT PRIMARY KEY,
-    sender_id INT NOT NULL,
-    receiver_id INT NOT NULL,
+    message_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sender_id BIGINT NOT NULL,
+    receiver_id BIGINT NOT NULL,
     content TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES user_login(user_id) ON DELETE CASCADE,
     FOREIGN KEY (receiver_id) REFERENCES user_login(user_id) ON DELETE CASCADE
 );
+
 
 -- Insertar valores maestros por defecto
 INSERT IGNORE INTO game_mode (game_mode_id, name, description) VALUES (1, 'Normal 4 Jugadores', 'Partida de Mus standard con 4 jugadores o bots');
@@ -396,8 +402,8 @@ DROP PROCEDURE IF EXISTS sp_buy_item;
 DELIMITER //
 
 CREATE PROCEDURE sp_buy_item(
-    IN p_user_id INT,
-    IN p_item_id INT,
+    IN p_user_id BIGINT,
+    IN p_item_id BIGINT,
     OUT p_status VARCHAR(50),
     OUT p_new_coins INT
 )

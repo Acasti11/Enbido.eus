@@ -7,7 +7,7 @@ CREATE USER IF NOT EXISTS 'muuser_read'@'%' IDENTIFIED BY 'mureadpass';
 GRANT SELECT ON mudb.* TO 'muuser_read'@'%';
 
 -- Asegurar que el usuario por defecto (muuser) tenga permisos DML, EXECUTE y de esquema DDL (para DataInitializer)
--- en lugar de privilegios administrativos globales.
+CREATE USER IF NOT EXISTS 'muuser'@'%' IDENTIFIED BY 'mupass';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, EXECUTE, REFERENCES ON mudb.* TO 'muuser'@'%';
 
 FLUSH PRIVILEGES;
