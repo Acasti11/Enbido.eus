@@ -30,7 +30,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
     description: 'Encuentra y organiza quedadas presenciales de Mus en Euskadi. Busca mesas completas o libres con nuestro mapa interactivo y únete a partidas locales.',
     keywords: 'mus euskadi, quedadas de mus, meetups mus, mapa de mus, jugar mus presencial',
     canonical: 'https://enbido.eus/quedadas',
-    ogImage: 'https://enbido.eus/hero-mus.png',
+    ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'es',
     jsonLd: {
       '@context': 'https://schema.org',
@@ -366,7 +366,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
     <div className="page-container">
       <main className="page-content">
         {loading ? (
-          <div style={{ color: '#fff', textAlign: 'center', marginTop: '40px' }}>Kargatzen / Cargando...</div>
+          <div className="meetup-loading">Kargatzen / Cargando...</div>
         ) : (
           <>
             {currentView === 'list' ? (
@@ -408,13 +408,13 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
                 <div className="meetup-split-layout">
                   {/* PANEL DEL MAPA INTERACTIVO */}
                   <div className="meetup-map-pane">
-                    <div id="meetup-map" style={{ width: '100%', height: '100%' }}></div>
+                    <div id="meetup-map" className="meetup-map" ></div>
                   </div>
 
                   {/* PANEL DE LA LISTA DE QUEDADAS */}
                   <div className="meetup-list-pane">
                     {filteredAds.length === 0 ? (
-                      <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '40px', fontStyle: 'italic' }}>
+                      <div className="meetup-empty-state">
                         No hay anuncios que coincidan con los filtros seleccionados.
                       </div>
                     ) : (

@@ -52,14 +52,14 @@ const HomePage: React.FC = (): React.JSX.Element => {
     description: 'Juega al Mus online gratis en Enbido. Disfruta de partidas rápidas, torneos, ligas de ELO y la mejor comunidad de muslaris. ¡Entra y echa un enbido!',
     keywords: 'mus online, jugar mus online, enbido, envido, juego de cartas, mus jokoa, euskadi, torneos de mus, mus euskadi, jugar mus, mus jugar',
     canonical: 'https://enbido.eus/',
-    ogImage: 'https://enbido.eus/hero-mus.png',
+    ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'eu',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'VideoGame',
       'name': 'Enbido - Juego de Mus Online',
       'url': 'https://enbido.eus/',
-      'image': 'https://enbido.eus/hero-mus.png',
+      'image': 'https://enbido.eus/home-image-mus.png',
       'description': 'Juega al Mus online gratis en Enbido. Disfruta de partidas rápidas, torneos, ligas de ELO y la mejor comunidad de muslaris. ¡Entra y echa un enbido!',
       'genre': 'Card Game',
       'gamePlatform': 'Web Browser',
@@ -93,10 +93,10 @@ const HomePage: React.FC = (): React.JSX.Element => {
       <section className="home-hero-section">
         {/* Columna Izquierda: Visualización premium de una mesa de Mus */}
         <div className="home-visual-pane">
-          <img 
-            src="/hero-mus.png" 
-            alt="Mesa de juego de Mus premium de Enbido.eus con tapete verde y baraja española" 
-            className="home-hero-img" 
+          <img
+            src="/home-image-mus.png"
+            alt="Mesa de juego de Mus premium de Enbido.eus con tapete verde y baraja española"
+            className="home-hero-img"
           />
           <div className="home-visual-overlay">
             <div className="home-visual-tagline">
@@ -111,9 +111,9 @@ const HomePage: React.FC = (): React.JSX.Element => {
             Jokatu Musean Online
             <span>Juega al Mus en la Mayor Comunidad</span>
           </h1>
-          
+
           <p className="home-subtitle">
-            Euskal Herriko muslaririk onenen aurka jokatu edo lagunekin mahaia sortu. 
+            Euskal Herriko muslaririk onenen aurka jokatu edo lagunekin mahaia sortu.
             Compite contra los mejores jugadores o crea una mesa privada para tus amigos.
           </p>
 
@@ -136,8 +136,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
           {/* Botones de Navegación Directa */}
           <div className="home-buttons-box">
-            <button 
-              className="btn-play-primary" 
+            <button
+              className="btn-play-primary"
               onClick={() => navigate('/jugar')}
               title="Entrar al tapete de juego en línea"
             >
@@ -145,8 +145,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
               Jokatu Orain / Jugar Ahora
             </button>
 
-            <button 
-              className="btn-tournaments-secondary" 
+            <button
+              className="btn-tournaments-secondary"
               onClick={() => navigate('/torneos')}
               title="Ver el tablón de torneos"
             >
@@ -154,8 +154,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
               Torneotara Bat Egin / Unirse a Torneos
             </button>
 
-            <button 
-              className="btn-meetups-outline" 
+            <button
+              className="btn-meetups-outline"
               onClick={() => navigate('/quedadas')}
               title="Ver mapa interactivo de quedadas"
             >
@@ -168,7 +168,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
       {/* SECCIÓN GRID DE CARACTERÍSTICAS */}
       <section className="home-features-section" aria-label="Características de Enbido">
-        
+
         {/* Tarjeta de Jugar */}
         <div className="home-feature-card" onClick={() => navigate('/jugar')}>
           <div className="home-feature-icon">
@@ -218,7 +218,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
           </p>
         </div>
         <div className="home-shop-action">
-          <button 
+          <button
             className="btn-shop-accent"
             onClick={() => navigate('/tienda')}
             title="Ir a la tienda de Enbido"
@@ -233,9 +233,9 @@ const HomePage: React.FC = (): React.JSX.Element => {
       <footer className="home-footer">
         <p>&copy; {new Date().getFullYear()} Enbido.eus. Eskubide guztiak erreserbatuta / Todos los derechos reservados.</p>
         <div className="home-footer-links">
-          <span className="home-footer-link" style={{ cursor: 'pointer' }} onClick={() => navigate('/jugar')}>Mus Arauak / Reglas</span>
-          <span className="home-footer-link" style={{ cursor: 'pointer' }} onClick={() => navigate('/torneos')}>Txapelketak / Campeonatos</span>
-          <span className="home-footer-link" style={{ cursor: 'pointer' }} onClick={() => navigate('/quedadas')}>Mapak / Mapas</span>
+          <span className="home-footer-link" onClick={() => navigate('/jugar')}>Mus Arauak / Reglas</span>
+          <span className="home-footer-link" onClick={() => navigate('/torneos')}>Txapelketak / Campeonatos</span>
+          <span className="home-footer-link" onClick={() => navigate('/quedadas')}>Mapak / Mapas</span>
         </div>
       </footer>
     </div>

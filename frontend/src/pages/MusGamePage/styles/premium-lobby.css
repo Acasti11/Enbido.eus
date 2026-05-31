@@ -80,6 +80,9 @@
 .badge-icon {
   font-size: 20px;
 }
+.rules-trigger-btn .badge-icon {
+  filter: none;
+}
 
 .badge-details {
   display: flex;
@@ -1223,7 +1226,7 @@
   width: 34px;
   text-align: right;
 }
-
+ 
 .winrate-track {
   flex: 1;
   height: 5px;
@@ -1356,3 +1359,134 @@
 }
 
 
+
+.rules-trigger-btn {
+  cursor: pointer;
+  background: rgba(212,175,55,0.08);
+  border: 1px solid rgba(212,175,55,0.25);
+}
+
+
+.rules-trigger-btn .badge-val {
+  color: var(--color-accent-yellow);
+}
+
+
+.reyes-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.reyes-selector-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.reyes-selector-options {
+  display: flex;
+  gap: 10px;
+}
+
+.reyes-option {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.reyes-option--active {
+  border: 2px solid var(--color-accent-yellow);
+  background-color: rgba(212,175,55,0.12);
+  color: var(--color-accent-yellow);
+  box-shadow: 0 0 10px rgba(212,175,55,0.25);
+}
+
+.reyes-option--inactive {
+  border: 1px solid #333;
+  background-color: #161616;
+  color: #aaa;
+}
+
+.social-empty-state {
+  color: #6b7280;
+  font-size: 11px;
+  text-align: center;
+}
+
+.social-empty-state--large {
+  margin-top: 30px;
+  font-style: italic;
+}
+
+.social-empty-state--small {
+  margin-top: 10px;
+}
+
+
+.friend-item--request {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.request-username {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.request-status {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.request-btn {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
+.request-btn-full {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
+.request-btn-cancel {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+
+.search-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.search-result-username {
+  font-size: 12px;
+  font-weight: 700;
+}

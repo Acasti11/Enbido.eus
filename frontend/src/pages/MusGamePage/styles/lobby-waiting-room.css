@@ -57,7 +57,7 @@
 
 .room-tag {
   font-size: 10px;
-  color: #d4af37;
+  color: var(--color-accent-yellow);
   letter-spacing: 1.5px;
   display: block;
 }
@@ -421,7 +421,7 @@
   .setting-select {
     width: 100%;
     padding: 8px;
-    font-size: 0.8rem;
+    font-size: 0.8rem; 
   }
 
   .guest-rules-info {
@@ -452,4 +452,8 @@
   .seat-north { top: 5px; left: calc(50% - 42.5px); }
   .seat-west { left: 5px; top: calc(50% - 27.5px); }
   .seat-east { right: 5px; top: calc(50% - 27.5px); }
+}
+
+.guest-rule-highlight {
+  color: var(--color-accent-yellow);
 }

@@ -139,11 +139,11 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   };
 
   const handleShare = () => {
-    const dateFormatted = adState.scheduledAt 
-      ? formatScheduledDate(adState.scheduledAt) 
+    const dateFormatted = adState.scheduledAt
+      ? formatScheduledDate(adState.scheduledAt)
       : 'Fecha por coordinar';
     const text = `¡Aupa! He organizado una quedada para jugar al Mus en ${adState.location} el ${dateFormatted}. ¡Faltan ${adState.missingPlayers} jugadores! Apúntate aquí en Enbido: ${window.location.origin}/meetups`;
-    
+
     navigator.clipboard.writeText(text)
       .then(() => alert('¡Mensaje para compartir copiado al portapapeles!'))
       .catch(() => alert('No se pudo copiar al portapapeles'));
@@ -209,8 +209,8 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   return (
     <article className={`ad-card ${isHighlighted ? 'map-highlighted' : ''}`} id={`ad-card-${adState.adId}`}>
       <div className="ad-card__header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-          <h3 className="ad-card__location" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="ad-card__header-top">
+          <h3 className="ad-card__location">
             <span>{getEstablishmentIcon(adState.establishmentType)}</span>
             <span>{adState.location}</span>
           </h3>
@@ -218,7 +218,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             {getEstablishmentLabel(adState.establishmentType)}
           </span>
         </div>
-        
+
         <div className="ad-card__meta-info">
           <span>Organizado por: <strong>{adState.creatorName}</strong></span>
           {adState.scheduledAt && (
@@ -228,7 +228,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
           )}
         </div>
       </div>
-      
+
       <div className="ad-card__body">
         <span className="ad-card__players">
           {isFull ? '✅ Mesa Completa' : `⚠️ Faltan ${adState.missingPlayers} jugadores`}
@@ -247,15 +247,15 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             </button>
           </>
         ) : (
-          <button 
-            className="btn-join" 
+          <button
+            className="btn-join"
             onClick={handleJoin}
             disabled={isCreator || isFull || !isLoggedIn}
           >
-            {isCreator 
-              ? 'Organizador' 
-              : isFull 
-                ? 'Mesa Completa' 
+            {isCreator
+              ? 'Organizador'
+              : isFull
+                ? 'Mesa Completa'
                 : 'Unirse a la mesa'}
           </button>
         )}
@@ -267,7 +267,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
         )}
 
         {adState.latitude && adState.longitude && (
-          <a 
+          <a
             href={`https://www.google.com/maps/search/?api=1&query=${adState.latitude},${adState.longitude}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -283,7 +283,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
         </button>
 
         {!isCreator && (
-          <button 
+          <button
             type="button"
             className="btn-chat-toggle btn-chat-contact"
             onClick={handleContactOrganizer}
@@ -293,7 +293,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
           </button>
         )}
         {(hasJoined || isCreator) && (
-          <button 
+          <button
             className="btn-chat-toggle"
             onClick={() => setIsChatOpen(!isChatOpen)}
           >
@@ -319,20 +319,20 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
           <h5 className="meetup-chat-title">💬 Chat en Vivo:</h5>
           <div className="meetup-chat-window">
             {messages.length === 0 ? (
-              <div style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'center', margin: 'auto' }}>
+              <div className="meetup-chat-empty">
                 No hay mensajes aún. ¡Di algo para empezar!
               </div>
             ) : (
               messages.map((m) => {
                 const isMsgFromMe = m.userId === currentUserId;
                 const isMsgFromCreator = m.userId === adState.creatorId;
-                const senderName = isMsgFromMe 
-                  ? 'Tú' 
+                const senderName = isMsgFromMe
+                  ? 'Tú'
                   : m.user ? m.user.name : `Usuario #${m.userId}`;
 
                 return (
-                  <div 
-                    key={m.messageId} 
+                  <div
+                    key={m.messageId}
                     className={`meetup-message-row ${isMsgFromMe ? 'meetup-message-row--me' : ''}`}
                   >
                     <span className={`meetup-message-sender ${isMsgFromCreator ? 'meetup-message-sender--creator' : ''}`}>
@@ -348,8 +348,8 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
 
           {isLoggedIn ? (
             <form onSubmit={handleSendMessage} className="meetup-chat-form">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="meetup-chat-input"
                 placeholder="Escribe un mensaje..."
                 value={newMessageText}
@@ -359,7 +359,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
               <button type="submit" className="btn-send-message">Enviar</button>
             </form>
           ) : (
-            <div style={{ color: '#ef4444', fontSize: '0.8rem', textAlign: 'center' }}>
+            <div className="meetup-chat-login-warning">
               Inicia sesión para poder chatear
             </div>
           )}

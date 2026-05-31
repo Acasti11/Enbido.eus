@@ -93,11 +93,11 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
                   <option value="3">3 Chicos (Al mejor de 5)</option>
                 </select>
               </div>
-            </>
+            </> 
           ) : (
             <div className="guest-rules-info">
-              <span>REGLAS: <strong style={{ color: '#d4af37' }}>{reyesOption} REYES</strong></span>
-              <span>OBJETIVO: <strong style={{ color: '#d4af37' }}>GANAR {maxRounds} {maxRounds === 1 ? 'CHICO' : 'CHICOS'} (MEJOR DE {maxRounds === 1 ? 1 : maxRounds === 2 ? 3 : 5})</strong></span>
+              <span>REGLAS: <strong className="guest-rule-highlight"></strong>{reyesOption} REYES</span>
+              <span>OBJETIVO: <strong className="guest-rule-highlight">GANAR {maxRounds} {maxRounds === 1 ? 'CHICO' : 'CHICOS'} (MEJOR DE {maxRounds === 1 ? 1 : maxRounds === 2 ? 3 : 5})</strong></span>
             </div>
           )}
         </div>
