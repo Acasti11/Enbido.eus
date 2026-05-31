@@ -14,7 +14,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 @Component
 public class MusGameWebSocketHandler extends TextWebSocketHandler {
@@ -29,6 +29,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
     // Mapea id de sesión de WebSocket a su información de conexión activa
     private final Map<String, UserConnection> activeConnections = new ConcurrentHashMap<>();
+
+    private final ScheduledExecutorService timerScheduler = Executors.newScheduledThreadPool(4);
+    private final Map<String, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
 
     private static class UserConnection {
         WebSocketSession session;
@@ -86,6 +89,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             else if ("CHAT".equals(type)) {
                 handleChat(conn, data);
             }
+            else if ("SPEECH_BUBBLE".equals(type)) {
+                handleSpeechBubble(conn, data);
+            }
+            else if ("SEND_SIGN".equals(type)) {
+                handleSendSign(conn, data);
+            }
 
         } catch (Exception e) {
             System.err.println("Error handling websocket message: " + e.getMessage());
@@ -117,6 +126,19 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     if (!hasRealPlayers) {
                         sessionManager.removeRoom(conn.roomId);
                         System.out.println("Sala vacía eliminada: " + conn.roomId);
+                        ScheduledFuture<?> future = activeTimers.remove(conn.roomId);
+                        if (future != null) {
+                            future.cancel(false);
+                        }
+                    } else {
+                        if (!room.isPlaying()) {
+                            ScheduledFuture<?> future = activeTimers.remove(conn.roomId);
+                            if (future != null) {
+                                future.cancel(false);
+                            }
+                        } else {
+                            startTurnTimer(room);
+                        }
                     }
                 }
             }
@@ -259,6 +281,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 room.startNewHand();
                 broadcastRoomState(room);
                 triggerBotTurnsRecursively(room);
+                startTurnTimer(room);
             }
             return;
         }
@@ -271,6 +294,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         
         // Si le toca a un Bot, lo automatizamos
         triggerBotTurnsRecursively(room);
+        startTurnTimer(room);
     }
 
     private void handleMusDecision(UserConnection conn, Map<String, Object> data) {
@@ -288,6 +312,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
         // Disparar las IAs si es su turno
         triggerBotTurnsRecursively(room);
+        startTurnTimer(room);
     }
 
     private void handleDiscard(UserConnection conn, Map<String, Object> data) {
@@ -304,6 +329,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         broadcastRoomState(room);
 
         triggerBotTurnsRecursively(room);
+        startTurnTimer(room);
     }
 
     private void handleBet(UserConnection conn, Map<String, Object> data) {
@@ -324,6 +350,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         broadcastRoomState(room);
 
         triggerBotTurnsRecursively(room);
+        startTurnTimer(room);
     }
 
     private void handleChat(UserConnection conn, Map<String, Object> data) {
@@ -332,7 +359,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         if (room == null) return;
 
         String message = (String) data.get("message");
-        room.appendChatMessage(conn.username + ": " + message);
+        room.appendChatMessage("[Chair:" + conn.chair + "] " + conn.username + ": " + message);
         broadcastRoomState(room);
     }
 
@@ -364,6 +391,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     
                     // Notificamos a todos el nuevo estado
                     broadcastRoomState(room);
+                    
+                    // Turn advanced, reset timer for human player if next
+                    startTurnTimer(room);
                 }
             }
         }).start();
@@ -409,6 +439,126 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             session.sendMessage(new TextMessage(mapper.writeValueAsString(errorMap)));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    // --- TIMER Y SEÑAS HELPER METHODS ---
+
+    private void startTurnTimer(GameSession room) {
+        String roomId = room.getRoomId();
+        
+        // Cancel existing timer
+        ScheduledFuture<?> oldTimer = activeTimers.remove(roomId);
+        if (oldTimer != null) {
+            oldTimer.cancel(false);
+        }
+
+        if (!room.isPlaying() || "round-over".equals(room.getPhase())) {
+            room.setTurnDeadline(0);
+            return;
+        }
+
+        int activeIdx = room.getActiveTurnIdx();
+        GamePlayer activePlayer = room.getPlayers().get(activeIdx);
+        if (activePlayer == null || activePlayer.isBot()) {
+            room.setTurnDeadline(0);
+            return;
+        }
+
+        // 10 seconds limit
+        int limitSeconds = 10;
+        long deadline = System.currentTimeMillis() + (limitSeconds * 1000);
+        room.setTurnDeadline(deadline);
+        
+        // Broadcast immediately so clients get the new turnDeadline
+        broadcastRoomState(room);
+
+        ScheduledFuture<?> future = timerScheduler.schedule(() -> {
+            try {
+                executeTimeout(room, activeIdx);
+            } catch (Exception e) {
+                System.err.println("Error executing timeout: " + e.getMessage());
+            }
+        }, limitSeconds, TimeUnit.SECONDS);
+
+        activeTimers.put(roomId, future);
+    }
+
+    private void executeTimeout(GameSession room, int playerIdx) {
+        if (!room.isPlaying() || room.getActiveTurnIdx() != playerIdx) return;
+
+        String phase = room.getPhase();
+        String actionDesc = "";
+
+        if ("mus-check".equals(phase)) {
+            actionDesc = "Corto (Tiempo expirado)";
+            sessionManager.logActionToDb(room, playerIdx, actionDesc);
+            room.handleMusDecision(playerIdx, false); // Wants mus = false -> Corto
+        } 
+        else if ("discarding".equals(phase)) {
+            actionDesc = "Descarte 0 (Tiempo expirado)";
+            sessionManager.logActionToDb(room, playerIdx, actionDesc);
+            room.handleDiscards(playerIdx, new ArrayList<>()); // Discard 0
+        } 
+        else if ("betting".equals(phase)) {
+            if (room.getBetState() > 0) {
+                actionDesc = "No Quiero (Tiempo expirado)";
+                sessionManager.logActionToDb(room, playerIdx, actionDesc);
+                room.handleBetAction(playerIdx, "No Quiero");
+            } else {
+                actionDesc = "Paso (Tiempo expirado)";
+                sessionManager.logActionToDb(room, playerIdx, actionDesc);
+                room.handleBetAction(playerIdx, "Paso");
+            }
+        } else {
+            return;
+        }
+
+        sessionManager.updateGameScoresInDb(room);
+        broadcastRoomState(room);
+        triggerBotTurnsRecursively(room);
+        startTurnTimer(room);
+    }
+
+    private void handleSpeechBubble(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null || conn.chair == -1) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null) return;
+
+        String message = (String) data.get("message");
+        GamePlayer gp = room.getPlayers().get(conn.chair);
+        if (gp != null) {
+            gp.setSpeechBubble(message);
+            room.appendChatMessage("[Chair:" + conn.chair + "] " + conn.username + ": " + message);
+            broadcastRoomState(room);
+
+            final int chair = conn.chair;
+            timerScheduler.schedule(() -> {
+                if (room.getPlayers().get(chair) == gp && message.equals(gp.getSpeechBubble())) {
+                    gp.setSpeechBubble("");
+                    broadcastRoomState(room);
+                }
+            }, 3, TimeUnit.SECONDS);
+        }
+    }
+
+    private void handleSendSign(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null || conn.chair == -1) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null) return;
+
+        String signType = (String) data.get("signType");
+
+        // Broadcast sign event to all users in the room
+        Map<String, Object> signEvent = new HashMap<>();
+        signEvent.put("type", "MUS_SIGN");
+        signEvent.put("chair", conn.chair);
+        signEvent.put("signType", signType);
+        signEvent.put("username", conn.username);
+
+        for (UserConnection otherConn : activeConnections.values()) {
+            if (conn.roomId.equals(otherConn.roomId)) {
+                sendJsonMessage(otherConn.session, signEvent);
+            }
         }
     }
 }

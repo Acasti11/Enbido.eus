@@ -32,8 +32,12 @@ export const useMusGame = (userId: number) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [queueSize, setQueueSize] = useState<number>(0);
   const [isMyTurn, setIsMyTurn] = useState<boolean>(false);
+  const [activeTurnIdx, setActiveTurnIdx] = useState<number>(-1);
   const [betState, setBetState] = useState<number>(0);
   const [currentBetSize, setCurrentBetSize] = useState<number>(0);
+  const [turnDeadline, setTurnDeadline] = useState<number>(0);
+  const [activeSigns, setActiveSigns] = useState<{ [chair: number]: string }>({});
+  const [dealerIdx, setDealerIdx] = useState<number>(-1);
   
   // Nuevos estados para configuración de reyes y marcador de chicos
   const [reyesOption, setReyesOption] = useState<'4' | '8'>('8');
@@ -118,17 +122,33 @@ export const useMusGame = (userId: number) => {
           setBotHands(data.botHands);
           setSeats(data.seats);
           setIsMyTurn(data.isMyTurn || false);
+          setActiveTurnIdx(data.activeTurnIdx !== undefined ? data.activeTurnIdx : -1);
           setBetState(data.betState || 0);
           setCurrentBetSize(data.currentBetSize || 0);
           setReyesOption(data.reyesOption || '8');
           setMaxRounds(data.maxRounds || 3);
           setRoundsWonUs(data.roundsWonUs || 0);
           setRoundsWonThem(data.roundsWonThem || 0);
+          setTurnDeadline(data.turnDeadline || 0);
+          setDealerIdx(data.dealerIdx !== undefined ? data.dealerIdx : -1);
           setIsSearching(false);
         } 
         else if (type === 'QUEUEING') {
           setIsSearching(true);
           setQueueSize(data.queueSize);
+        }
+        else if (type === 'MUS_SIGN') {
+          const { chair, signType } = data;
+          setActiveSigns((prev) => ({ ...prev, [chair]: signType }));
+          setTimeout(() => {
+            setActiveSigns((prev) => {
+              const next = { ...prev };
+              if (next[chair] === signType) {
+                delete next[chair];
+              }
+              return next;
+            });
+          }, 1200);
         }
         else if (type === 'LEAVED_QUEUE') {
           setIsSearching(false);
@@ -262,6 +282,9 @@ export const useMusGame = (userId: number) => {
     setPhase('init');
     setLogs([]);
     setChatMessages([]);
+    setTurnDeadline(0);
+    setActiveSigns({});
+    setActiveTurnIdx(-1);
   };
 
   const sendChatMessage = (message: string) => {
@@ -269,6 +292,24 @@ export const useMusGame = (userId: number) => {
       socketRef.current.send(JSON.stringify({
         type: 'CHAT',
         message
+      }));
+    }
+  };
+
+  const sendSpeechBubble = (message: string) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'SPEECH_BUBBLE',
+        message
+      }));
+    }
+  };
+
+  const sendSign = (signType: string) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'SEND_SIGN',
+        signType
       }));
     }
   };
@@ -303,6 +344,10 @@ export const useMusGame = (userId: number) => {
     maxRounds,
     roundsWonUs,
     roundsWonThem,
+    activeSigns,
+    turnDeadline,
+    activeTurnIdx,
+    dealerIdx,
     
     handleStartMatch,
     startNewHand,
@@ -318,5 +363,7 @@ export const useMusGame = (userId: number) => {
     onLeaveRoom,
     updateRoomConfig,
     sendChatMessage,
+    sendSpeechBubble,
+    sendSign,
   };
 };

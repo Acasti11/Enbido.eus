@@ -20,6 +20,7 @@ public class GameSession {
     // Chicos (sets) won in the current Match
     private int roundsWonUs = 0;
     private int roundsWonThem = 0;
+    private long turnDeadline = 0; // Epoch ms for when the current turn must finish
 
     private List<String> logs = new ArrayList<>();
     private List<String> chatMessages = new ArrayList<>();
@@ -408,7 +409,29 @@ public class GameSession {
         state.put("phase", phase);
         state.put("stage", stage);
         state.put("logs", logs);
-        state.put("chatMessages", chatMessages);
+        
+        List<String> clientChat = new ArrayList<>();
+        for (String rawMsg : chatMessages) {
+            if (rawMsg.startsWith("[Chair:")) {
+                int firstClose = rawMsg.indexOf("] ");
+                if (firstClose > 7) {
+                    try {
+                        int senderChair = Integer.parseInt(rawMsg.substring(7, firstClose));
+                        String cleanMsg = rawMsg.substring(firstClose + 2);
+                        if (senderChair == playerIdx || (senderChair % 2) != (playerIdx % 2)) {
+                            clientChat.add(cleanMsg);
+                        }
+                    } catch (NumberFormatException e) {
+                        clientChat.add(rawMsg);
+                    }
+                } else {
+                    clientChat.add(rawMsg);
+                }
+            } else {
+                clientChat.add(rawMsg);
+            }
+        }
+        state.put("chatMessages", clientChat);
         state.put("activeTurnIdx", activeTurnIdx);
         state.put("dealerIdx", dealerIdx);
         state.put("betState", betState);
@@ -417,6 +440,7 @@ public class GameSession {
         state.put("maxRounds", config.getMaxRounds());
         state.put("roundsWonUs", roundsWonUs);
         state.put("roundsWonThem", roundsWonThem);
+        state.put("turnDeadline", turnDeadline);
         
         Map<String, Object> score = new HashMap<>();
         score.put("us", scoreUs);

@@ -168,13 +168,17 @@ public class BettingHandler {
         } 
         else if (action.equalsIgnoreCase("Quiero")) {
             p.setSpeechBubble("¡Quiero!");
-            session.appendLog(p.getUsername() + " acepta el envite de " + session.getCurrentBetSize() + " a la " + session.getStage().toUpperCase());
+            session.appendLog(p.getUsername() + " acepta el envite de " + (session.getBetState() == 2 ? "ÓRDAGO" : session.getCurrentBetSize()) + " a la " + session.getStage().toUpperCase());
             
             session.getApuestas().get(lance).setApostado(true);
             session.getApuestas().get(lance).setPuntos(session.getCurrentBetSize());
             
-            session.setCurrentBetPhase(session.getCurrentBetPhase() + 1);
-            playNextLance(session);
+            if (session.getBetState() == 2) {
+                handleAcceptedOrdago(session, lance);
+            } else {
+                session.setCurrentBetPhase(session.getCurrentBetPhase() + 1);
+                playNextLance(session);
+            }
         } 
         else if (action.equalsIgnoreCase("No Quiero")) {
             handleNoQuiero(session, playerIdx);
@@ -199,5 +203,141 @@ public class BettingHandler {
 
         session.setCurrentBetPhase(session.getCurrentBetPhase() + 1);
         playNextLance(session);
+    }
+
+    private static void handleAcceptedOrdago(GameSession session, String lance) {
+        session.setPhase("round-over");
+        session.appendLog("--- ÓRDAGO ACEPTADO ---");
+        session.appendLog("Se muestran las cartas de inmediato para el lance: " + lance.toUpperCase());
+
+        String reyesOpt = session.getConfig().getReyesOption();
+        int dealerIdx = session.getDealerIdx();
+        boolean usWins = false;
+
+        if (lance.equals("grande")) {
+            int bestUsIdx = RulesEvaluator.compareGrande(session.getPlayers().get(0).getHand(), 0, session.getPlayers().get(2).getHand(), 2, dealerIdx, reyesOpt) >= 0 ? 0 : 2;
+            int bestThemIdx = RulesEvaluator.compareGrande(session.getPlayers().get(1).getHand(), 1, session.getPlayers().get(3).getHand(), 3, dealerIdx, reyesOpt) >= 0 ? 1 : 3;
+            usWins = RulesEvaluator.compareGrande(session.getPlayers().get(bestUsIdx).getHand(), bestUsIdx, session.getPlayers().get(bestThemIdx).getHand(), bestThemIdx, dealerIdx, reyesOpt) >= 0;
+        } 
+        else if (lance.equals("chica")) {
+            int bestUsIdx = RulesEvaluator.compareChica(session.getPlayers().get(0).getHand(), 0, session.getPlayers().get(2).getHand(), 2, dealerIdx, reyesOpt) >= 0 ? 0 : 2;
+            int bestThemIdx = RulesEvaluator.compareChica(session.getPlayers().get(1).getHand(), 1, session.getPlayers().get(3).getHand(), 3, dealerIdx, reyesOpt) >= 0 ? 1 : 3;
+            usWins = RulesEvaluator.compareChica(session.getPlayers().get(bestUsIdx).getHand(), bestUsIdx, session.getPlayers().get(bestThemIdx).getHand(), bestThemIdx, dealerIdx, reyesOpt) >= 0;
+        }
+        else if (lance.equals("pares")) {
+            RulesEvaluator.ParesResult[] res = new RulesEvaluator.ParesResult[4];
+            for (int i = 0; i < 4; i++) {
+                res[i] = RulesEvaluator.evaluatePares(session.getPlayers().get(i).getHand(), reyesOpt);
+            }
+            RulesEvaluator.ParesResult bestUs = null;
+            int bestUsIdx = -1;
+            if (res[0].isHas() && res[2].isHas()) {
+                bestUsIdx = RulesEvaluator.comparePares(res[0], 0, res[2], 2, dealerIdx) >= 0 ? 0 : 2;
+                bestUs = res[bestUsIdx];
+            } else if (res[0].isHas()) {
+                bestUsIdx = 0;
+                bestUs = res[0];
+            } else if (res[2].isHas()) {
+                bestUsIdx = 2;
+                bestUs = res[2];
+            }
+
+            RulesEvaluator.ParesResult bestThem = null;
+            int bestThemIdx = -1;
+            if (res[1].isHas() && res[3].isHas()) {
+                bestThemIdx = RulesEvaluator.comparePares(res[1], 1, res[3], 3, dealerIdx) >= 0 ? 1 : 3;
+                bestThem = res[bestThemIdx];
+            } else if (res[1].isHas()) {
+                bestThemIdx = 1;
+                bestThem = res[1];
+            } else if (res[3].isHas()) {
+                bestThemIdx = 3;
+                bestThem = res[3];
+            }
+
+            if (bestUs != null && bestThem != null) {
+                usWins = RulesEvaluator.comparePares(bestUs, bestUsIdx, bestThem, bestThemIdx, dealerIdx) >= 0;
+            } else if (bestUs != null) {
+                usWins = true;
+            } else {
+                usWins = false;
+            }
+        }
+        else {
+            // juego or punto
+            RulesEvaluator.JuegoResult[] res = new RulesEvaluator.JuegoResult[4];
+            for (int i = 0; i < 4; i++) {
+                res[i] = RulesEvaluator.evaluateJuego(session.getPlayers().get(i).getHand(), reyesOpt);
+            }
+            boolean isPunto = session.getApuestas().get("juego").isEsPunto();
+
+            RulesEvaluator.JuegoResult bestUs = null;
+            int bestUsIdx = -1;
+            if (!isPunto) {
+                if (res[0].isHasJuego() && res[2].isHasJuego()) {
+                    bestUsIdx = RulesEvaluator.compareJuegoPunto(res[0], 0, res[2], 2, dealerIdx) >= 0 ? 0 : 2;
+                    bestUs = res[bestUsIdx];
+                } else if (res[0].isHasJuego()) {
+                    bestUsIdx = 0;
+                    bestUs = res[0];
+                } else if (res[2].isHasJuego()) {
+                    bestUsIdx = 2;
+                    bestUs = res[2];
+                }
+            } else {
+                bestUsIdx = RulesEvaluator.compareJuegoPunto(res[0], 0, res[2], 2, dealerIdx) >= 0 ? 0 : 2;
+                bestUs = res[bestUsIdx];
+            }
+
+            RulesEvaluator.JuegoResult bestThem = null;
+            int bestThemIdx = -1;
+            if (!isPunto) {
+                if (res[1].isHasJuego() && res[3].isHasJuego()) {
+                    bestThemIdx = RulesEvaluator.compareJuegoPunto(res[1], 1, res[3], 3, dealerIdx) >= 0 ? 1 : 3;
+                    bestThem = res[bestThemIdx];
+                } else if (res[1].isHasJuego()) {
+                    bestThemIdx = 1;
+                    bestThem = res[1];
+                } else if (res[3].isHasJuego()) {
+                    bestThemIdx = 3;
+                    bestThem = res[3];
+                }
+            } else {
+                bestThemIdx = RulesEvaluator.compareJuegoPunto(res[1], 1, res[3], 3, dealerIdx) >= 0 ? 1 : 3;
+                bestThem = res[bestThemIdx];
+            }
+
+            if (bestUs != null && bestThem != null) {
+                usWins = RulesEvaluator.compareJuegoPunto(bestUs, bestUsIdx, bestThem, bestThemIdx, dealerIdx) >= 0;
+            } else if (bestUs != null) {
+                usWins = true;
+            } else {
+                usWins = false;
+            }
+        }
+
+        if (usWins) {
+            session.setScoreUs(30);
+            session.setRoundsWonUs(session.getRoundsWonUs() + 1);
+            session.appendLog("🏆 ¡NOSOTROS HEMOS GANADO ESTE CHICO POR ÓRDAGO EN EL LANCE DE " + lance.toUpperCase() + "!");
+        } else {
+            session.setScoreThem(30);
+            session.setRoundsWonThem(session.getRoundsWonThem() + 1);
+            session.appendLog("💔 ¡RIVALES GANAN ESTE CHICO POR ÓRDAGO EN EL LANCE DE " + lance.toUpperCase() + "!");
+        }
+
+        // Check match over
+        if (session.getRoundsWonUs() >= session.getConfig().getMaxRounds() || session.getRoundsWonThem() >= session.getConfig().getMaxRounds()) {
+            session.setPlaying(false);
+            session.appendLog("--- FIN DE LA PARTIDA ---");
+            if (session.getRoundsWonUs() >= session.getConfig().getMaxRounds()) {
+                session.appendLog("🏆 🏆 ¡NOSOTROS GANAMOS EL ENCUENTRO!");
+            } else {
+                session.appendLog("💔 💔 ¡RIVALES GANAN EL ENCUENTRO!");
+            }
+        }
+
+        // Shift dealer for the next hand
+        session.setDealerIdx((session.getDealerIdx() + 1) % 4);
     }
 }
