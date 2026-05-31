@@ -79,6 +79,61 @@
   color: #ffffff;
 }
 
+/* =========================================
+   ROOM CUSTOM SETTINGS SELECTORS
+   ========================================= */
+.room-settings-bar {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setting-label {
+  color: #888;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.setting-select {
+  background-color: #161616;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.setting-select:focus {
+  border-color: #d4af37;
+}
+
+.guest-rules-info {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+  color: #aaa;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 /* MESA FELT PREVIEW */
 .mesa-felt-preview {
   position: relative;
@@ -277,4 +332,124 @@
   font-weight: 600;
   color: #9ca3af;
   margin: 0;
+}
+
+/* =========================================
+   RESPONSIVE LOBBY WAITING ROOM SEATS
+   ========================================= */
+@media (max-width: 768px) {
+  .waiting-room-card {
+    padding: 15px !important;
+    gap: 15px !important;
+  }
+  
+  .room-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .room-code {
+    font-size: 20px;
+  }
+
+  .mesa-felt-preview {
+    height: 300px;
+    border: 8px solid #3d220f;
+    border-radius: 60px;
+  }
+
+  .mesa-chair-node {
+    width: 110px;
+    height: 70px;
+    border-radius: 8px;
+  }
+
+  .empty-chair-inner,
+  .occupied-chair-inner {
+    transform: scale(0.85);
+  }
+
+  .seat-south { bottom: 10px; left: calc(50% - 55px); }
+  .seat-north { top: 10px; left: calc(50% - 55px); }
+  .seat-west { left: 10px; top: calc(50% - 35px); }
+  .seat-east { right: 10px; top: calc(50% - 35px); }
+
+  .felt-logo-text {
+    font-size: 24px;
+    letter-spacing: 3px;
+  }
+
+  .felt-sub-text {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .start-game-trigger {
+    padding: 10px 24px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .leave-room-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Mobile Settings Bar overrides */
+  .room-settings-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    align-items: stretch;
+  }
+  
+  .setting-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    text-align: left;
+  }
+
+  .setting-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    margin-left: 2px;
+  }
+
+  .setting-select {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  .guest-rules-info {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .mesa-felt-preview {
+    height: 250px;
+    border-radius: 40px;
+  }
+
+  .mesa-chair-node {
+    width: 85px;
+    height: 55px;
+  }
+
+  .empty-chair-inner,
+  .occupied-chair-inner {
+    transform: scale(0.7);
+  }
+
+  .seat-south { bottom: 5px; left: calc(50% - 42.5px); }
+  .seat-north { top: 5px; left: calc(50% - 42.5px); }
+  .seat-west { left: 5px; top: calc(50% - 27.5px); }
+  .seat-east { right: 5px; top: calc(50% - 27.5px); }
 }

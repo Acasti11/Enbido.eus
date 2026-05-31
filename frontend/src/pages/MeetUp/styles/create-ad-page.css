@@ -161,3 +161,27 @@
   background-color: var(--color-brand-light);
   color: #fff;
 }
+
+/* =========================================
+   RESPONSIVE MEETUP AD FORM CREATION
+   ========================================= */
+@media (max-width: 576px) {
+  .create-view {
+    padding: var(--spacing-md) 0;
+  }
+  .create-form-card {
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+  }
+  .form-actions {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+  }
+  .btn-submit-form,
+  .btn-cancel-form {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
+}

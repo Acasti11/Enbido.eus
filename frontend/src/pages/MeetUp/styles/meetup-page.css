@@ -100,3 +100,35 @@
   height: 16px;
   accent-color: var(--color-brand-light);
 }
+
+/* =========================================
+   RESPONSIVE MEETUP LANDING PAGE
+   ========================================= */
+@media (max-width: 768px) {
+  .list-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+  .btn-create-main {
+    width: 100%;
+    text-align: center;
+  }
+  .meetup-filters-panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 576px) {
+  .page-content {
+    padding: var(--spacing-md);
+  }
+  .list-title {
+    font-size: 1.8rem;
+  }
+  .grid-container {
+    grid-template-columns: 1fr;
+  }
+}

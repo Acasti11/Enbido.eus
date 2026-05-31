@@ -64,3 +64,19 @@ input {
 ul {
   list-style: none;
 }
+
+/* Safety Overflow & Dynamic Spacing for Mobile Devices */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+@media (max-width: 576px) {
+  :root {
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.25rem;
+    --spacing-2xl: 1.5rem;
+    --spacing-3xl: 1.75rem;
+  }
+}

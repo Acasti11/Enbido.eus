@@ -3,7 +3,7 @@
   max-width: 30rem;
   background-color: var(--color-card-bg);
   border-radius: var(--radius-2xl);
-  padding: var(--spacing-3xl);
+  padding: var(--spacing-lg);
   box-shadow: var(--shadow-premium);
   position: relative;
 }
@@ -17,11 +17,12 @@
 
 .login-card__title {
   font-family: var(--font-display);
-  font-size: 3rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: var(--color-brand-dark);
   letter-spacing: -0.025em;
   margin-bottom: var(--spacing-xs);
+  text-align: center;
 }
 
 .login-card__subtitle {
@@ -32,8 +33,11 @@
   text-transform: uppercase;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 576px) {
   .login-card {
     padding: var(--spacing-3xl);
+  }
+  .login-card__title {
+    font-size: 3rem;
   }
 }

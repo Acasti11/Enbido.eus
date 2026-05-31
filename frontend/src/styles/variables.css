@@ -31,4 +31,15 @@
   --font-display: 'Poppins', sans-serif;
   --transition-fast: 150ms ease;
   --transition-normal: 300ms ease;
+
+  /* Responsive Breakpoints */
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+
+  /* Accessibility & Tactile dimensions */
+  --touch-target-min: 44px;
 }

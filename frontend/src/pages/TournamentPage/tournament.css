@@ -493,3 +493,40 @@ div::-webkit-scrollbar-thumb {
 div::-webkit-scrollbar-thumb:hover {
   background: rgba(212, 175, 55, 0.5);
 }
+
+/* =========================================
+   RESPONSIVE TOURNAMENT & FORM PAGES
+   ========================================= */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  .btn-action, .btn-back {
+    width: 100%;
+    text-align: center;
+  }
+  .form-container {
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 1.8rem;
+  }
+  .tournament-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  .btn-submit, .btn-cancel {
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+  }
+}

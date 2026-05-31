@@ -52,7 +52,7 @@ const MusGamePage: React.FC = () => {
     fetchProfile();
   }, []);
 
-  const { 
+  const {
     isPlaying, phase, stage, score, logs, chatMessages, selectedCards, speechBubbles, playerHand, botHands,
     roomId, seats, isSearching, queueSize, username, isMyTurn, betState,
     handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
@@ -63,6 +63,35 @@ const MusGamePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'logs' | 'chat'>('logs');
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Estados para el Drawer y Diseño Responsivo en Móvil
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 992);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (chatMessages.length > lastMessageCount) {
+      if (!isSidebarOpen || activeTab !== 'chat') {
+        setHasNewNotifications(true);
+      }
+      setLastMessageCount(chatMessages.length);
+    }
+  }, [chatMessages, isSidebarOpen, activeTab, lastMessageCount]);
+
+  useEffect(() => {
+    if (isSidebarOpen) {
+      setHasNewNotifications(false);
+    }
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -97,7 +126,7 @@ const MusGamePage: React.FC = () => {
   if (roomId === '') {
     return (
       <>
-        <PremiumLobby 
+        <PremiumLobby
           username={username}
           isSearching={isSearching}
           queueSize={queueSize}
@@ -114,7 +143,7 @@ const MusGamePage: React.FC = () => {
   if (!isPlaying) {
     return (
       <>
-        <LobbyWaitingRoom 
+        <LobbyWaitingRoom
           roomId={roomId}
           seats={seats}
           currentUserId={currentUserId}
@@ -133,35 +162,69 @@ const MusGamePage: React.FC = () => {
   return (
     <>
       <div className="mus-view-container">
-        
+
+        {/* OVERLAY DEL DRAWER EN MÓVIL */}
+        {isMobile && (
+          <div
+            className={`drawer-overlay ${isSidebarOpen ? 'is-open' : ''}`}
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         {/* PANEL IZQUIERDO: LA MESA VERDE */}
         <div className="felt-layout-pane">
+
+          {/* MARCADOR FLOTANTE PARA MÓVIL */}
+          {isMobile && (
+            <div className="mobile-score-container" onClick={() => setIsSidebarOpen(true)}>
+              <div className="mobile-score-row">
+                <span className="mobile-score-tag">TÚ: {score.roundsUs || 0} ({score.us})</span>
+                <span className="mobile-score-vs">VS</span>
+                <span className="mobile-score-tag">RIVAL: {score.roundsThem || 0} ({score.them})</span>
+              </div>
+            </div>
+          )}
+
+          {/* BOTÓN FLOTANTE PARA ABRIR EL DRAWER */}
+          {isMobile && (
+            <button
+              className="mobile-drawer-toggle-btn"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+
+              Chat y Logs
+              {hasNewNotifications && <span className="notification-dot"></span>}
+            </button>
+          )}
+
           <div className="game-felt-board">
-            
+
             <div className="felt-center-emblem">
               <h1 className="felt-logo">ENBIDO</h1>
               <span className="felt-sub">Mesa de Mus</span>
-              <button 
-                className="leave-felt-btn" 
-                onClick={onLeaveRoom} 
-                style={{
-                  marginTop: '10px',
-                  padding: '6px 12px',
-                  backgroundColor: 'rgba(220, 38, 38, 0.85)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
-                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.85)')}
-              >
-                🚪 Abandonar Mesa
-              </button>
+              {!isMobile && (
+                <button
+                  className="leave-felt-btn"
+                  onClick={onLeaveRoom}
+                  style={{
+                    marginTop: '10px',
+                    padding: '6px 12px',
+                    backgroundColor: 'rgba(220, 38, 38, 0.85)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    transition: 'background-color 0.2s',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.85)')}
+                >
+                  🚪 Abandonar Mesa
+                </button>
+              )}
             </div>
 
             {/* JUGADOR NORTE (Mapeado dinámicamente) */}
@@ -192,9 +255,9 @@ const MusGamePage: React.FC = () => {
                 {profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
                 {profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
               </span>
-              <PlayerHand 
-                hand={isPlaying ? playerHand : []} 
-                isBot={false} 
+              <PlayerHand
+                hand={isPlaying ? playerHand : []}
+                isBot={false}
                 isSelectable={phase === 'discarding'}
                 selectedCards={selectedCards}
                 onCardClick={toggleCardSelection}
@@ -204,15 +267,60 @@ const MusGamePage: React.FC = () => {
             </div>
 
           </div>
+
+          {/* PANEL DE ACCIONES CONTEXTUAL PARA MÓVIL */}
+          {isMobile && (
+            <div className="mobile-action-panel-container">
+              <ActionPanel
+                phase={phase}
+                stage={stage}
+                selectedCount={selectedCards.length}
+                isMyTurn={isMyTurn}
+                betState={betState}
+                onStart={handleActionPanelStart}
+                onDecision={handleUserMusDecision}
+                onDiscard={executeDiscardsLocal}
+                onBet={handleBetLocal}
+              />
+            </div>
+          )}
+
         </div>
 
-        {/* PANEL DERECHO: CONTROLES Y MARCADOR */}
-        <aside className="sidebar-panel">
+        {/* PANEL DERECHO / DRAWER FLOTANTE: CONTROLES Y MARCADOR */}
+        <aside className={`sidebar-panel ${isMobile ? 'mobile-drawer' : ''} ${isSidebarOpen ? 'is-open' : ''}`}>
+
+          {isMobile && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '10px' }}>
+              <button className="drawer-close-btn" onClick={() => setIsSidebarOpen(false)}>
+                ✕ Cerrar Panel
+              </button>
+              <button
+                className="leave-felt-btn"
+                onClick={onLeaveRoom}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: 'rgba(220, 38, 38, 0.85)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  height: 'fit-content',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                }}
+              >
+                🚪 Abandonar
+              </button>
+            </div>
+          )}
+
           <GameScoreBoard score={score} maxRounds={maxRounds} />
-          
+
           <div className="game-logs-widget">
             <div className="logs-header-tabs" style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: '10px' }}>
-              <button 
+              <button
                 onClick={() => setActiveTab('logs')}
                 style={{
                   flex: 1,
@@ -230,7 +338,7 @@ const MusGamePage: React.FC = () => {
               >
                 📋 Historial
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('chat')}
                 style={{
                   flex: 1,
@@ -249,20 +357,20 @@ const MusGamePage: React.FC = () => {
                 💬 Chat Mesa
               </button>
             </div>
-            
+
             {activeTab === 'logs' ? (
               <GameConsoleLogs logs={logs} />
             ) : (
               <div className="game-chat-tab-container" style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', overflow: 'hidden' }}>
-                <div 
-                  className="game-chat-messages-box" 
+                <div
+                  className="game-chat-messages-box"
                   ref={chatEndRef}
-                  style={{ 
-                    flex: 1, 
-                    overflowY: 'auto', 
-                    padding: '8px 4px', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
+                  style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    padding: '8px 4px',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: '8px',
                     fontSize: '0.75rem',
                     background: '#000',
@@ -281,9 +389,9 @@ const MusGamePage: React.FC = () => {
                       const sender = parts[0];
                       const content = parts.slice(1).join(': ');
                       const isMe = sender === username;
-                      
+
                       return (
-                        <div key={idx} style={{ 
+                        <div key={idx} style={{
                           alignSelf: isMe ? 'flex-end' : 'flex-start',
                           maxWidth: '85%',
                           background: isMe ? 'rgba(59, 130, 246, 0.25)' : 'rgba(255, 255, 255, 0.08)',
@@ -303,11 +411,11 @@ const MusGamePage: React.FC = () => {
                     })
                   )}
                 </div>
-                
-                <form 
+
+                <form
                   onSubmit={handleSendChat}
-                  style={{ 
-                    display: 'flex', 
+                  style={{
+                    display: 'flex',
                     paddingTop: '8px',
                     gap: '6px'
                   }}
@@ -350,17 +458,19 @@ const MusGamePage: React.FC = () => {
             )}
           </div>
 
-          <ActionPanel 
-            phase={phase}
-            stage={stage}
-            selectedCount={selectedCards.length}
-            isMyTurn={isMyTurn}
-            betState={betState}
-            onStart={handleActionPanelStart}
-            onDecision={handleUserMusDecision}
-            onDiscard={executeDiscardsLocal}
-            onBet={handleBetLocal}
-          />
+          {!isMobile && (
+            <ActionPanel
+              phase={phase}
+              stage={stage}
+              selectedCount={selectedCards.length}
+              isMyTurn={isMyTurn}
+              betState={betState}
+              onStart={handleActionPanelStart}
+              onDecision={handleUserMusDecision}
+              onDiscard={executeDiscardsLocal}
+              onBet={handleBetLocal}
+            />
+          )}
         </aside>
 
       </div>

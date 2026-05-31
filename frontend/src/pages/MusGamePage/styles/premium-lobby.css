@@ -1253,4 +1253,106 @@
   color: #d4af37 !important;
 }
 
+/* =========================================
+   RESPONSIVE PREMIUM LOBBY LAYOUTS
+   ========================================= */
+@media (max-width: 768px) {
+  .premium-lobby-overlay {
+    padding: 15px 10px;
+  }
+
+  .premium-lobby-card {
+    padding: var(--spacing-md);
+    border-radius: 12px;
+  }
+
+  .lobby-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+  }
+
+  .welcome-section {
+    text-align: center;
+  }
+
+  .welcome-title {
+    font-size: 20px;
+  }
+
+  .header-badges {
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .lobby-badge {
+    padding: 8px 12px;
+    border-radius: 8px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .badge-val {
+    font-size: 13px;
+  }
+
+  .lobby-column {
+    padding: var(--spacing-md);
+    border-radius: 12px;
+  }
+
+  .lobby-column h2 {
+    font-size: 17px;
+  }
+
+  .panel-desc {
+    font-size: 12px;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .lobby-footer-stats {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: var(--spacing-lg);
+  }
+
+  .footer-stat-item {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding-bottom: 8px;
+  }
+
+  .footer-stat-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-badges {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .lobby-badge {
+    width: 100%;
+  }
+
+  .social-panel {
+    height: 350px;
+  }
+
+  .join-queue-btn, 
+  .create-room-btn, 
+  .cancel-search-btn, 
+  .join-room-submit-btn, 
+  .room-code-input {
+    max-width: 100% !important;
+  }
+}
+
 

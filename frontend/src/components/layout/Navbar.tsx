@@ -70,6 +70,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -82,6 +83,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
       setIsLoggedIn(false);
       setUsername('');
     }
+    setIsDrawerOpen(false);
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -110,6 +112,20 @@ const Navbar: React.FC = (): React.JSX.Element => {
 
   return (
     <header className="navbar">
+      <button 
+        className={`navbar__hamburger ${isDrawerOpen ? 'navbar__hamburger--open' : ''}`}
+        onClick={() => {
+          playSfx('click');
+          setIsDrawerOpen(!isDrawerOpen);
+        }}
+        aria-label="Menú de navegación"
+        aria-expanded={isDrawerOpen}
+      >
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+      </button>
+
       <div className="navbar__brand">
         <Link to="/" className="navbar__logo">
           <LogoIcon />
@@ -121,32 +137,28 @@ const Navbar: React.FC = (): React.JSX.Element => {
         {renderNavLinks()}
       </nav>
 
-
       <div className="navbar__actions">
+        <Link to="/tienda" className="navbar__shop-btn" title="Tienda" onClick={() => playSfx('click')}>
+          <ShopIcon />
+        </Link>
 
-
-      <Link to="/tienda" className="navbar__shop-btn" title="Tienda" onClick={() => playSfx('click')}>
-        <ShopIcon />
-      </Link>
-
-      <button 
-        className="navbar__shop-btn" 
-        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        title="Ajustes" 
-        onClick={() => {
-          playSfx('click');
-          setShowSettingsModal(true);
-        }}
-      >
-        <SettingsIcon />
-      </button>
+        <button 
+          className="navbar__shop-btn" 
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          title="Ajustes" 
+          onClick={() => {
+            playSfx('click');
+            setShowSettingsModal(true);
+          }}
+        >
+          <SettingsIcon />
+        </button>
 
         <button className="navbar__lang" onClick={() => playSfx('click')}>
           ES
           <ChevronDownIcon />
         </button>
       
-
 
         {isLoggedIn ? (
           <div className="navbar__profile">
@@ -171,6 +183,63 @@ const Navbar: React.FC = (): React.JSX.Element => {
           <Link to="/login" className="navbar__login-btn" onClick={() => playSfx('click')}>Login</Link>
         )}
       </div>
+
+      {/* Drawer móvil deslizable */}
+      <div className={`navbar__drawer ${isDrawerOpen ? 'navbar__drawer--open' : ''}`}>
+        <div className="navbar__drawer-header">
+          <span className="navbar__drawer-title">ENBIDO</span>
+          <button 
+            className="navbar__drawer-close" 
+            onClick={() => {
+              playSfx('click');
+              setIsDrawerOpen(false);
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        <nav className="navbar__drawer-nav">
+          {NAV_LINKS.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.label}
+                to={link.to}
+                className={`navbar__drawer-link ${isActive ? 'navbar__drawer-link--active' : ''}`}
+                onClick={() => {
+                  playSfx('click');
+                  setIsDrawerOpen(false);
+                }}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="navbar__drawer-actions">
+          <Link 
+            to="/tienda" 
+            className="navbar__drawer-action-btn"
+            onClick={() => {
+              playSfx('click');
+              setIsDrawerOpen(false);
+            }}
+          >
+            <ShopIcon /> Tienda
+          </Link>
+          <button 
+            className="navbar__drawer-action-btn"
+            onClick={() => {
+              playSfx('click');
+              setIsDrawerOpen(false);
+              setShowSettingsModal(true);
+            }}
+          >
+            <SettingsIcon /> Ajustes
+          </button>
+        </div>
+      </div>
+      {isDrawerOpen && <div className="navbar__overlay" onClick={() => setIsDrawerOpen(false)} />}
 
       {/* ---------- SETTINGS MODAL ---------- */}
       {showSettingsModal && createPortal(

@@ -3,7 +3,7 @@
    ========================================= */
 .mus-view-container {
   display: flex;
-  height: calc(100vh - 60px); /* Descuenta la altura de la Navbar */
+  height: calc(100vh - 5rem); /* Descuenta la altura de la Navbar */
   background-color: #121212;
   color: white;
   overflow: hidden;
@@ -378,4 +378,278 @@
   background: rgba(46, 125, 50, 0.18) !important;
   border: 1px solid rgba(46, 125, 50, 0.8) !important;
   color: #81c784 !important;
+}
+
+/* =========================================
+   RESPONSIVE MUS GAME FELT & TOUCH TARGETS
+   ========================================= */
+
+.mobile-score-container {
+  display: none;
+}
+
+.mobile-history-toggle-btn {
+  display: none;
+}
+
+.mobile-history-drawer {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  right: 0;
+  height: 60vh;
+  background: rgba(10, 25, 18, 0.98);
+  border-top: 2px solid #d4af37;
+  border-radius: 20px 20px 0 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md);
+  transition: bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+}
+
+.mobile-history-drawer.open {
+  bottom: 0;
+}
+
+.mobile-history-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.mobile-history-drawer-header h4 {
+  font-size: 1rem;
+  color: #d4af37;
+  margin: 0;
+}
+
+.close-drawer-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.mobile-history-drawer-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-history-drawer-body .game-logs-widget {
+  height: 100%;
+  margin: 0;
+}
+
+.mobile-history-drawer-body .game-chat-tab-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-history-drawer-body .game-chat-messages-box {
+  min-height: auto !important;
+  flex: 1;
+}
+
+.mobile-history-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+}
+
+@media (max-width: 768px) {
+  .mus-view-container {
+    flex-direction: column;
+    height: calc(100vh - 5rem);
+  }
+
+  .felt-layout-pane {
+    padding: var(--spacing-sm);
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: var(--spacing-md);
+  }
+
+  .game-felt-board {
+    height: 380px;
+    max-width: 480px;
+    border: 10px solid #4a2f1d;
+    border-radius: 120px;
+  }
+
+  .felt-logo {
+    font-size: 2.2rem;
+    letter-spacing: 4px;
+  }
+
+  .felt-sub {
+    font-size: 0.8rem;
+  }
+
+  /* Posiciones de los avatares en móviles */
+  .position-north { top: -20px; }
+  .position-south { bottom: -20px; }
+  .position-west { left: -10px; }
+  .position-east { right: -10px; }
+
+  /* Rotación de cartas a 90 grados de Oeste y Este */
+  .position-west .hand-container,
+  .position-east .hand-container {
+    flex-direction: column;
+    gap: -24px;
+  }
+
+  .position-west .card,
+  .position-west .card-placeholder {
+    transform: rotate(90deg);
+    margin: -12px 0;
+  }
+
+  .position-east .card,
+  .position-east .card-placeholder {
+    transform: rotate(-90deg);
+    margin: -12px 0;
+  }
+
+  /* Cartas táctiles reducidas */
+  .card, .card-placeholder {
+    width: 42px !important;
+    height: 64px !important;
+  }
+
+  .card-rank {
+    font-size: 1rem !important;
+    margin-top: 4px !important;
+  }
+
+  .card-suit-corner {
+    font-size: 0.7rem !important;
+    top: 2px !important;
+    left: 4px !important;
+  }
+
+  .card-suit-emblem {
+    font-size: 0.55rem !important;
+    margin-top: 2px !important;
+  }
+
+  /* Bocadillos */
+  .speech-bubble {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  /* Marcador superior compacto */
+  .mobile-score-container {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .mobile-score-container .scoreboard-widget {
+    background: rgba(10, 25, 18, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(5px);
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .mobile-score-container .team-points {
+    font-size: 1.25rem !important;
+  }
+
+  .mobile-score-container .team-name {
+    font-size: 0.7rem !important;
+  }
+
+  .mobile-score-container .scoreboard-divider {
+    height: 25px !important;
+  }
+
+  /* Botón de historial */
+  .mobile-history-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: fixed;
+    top: 5.5rem;
+    right: var(--spacing-md);
+    background: rgba(15, 41, 30, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 80;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    backdrop-filter: blur(5px);
+    transition: all 0.2s;
+  }
+
+  .mobile-history-toggle-btn:hover {
+    background: rgba(26, 71, 49, 0.95);
+    border-color: rgba(212, 175, 55, 0.6);
+  }
+
+  /* Ocultar elementos desktop en Sidebar */
+  .sidebar-panel {
+    display: contents !important;
+  }
+
+  .sidebar-panel > .scoreboard-widget,
+  .sidebar-panel > .game-logs-widget {
+    display: none !important;
+  }
+
+  /* Docked Action Panel */
+  .action-panel-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10, 25, 18, 0.96);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 90;
+    margin-top: 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+  }
+
+  .action-panel-bar .btn-primary-action {
+    padding: 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 6px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-felt-board {
+    height: 310px;
+    max-width: 100%;
+  }
+
+  .position-north { top: -15px; }
+  .position-south { bottom: -15px; }
+  .position-west { left: -5px; }
+  .position-east { right: -5px; }
 }
