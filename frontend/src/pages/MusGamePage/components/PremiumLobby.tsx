@@ -807,46 +807,40 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </div>
 
         {/* SEPARATOR FOR ONLINE TOURNAMENTS */}
-        <div style={{
-          width: '100%',
-          height: '1px',
-          background: 'rgba(212, 175, 55, 0.15)',
-          margin: '40px 0 30px 0'
-        }} />
+        <div className="tournaments-separator" />
 
         {/* COLUMN / VIEW: ONLINE TOURNAMENTS LIST */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', marginBottom: '35px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+        <div className="tournaments-section">
+          <div className="tournaments-header">
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>🏆 Torneos Online de Mus</h2>
-              <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#888' }}>
+              <h2 className="tournaments-title">🏆 Torneos Online de Mus</h2>
+              <p className="tournaments-subtitle">
                 Inscríbete usando tus monedas, compite en eliminatorias directas y gana el gran premio.
               </p>
             </div>
             <button
               onClick={fetchOnlineTournaments}
-              className="btn-action"
-              style={{ width: 'auto', padding: '10px 20px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="btn-action tournaments-refresh-btn"
             >
               🔄 Actualizar Lista
             </button>
           </div>
 
           {loadingTournaments ? (
-            <div style={{ textAlign: 'center', padding: '50px 0' }}>
-              <div className="lobby-loader" style={{ margin: '0 auto 15px auto' }}></div>
-              <p style={{ color: '#888', fontSize: '0.9rem' }}>Cargando torneos online...</p>
+            <div className="tournaments-loading">
+              <div className="lobby-loader"></div>
+              <p className="tournaments-loading-text">Cargando torneos online...</p>
             </div>
           ) : onlineTournaments.length === 0 ? (
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '50px', textAlign: 'center' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>🎫</span>
-              <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.1rem' }}>No hay torneos online programados</h3>
-              <p style={{ color: '#6b7280', fontSize: '0.85rem', maxWidth: '400px', margin: '0 auto' }}>
+            <div className="tournaments-empty">
+              <span className="tournaments-empty-icon">🎫</span>
+              <h3 className="tournaments-empty-title">No hay torneos online programados</h3>
+              <p className="tournaments-empty-text">
                 Los administradores programan torneos en fechas especiales. Vuelve a consultar más tarde.
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+         <div className="tournaments-grid">
               {onlineTournaments.map((tourney) => {
                 const isPlaying = tourney.status === 'playing';
                 const isFinished = tourney.status === 'finished';
