@@ -1,0 +1,60 @@
+name: Deploy to Fedora Server (Podman)
+
+on:
+  push:
+    branches:
+      - ci-cd  # Cambiar a 'main' si es la rama principal de producción
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Tarball
+        run: tar --exclude='./.git' -czf /tmp/enbido.tar.gz .
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add SSH Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 100.70.64.105 >> ~/.ssh/known_hosts
+
+      - name: Copy Tarball to Server via SCP
+        run: scp /tmp/enbido.tar.gz xabi@100.70.64.105:/home/xabi/
+
+      - name: Execute Remote Deployment via SSH
+        run: |
+          ssh xabi@100.70.64.105 << 'EOF'
+            # Cargar el PATH del usuario por si podman-compose se instaló a nivel de usuario (pip --user)
+            export PATH=$PATH:$HOME/.local/bin:/usr/local/bin
+            
+            cd /home/xabi/enbido.eus
+            
+            # 1. Apagar contenedores actuales
+            podman-compose down
+            
+            # 2. Limpiar todos los archivos excepto el .env
+            find . -mindepth 1 -not -name '.env' -delete
+            
+            # 3. Descomprimir el nuevo código
+            tar -xzf /home/xabi/enbido.tar.gz -C .
+            
+            # 4. Eliminar el archivo tar del home
+            rm /home/xabi/enbido.tar.gz
+            
+            # 5. Levantar y compilar contenedores
+            podman-compose up -d --build
+          EOF
