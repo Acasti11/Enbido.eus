@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import '../styles/meetup-ad-card.css';
+import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
 
 export interface LocalMeetupAd {
   adId: number;
@@ -33,10 +34,12 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
   const currentUserId = Number(localStorage.getItem('userId') || '0');
-  const currentUsername = localStorage.getItem('username') || 'Usuario';
   const isLoggedIn = !!localStorage.getItem('token');
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  // WebSocket Chat Context
+  const { joinMeetup, leaveMeetup, registerMeetupCallback, unregisterMeetupCallback, sendMeetupMessage } = useChatWebSocket();
 
   const handleContactOrganizer = () => {
     if (!isLoggedIn) {
@@ -79,16 +82,33 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   }, []);
 
   useEffect(() => {
-    let intervalId: any;
     if (isChatOpen) {
       fetchParticipants();
       fetchMessages();
-      intervalId = setInterval(fetchMessages, 2500);
+
+      // Unirse a la sala de la quedada por WebSocket
+      joinMeetup(adState.adId);
+
+      // Registrar callback para recibir mensajes en tiempo real
+      registerMeetupCallback((newMsg: any) => {
+        if (newMsg.adId === adState.adId) {
+          setMessages((prev) => {
+            const exists = prev.some(m => m.messageId === newMsg.messageId);
+            if (exists) return prev;
+            return [...prev, newMsg];
+          });
+        }
+      });
+    } else {
+      leaveMeetup(adState.adId);
+      unregisterMeetupCallback();
     }
+
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      leaveMeetup(adState.adId);
+      unregisterMeetupCallback();
     };
-  }, [isChatOpen]);
+  }, [isChatOpen, adState.adId, joinMeetup, leaveMeetup, registerMeetupCallback, unregisterMeetupCallback]);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -149,20 +169,12 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       .catch(() => alert('No se pudo copiar al portapapeles'));
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessageText.trim()) return;
 
-    try {
-      const res = await api.post(`/meetups/${adState.adId}/messages`, { content: newMessageText });
-      setMessages((prev) => [...prev, {
-        ...res.data,
-        user: { username: currentUsername }
-      }]);
-      setNewMessageText('');
-    } catch (err) {
-      console.error('Error sending message:', err);
-    }
+    sendMeetupMessage(adState.adId, newMessageText.trim());
+    setNewMessageText('');
   };
 
   const isCreator = adState.creatorId === currentUserId;

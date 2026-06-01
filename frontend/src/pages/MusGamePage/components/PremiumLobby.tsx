@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../../../services/api';
 import '../styles/premium-lobby.css';
+import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
 
 interface PremiumLobbyProps {
   username: string;
@@ -57,6 +58,9 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 }) => {
   const currentUserId = Number(localStorage.getItem('userId') || '1');
   const activeUsername = localStorage.getItem('username') || 'Usuario';
+
+  // WebSocket Chat Context Methods
+  const { registerDmCallback, unregisterDmCallback, sendDirectMessage } = useChatWebSocket();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roomCode, setRoomCode] = useState('');
@@ -271,9 +275,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     fetchOnlineTournaments();
   }, [currentUserId]);
 
-  // Sincronizar chat con el usuario activo (con polling para usuarios reales en DB)
+  // Sincronizar chat con el usuario activo usando WebSockets reales en lugar de polling
   useEffect(() => {
-    if (!activeChatUser) return;
+    if (!activeChatUser) {
+      unregisterDmCallback();
+      return;
+    }
 
     const loadChat = async () => {
       if (activeChatUser.isBot) {
@@ -305,14 +312,35 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       }
     }, 100);
 
-    let intervalId: any;
     if (!activeChatUser.isBot) {
-      intervalId = setInterval(loadChat, 3000);
+      // Registrar id para excluir notificaciones
+      localStorage.setItem('enbido_active_chat_user_id', String(activeChatUser.id));
+
+      registerDmCallback((newMsg: any) => {
+        if (
+          (newMsg.senderId === currentUserId && newMsg.receiverId === activeChatUser.id) ||
+          (newMsg.senderId === activeChatUser.id && newMsg.receiverId === currentUserId)
+        ) {
+          setChatMessages(prev => {
+            const exists = prev.some(m => m.timestamp === new Date(newMsg.sentAt).getTime() && m.content === newMsg.content);
+            if (exists) return prev;
+
+            return [...prev, {
+              senderId: newMsg.senderId,
+              senderName: newMsg.sender?.username || (newMsg.senderId === currentUserId ? activeUsername : activeChatUser.username),
+              content: newMsg.content,
+              timestamp: new Date(newMsg.sentAt).getTime()
+            }];
+          });
+        }
+      });
     }
+
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      unregisterDmCallback();
+      localStorage.removeItem('enbido_active_chat_user_id');
     };
-  }, [activeChatUser, currentUserId, activeUsername]);
+  }, [activeChatUser, currentUserId, activeUsername, registerDmCallback, unregisterDmCallback]);
 
   // Auto-scroll al recibir mensajes
   useEffect(() => {
@@ -472,18 +500,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       }, 1500);
 
     } else {
-      try {
-        const res = await api.post(`/messages/${activeChatUser.id}`, { content: msgText });
-        const newMsg: ChatMessage = {
-          senderId: res.data.senderId,
-          senderName: activeUsername,
-          content: res.data.content,
-          timestamp: new Date(res.data.sentAt).getTime()
-        };
-        setChatMessages(prev => [...prev, newMsg]);
-      } catch (err) {
-        console.error('Error sending private message:', err);
-      }
+      sendDirectMessage(activeChatUser.id, msgText);
     }
   };
 
