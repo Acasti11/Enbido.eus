@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // ← Añadido useEffect
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
@@ -34,7 +34,6 @@ const EyeIcon = ({ open }: { open: boolean }) => (
   </svg>
 );
 
-// UsernameField usa useTranslation internamente, NO recibe t como prop
 interface UsernameFieldProps {
   value: string;
   onChange: (value: string) => void;
@@ -42,7 +41,7 @@ interface UsernameFieldProps {
 
 const UsernameField: React.FC<UsernameFieldProps> = ({ value, onChange }): React.JSX.Element => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="login-form__field">
       <label className="login-form__label">{t('login.usernameOrEmail')}</label>
@@ -61,7 +60,6 @@ const UsernameField: React.FC<UsernameFieldProps> = ({ value, onChange }): React
   );
 };
 
-// PasswordField usa useTranslation internamente
 interface PasswordFieldProps {
   value: string;
   onChange: (value: string) => void;
@@ -71,7 +69,7 @@ interface PasswordFieldProps {
 
 const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPassword, onToggleShow }): React.JSX.Element => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="login-form__field">
       <div className="login-form__label-row">
@@ -96,6 +94,171 @@ const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPass
   );
 };
 
+const CODE_INPUT_STYLE: React.CSSProperties = {
+  textAlign: 'center',
+  letterSpacing: '0.8rem',
+  fontSize: '22px',
+  fontFamily: 'monospace',
+  fontWeight: 'bold',
+  color: '#d4af37',
+  border: '1px solid #d4af37',
+  borderRadius: '8px',
+  background: 'rgba(21, 35, 25, 0.7)',
+  padding: '12px',
+  width: '80%',
+  maxWidth: '240px',
+  boxShadow: '0 0 10px rgba(212,175,55,0.1)'
+};
+
+interface TwoFactorCodeInputProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const TwoFactorCodeInput: React.FC<TwoFactorCodeInputProps> = ({ value, onChange }): React.JSX.Element => (
+  <div className="login-form__input-wrapper" style={{ justifyContent: 'center' }}>
+    <input
+      type="text"
+      className="login-form__input"
+      style={CODE_INPUT_STYLE}
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').substring(0, 6))}
+      placeholder="000000"
+      required
+      autoFocus
+    />
+  </div>
+);
+
+interface TwoFactorTimerProps {
+  countdown: number;
+  formatTime: (seconds: number) => string;
+}
+
+const TwoFactorTimer: React.FC<TwoFactorTimerProps> = ({ countdown, formatTime }): React.JSX.Element => {
+  const { t } = useTranslation();
+  return (
+    <div style={{ marginTop: '16px', fontSize: '12px', color: countdown > 0 ? '#aaa' : '#e06c75' }}>
+      {countdown > 0 ? (
+        <span>{t('login.codeExpiresIn')}: <strong style={{ color: '#d4af37' }}>{formatTime(countdown)}</strong></span>
+      ) : (
+        <strong>⚠️ {t('login.codeExpired')}</strong>
+      )}
+    </div>
+  );
+};
+
+interface TwoFactorActionsProps {
+  onBack: () => void;
+  disabled: boolean;
+}
+
+const TwoFactorActions: React.FC<TwoFactorActionsProps> = ({ onBack, disabled }): React.JSX.Element => {
+  const { t } = useTranslation();
+  return (
+    <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+      <button
+        type="button"
+        className="login-form__submit"
+        style={{ background: 'rgba(255,255,255,0.05)', color: '#ccc', border: '1px solid #555' }}
+        onClick={onBack}
+      >
+        {t('common.back')}
+      </button>
+
+      <button
+        type="submit"
+        className="login-form__submit"
+        disabled={disabled}
+        style={disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+      >
+        {t('login.verifyAndEnter')}
+      </button>
+    </div>
+  );
+};
+
+interface TwoFactorFormProps {
+  verificationCode: string;
+  setVerificationCode: (value: string) => void;
+  countdown: number;
+  error: string;
+  onBack: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  formatTime: (seconds: number) => string;
+}
+
+const TwoFactorForm: React.FC<TwoFactorFormProps> = ({
+  verificationCode,
+  setVerificationCode,
+  countdown,
+  error,
+  onBack,
+  onSubmit,
+  formatTime
+}): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  return (
+    <form className="login-form" onSubmit={onSubmit}>
+      <div className="login-form__field" style={{ textAlign: 'center' }}>
+        <h2 style={{ color: '#d4af37', marginBottom: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+          🔑 {t('login.twoFactorTitle')}
+        </h2>
+        <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
+          {t('login.twoFactorDescription')}
+        </p>
+        <TwoFactorCodeInput value={verificationCode} onChange={setVerificationCode} />
+        <TwoFactorTimer countdown={countdown} formatTime={formatTime} />
+      </div>
+
+      {error && <p className="login-form__error" style={{ textAlign: 'center' }}>{error}</p>}
+
+      <TwoFactorActions onBack={onBack} disabled={countdown <= 0} />
+    </form>
+  );
+};
+
+interface NormalLoginFormProps {
+  username: string;
+  setUsername: (value: string) => void;
+  password: string;
+  setPassword: (value: string) => void;
+  showPassword: boolean;
+  setShowPassword: (value: boolean) => void;
+  error: string;
+  onSubmit: (e: React.FormEvent) => void;
+}
+
+const NormalLoginForm: React.FC<NormalLoginFormProps> = ({
+  username,
+  setUsername,
+  password,
+  setPassword,
+  showPassword,
+  setShowPassword,
+  error,
+  onSubmit
+}): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  return (
+    <form className="login-form" onSubmit={onSubmit}>
+      <UsernameField value={username} onChange={setUsername} />
+      <PasswordField
+        value={password}
+        onChange={setPassword}
+        showPassword={showPassword}
+        onToggleShow={() => setShowPassword(!showPassword)}
+      />
+      {error && <p className="login-form__error">{error}</p>}
+      <button type="submit" className="login-form__submit">
+        {t('login.submit')}
+      </button>
+    </form>
+  );
+};
+
 const LoginForm: React.FC = () => {
   const { t } = useTranslation();
   const [username, setUsername] = useState('');
@@ -104,13 +267,13 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Estados de Doble Factor
+  // Two-factor auth states
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [tempUserId, setTempUserId] = useState<number | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [countdown, setCountdown] = useState(300);
 
-  // Manejar temporizador de expiración
+  // Handle expiration timer
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
     if (twoFactorRequired && countdown > 0) {
@@ -141,19 +304,24 @@ const LoginForm: React.FC = () => {
         return;
       }
 
-      // Login directo sin 2FA
+      // Direct login without 2FA
       localStorage.setItem('token', accessToken);
       const payload = JSON.parse(atob(accessToken.split('.')[1]));
       localStorage.setItem('userId', payload.sub);
       localStorage.setItem('username', payload.username);
       localStorage.setItem('role', payload.role);
-      
-      console.log('Login directo exitoso. UserId:', payload.sub);
+
+      console.log('Direct login successful. UserId:', payload.sub);
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');
-    
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : null) || 'Error al iniciar sesión';
+
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: Record<string, unknown> | string } };
+      const data = axiosError.response?.data;
+      const msg = (typeof data === 'object' && data !== null && typeof data.error === 'string' ? data.error : undefined)
+        || (typeof data === 'object' && data !== null && typeof data.message === 'string' ? data.message : undefined)
+        || (typeof data === 'string' ? data : null)
+        || t('login.errorLogin');
       setError(msg);
     }
   };
@@ -163,7 +331,7 @@ const LoginForm: React.FC = () => {
     setError('');
 
     if (verificationCode.length !== 6) {
-      setError(t('login.invalidCode')); // ← Usar traducción si existe
+      setError(t('login.invalidCode'));
       return;
     }
 
@@ -181,107 +349,57 @@ const LoginForm: React.FC = () => {
       localStorage.setItem('username', payload.username);
       localStorage.setItem('role', payload.role);
 
-      console.log('Login con 2FA completado. UserId:', payload.sub);
+      console.log('2FA login completed. UserId:', payload.sub);
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : null) || 'Código de seguridad incorrecto';
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: Record<string, unknown> | string } };
+      const data = axiosError.response?.data;
+      const msg = (typeof data === 'object' && data !== null && typeof data.error === 'string' ? data.error : undefined)
+        || (typeof data === 'object' && data !== null && typeof data.message === 'string' ? data.message : undefined)
+        || (typeof data === 'string' ? data : null)
+        || t('login.wrongCode');
       setError(msg);
     }
   };
 
-  // Formato del tiempo para 2FA
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${String(secs).padStart(2, '0')}`;
   };
 
+  const handleBack = () => {
+    setTwoFactorRequired(false);
+    setVerificationCode('');
+    setError('');
+  };
+
   if (twoFactorRequired) {
     return (
-      <form className="login-form" onSubmit={handleVerify2Fa}>
-        <div className="login-form__field" style={{ textAlign: 'center' }}>
-          <h2 style={{ color: '#d4af37', marginBottom: '8px', fontSize: '18px', fontWeight: 'bold' }}>
-            🔑 {t('login.twoFactorTitle')}
-          </h2>
-          <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
-            {t('login.twoFactorDescription')}
-          </p>
-          
-          <div className="login-form__input-wrapper" style={{ justifyContent: 'center' }}>
-            <input
-              type="text"
-              className="login-form__input"
-              style={{
-                textAlign: 'center',
-                letterSpacing: '0.8rem',
-                fontSize: '22px',
-                fontFamily: 'monospace',
-                fontWeight: 'bold',
-                color: '#d4af37',
-                border: '1px solid #d4af37',
-                borderRadius: '8px',
-                background: 'rgba(21, 35, 25, 0.7)',
-                padding: '12px',
-                width: '80%',
-                maxWidth: '240px',
-                boxShadow: '0 0 10px rgba(212,175,55,0.1)'
-              }}
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').substring(0, 6))}
-              placeholder="000000"
-              required
-              autoFocus
-            />
-          </div>
-
-          <div style={{ marginTop: '16px', fontSize: '12px', color: countdown > 0 ? '#aaa' : '#e06c75' }}>
-            {countdown > 0 ? (
-              <span>{t('login.codeExpiresIn')}: <strong style={{ color: '#d4af37' }}>{formatTime(countdown)}</strong></span>
-            ) : (
-              <strong>⚠️ {t('login.codeExpired')}</strong>
-            )}
-          </div>
-        </div>
-
-        {error && <p className="login-form__error" style={{ textAlign: 'center' }}>{error}</p>}
-
-        <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-          <button 
-            type="button" 
-            className="login-form__submit" 
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#ccc', border: '1px solid #555' }}
-            onClick={() => {
-              setTwoFactorRequired(false);
-              setVerificationCode('');
-              setError('');
-            }}
-          >
-            {t('common.back')}
-          </button>
-          
-          <button 
-            type="submit" 
-            className="login-form__submit"
-            disabled={countdown <= 0}
-            style={countdown <= 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-          >
-            {t('login.verifyAndEnter')}
-          </button>
-        </div>
-      </form>
+      <TwoFactorForm
+        verificationCode={verificationCode}
+        setVerificationCode={setVerificationCode}
+        countdown={countdown}
+        error={error}
+        onBack={handleBack}
+        onSubmit={handleVerify2Fa}
+        formatTime={formatTime}
+      />
     );
   }
 
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
-      <UsernameField value={username} onChange={setUsername} />
-      <PasswordField value={password} onChange={setPassword} showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} />
-      {error && <p className="login-form__error">{error}</p>}
-      <button type="submit" className="login-form__submit">
-        {t('login.submit')}
-      </button>
-    </form>
+    <NormalLoginForm
+      username={username}
+      setUsername={setUsername}
+      password={password}
+      setPassword={setPassword}
+      showPassword={showPassword}
+      setShowPassword={setShowPassword}
+      error={error}
+      onSubmit={handleSubmit}
+    />
   );
 };
 

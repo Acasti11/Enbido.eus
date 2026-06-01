@@ -227,14 +227,28 @@ const HomeFooter: React.FC = () => {
   );
 };
 
-// ========== MAIN COMPONENT ==========
+// ========== HOOKS ==========
 
-const HomePage: React.FC = (): React.JSX.Element => {
-  const { t } = useTranslation();
-
+const useLiveStats = () => {
   const [onlinePlayers, setOnlinePlayers] = useState(1482);
   const [gamesToday, setGamesToday] = useState(3841);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOnlinePlayers((prev) => {
+        const change = Math.floor(Math.random() * 11) - 5;
+        return Math.max(1400, prev + change);
+      });
+      setGamesToday((prev) => prev + Math.floor(Math.random() * 2));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { onlinePlayers, gamesToday };
+};
+
+const useHomeSeo = () => {
+  const { t } = useTranslation();
   useSeo({
     title: t('home.seoTitle'),
     description: t('home.seoDescription'),
@@ -257,17 +271,14 @@ const HomePage: React.FC = (): React.JSX.Element => {
       }
     }
   });
+};
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setOnlinePlayers((prev) => {
-        const change = Math.floor(Math.random() * 11) - 5;
-        return Math.max(1400, prev + change);
-      });
-      setGamesToday((prev) => prev + Math.floor(Math.random() * 2));
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+// ========== MAIN COMPONENT ==========
+
+const HomePage: React.FC = (): React.JSX.Element => {
+  const { onlinePlayers, gamesToday } = useLiveStats();
+
+  useHomeSeo();
 
   return (
     <div className="home-container">

@@ -37,7 +37,18 @@
     "footerRights": "Todos los derechos reservados.",
     "footerRules": "Reglas",
     "footerTournaments": "Campeonatos",
-    "footerMaps": "Mapas"
+    "footerMaps": "Mapas",
+    "liveStatsAriaLabel": "Estadísticas en vivo",
+    "playNowTitle": "Jugar ahora",
+    "joinTournamentsTitle": "Unirse a torneos",
+    "findMeetupsTitle": "Buscar quedadas",
+    "heroImageAlt": "Juego de cartas Mus",
+    "featuresSectionAriaLabel": "Características del juego",
+    "goToShopTitle": "Ir a la tienda",
+    "seoTitle": "Jugar al Mus Online - Partidas y Emparejamiento | Enbido",
+    "seoDescription": "Únete para jugar al Mus gratis en Enbido. Emparejamiento por ELO, salas privadas y juego avanzado contra bots.",
+    "seoKeywords": "jugar mus, mus online, emparejamiento mus, salas mus, jugar mus online gratis",
+    "seoJsonLdName": "Jugar al Mus Online - Enbido"
   },
   "login": {
     "subtitle": "Conectando a la mesa...",
@@ -77,7 +88,8 @@
     "codeExpiresIn": "El código expira en",
     "codeExpired": "El código ha expirado. Regresa para generar otro.",
     "verifyAndEnter": "Verificar y Entrar",
-    "invalidCode": "Introduce un código de 6 dígitos"
+    "invalidCode": "Introduce un código de 6 dígitos",
+    "wrongCode": "Código de seguridad incorrecto"
   },
   "meetup": {
     "title": "Encontrar Partida Física",
@@ -256,7 +268,14 @@
     "gamesPlayed": "Partidas Jugadas",
     "gamesWon": "Partidas Ganadas",
     "elo": "ELO",
-    "coins": "Monedas"
+    "coins": "Monedas",
+    "accountSecurity": "Seguridad de la Cuenta",
+    "twoFactorTitle": "Autenticación de Doble Factor (2FA por Email)",
+    "twoFactorDescription": "Protege tu cuenta requiriendo un código de verificación de 6 dígitos enviado a tu correo cada vez que inicies sesión.",
+    "twoFactorEnabled": "¡Autenticación de Doble Factor (2FA) activada!",
+    "twoFactorDisabled": "Autenticación de Doble Factor (2FA) desactivada.",
+    "twoFactorError": "Error al actualizar la configuración de 2FA",
+    "activePlayer": "Jugador activo"
   },
   "rules": {
     "title": "Reglas del Mus",
@@ -350,7 +369,10 @@
     "leaveShort": "🚪 Abandonar",
     "openSignsMenu": "Abrir menú de señas",
     "cardBackPlaceholder": "?",
-    "errorProfile": "Error al obtener el perfil del jugador para el tapete de juego:"
+    "errorProfile": "Error al obtener el perfil del jugador para el tapete de juego:",
+    "matchFound": "¡Partida emparejada! Conectando a la mesa {{roomId}}...",
+    "serverError": "⚠️ Error del Servidor: {{message}}",
+    "connectionError": "⚠️ Error de conexión con el servidor de juegos."
   },
   "settings": {
     "title": "Ajustes del Juego",
@@ -411,7 +433,8 @@
     "featuresCommunityDesc": "Únete a clubes, equipos y torneos de Mus",
     "unknownError": "Error desconocido",
     "posterLarge": "Cartel en grande",
-    "soundEffects": "Sonidos de Juego"
+    "soundEffects": "Sonidos de Juego",
+    "toggleChat": "Abrir/cerrar chat"
   },
   "lobby": {
     "leave": "🚪 Abandonar",
@@ -564,6 +587,10 @@
     "reportError": "Error al reportar.",
     "rulesTitle": "Reglas del Juego del Mus",
     "rulesSubtitle": "Reglas oficiales y guía de aprendizaje para jugar al Mus"
+  },
+  "usersList": {
+    "title": "Usuarios",
+    "empty": "No hay usuarios registrados"
   },
   "seo": {
     "gameTitle": "Jugar al Mus Online - Partidas y Emparejamiento | Enbido",

@@ -1,26 +1,28 @@
 import React from 'react';
-import { useUsuarios } from '../../hooks/useUsuarios';
+import { useTranslation } from 'react-i18next';
+import { useUsers } from '../../hooks/useUsuarios';
 
 export const UsuariosList = (): React.JSX.Element => {
-  const { usuarios, loading, error } = useUsuarios();
+  const { t } = useTranslation();
+  const { users, loading, error } = useUsers();
 
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p className="usuarios-list-error">Error: {error}</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
+  if (error) return <p className="usuarios-list-error">{t('common.error')}: {error}</p>;
 
   return (
     <div>
-      <h1>Usuarios</h1>
-      {usuarios.length === 0 ? (
-        <p>No hay usuarios registrados</p>
+      <h1>{t('usersList.title')}</h1>
+      {users.length === 0 ? (
+        <p>{t('usersList.empty')}</p>
       ) : (
         <ul className="usuarios-list-container">
-          {usuarios.map(usuario => (
+          {users.map(user => (
             <li
-              key={usuario.userId || usuario.user_id}
+              key={user.userId || user.user_id}
               className="usuarios-list-item"
             >
-              <strong>{usuario.name}</strong>
-              <span className="usuarios-list-item-email">{usuario.email}</span>
+              <strong>{user.name}</strong>
+              <span className="usuarios-list-item-email">{user.email}</span>
             </li>
           ))}
         </ul>

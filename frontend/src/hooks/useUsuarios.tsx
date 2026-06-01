@@ -2,22 +2,22 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import type { User } from '../types/User';
 
-interface UseUsuariosReturn {
-  usuarios: User[];
+interface UseUsersReturn {
+  users: User[];
   loading: boolean;
   error: string | null;
 }
 
-export const useUsuarios = (): UseUsuariosReturn => {
-  const [usuarios, setUsuarios] = useState<User[]>([]);
+export const useUsers = (): UseUsersReturn => {
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsuarios = async (): Promise<void> => {
+    const fetchUsers = async (): Promise<void> => {
       try {
         const response = await api.get('/usuarios');
-        setUsuarios(response.data);
+        setUsers(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -25,8 +25,8 @@ export const useUsuarios = (): UseUsuariosReturn => {
       }
     };
 
-    fetchUsuarios();
+    fetchUsers();
   }, []);
 
-  return { usuarios, loading, error };
+  return { users, loading, error };
 };
