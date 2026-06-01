@@ -93,13 +93,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
   const fetchOnlineTournaments = async () => {
     try {
-      if (!bg) setLoadingTournaments(true);
+      setLoadingTournaments(true);
       const res = await api.get('/tournaments');
       setOnlineTournaments(res.data);
     } catch (err) {
       console.error('Error fetching online tournaments:', err);
     } finally {
-      if (!bg) setLoadingTournaments(false);
+      setLoadingTournaments(false);
     }
   };
 
