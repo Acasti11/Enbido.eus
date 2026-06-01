@@ -68,7 +68,7 @@ ALTER TABLE user_inventory
 
 
 CREATE TABLE IF NOT EXISTS purchase_history (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    purchase_history_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT, 
     item_id BIGINT NULL,
     coins_spent INT UNSIGNED NOT NULL,
@@ -285,7 +285,7 @@ INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Ju
 
 
 CREATE TABLE IF NOT EXISTS game_matches (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    game_matches_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
     score_us INT DEFAULT 0,
     score_them INT DEFAULT 0,
@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS game_matches (
 
 
 CREATE TABLE IF NOT EXISTS meetup_participants (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    meetup_participants_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     ad_id BIGINT,
     user_id BIGINT,
     FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
