@@ -50,7 +50,7 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
   const hostPlayer = seats.find(s => s.userId !== null && !s.isBot);
   const isHost = hostPlayer && hostPlayer.userId === currentUserId;
 
-  const totalPlayersCount = seats.filter(s => s.username !== 'Vacio').length;
+  const totalPlayersCount = seats.filter(s => s.userId !== null).length;
   const isTableFull = totalPlayersCount === 4;
   const bestOf = getBestOfCount(maxRounds);
 
@@ -114,7 +114,7 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
           </div>
 
           {seats.map((seat) => {
-            const isEmpty = seat.username === 'Vacio';
+            const isEmpty = seat.userId === null;
             const isSelf = seat.userId === currentUserId;
 
             return (
