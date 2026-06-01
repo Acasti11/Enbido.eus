@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../../services/api';
 import '../styles/login-form.css';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +41,23 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Estados de Doble Factor
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [tempUserId, setTempUserId] = useState<number | null>(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [countdown, setCountdown] = useState(300);
+
+  // Manejar temporizador de expiración
+  useEffect(() => {
+    let timer: any;
+    if (twoFactorRequired && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [twoFactorRequired, countdown]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -51,29 +68,140 @@ const LoginForm: React.FC = () => {
         password
       });
 
-      // ========== CAMBIO: Guardar token y datos del usuario ==========
-      const { accessToken } = response.data;
-      
-      // Guardar token
+      const { twoFactorRequired: requires2Fa, tempUserId: userId, accessToken } = response.data;
+
+      if (requires2Fa) {
+        setTempUserId(userId);
+        setTwoFactorRequired(true);
+        setCountdown(300);
+        setVerificationCode('');
+        return;
+      }
+
+      // Login directo sin 2FA
       localStorage.setItem('token', accessToken);
-      
-      // Decodificar payload del JWT para extraer datos del usuario
       const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      
-      // Guardar datos útiles del usuario
       localStorage.setItem('userId', payload.sub);
       localStorage.setItem('username', payload.username);
       localStorage.setItem('role', payload.role);
       
-      console.log('Login exitoso. UserId:', payload.sub, 'Role:', payload.role);
-    
+      console.log('Login directo exitoso. UserId:', payload.sub);
+      window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');
     
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.response?.data || 'Error al iniciar sesión';
+      const msg = err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : null) || 'Error al iniciar sesión';
       setError(msg);
     }
   };
+
+  const handleVerify2Fa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (verificationCode.length !== 6) {
+      setError('Introduce un código de 6 dígitos');
+      return;
+    }
+
+    try {
+      const response = await api.post('/usuarios/login/verify-2fa', {
+        userId: tempUserId,
+        code: verificationCode.trim()
+      });
+
+      const { accessToken } = response.data;
+      localStorage.setItem('token', accessToken);
+
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      localStorage.setItem('userId', payload.sub);
+      localStorage.setItem('username', payload.username);
+      localStorage.setItem('role', payload.role);
+
+      console.log('Login con 2FA completado. UserId:', payload.sub);
+      window.dispatchEvent(new Event('enbido_login'));
+      navigate('/jugar');
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : null) || 'Código de seguridad incorrecto';
+      setError(msg);
+    }
+  };
+
+  if (twoFactorRequired) {
+    return (
+      <form className="login-form" onSubmit={handleVerify2Fa}>
+        <div className="login-form__field" style={{ textAlign: 'center' }}>
+          <h2 style={{ color: '#d4af37', marginBottom: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+            🔑 Doble Factor (2FA)
+          </h2>
+          <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
+            Hemos enviado un código a tu correo electrónico. Introduce los 6 dígitos a continuación:
+          </p>
+          
+          <div className="login-form__input-wrapper" style={{ justifyContent: 'center' }}>
+            <input
+              type="text"
+              className="login-form__input"
+              style={{
+                textAlign: 'center',
+                letterSpacing: '0.8rem',
+                fontSize: '22px',
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                color: '#d4af37',
+                border: '1px solid #d4af37',
+                borderRadius: '8px',
+                background: 'rgba(21, 35, 25, 0.7)',
+                padding: '12px',
+                width: '80%',
+                maxWidth: '240px',
+                boxShadow: '0 0 10px rgba(212,175,55,0.1)'
+              }}
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').substring(0, 6))}
+              placeholder="000000"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div style={{ marginTop: '16px', fontSize: '12px', color: countdown > 0 ? '#aaa' : '#e06c75' }}>
+            {countdown > 0 ? (
+              <span>El código expira en: <strong style={{ color: '#d4af37' }}>{Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}</strong></span>
+            ) : (
+              <strong>⚠️ El código ha expirado. Regresa para generar otro.</strong>
+            )}
+          </div>
+        </div>
+
+        {error && <p className="login-form__error" style={{ textAlign: 'center' }}>{error}</p>}
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+          <button 
+            type="button" 
+            className="login-form__submit" 
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#ccc', border: '1px solid #555' }}
+            onClick={() => {
+              setTwoFactorRequired(false);
+              setVerificationCode('');
+              setError('');
+            }}
+          >
+            Volver
+          </button>
+          
+          <button 
+            type="submit" 
+            className="login-form__submit"
+            disabled={countdown <= 0}
+            style={countdown <= 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+          >
+            Verificar y Entrar
+          </button>
+        </div>
+      </form>
+    );
+  }
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>

@@ -196,7 +196,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       }, 2000);
       
     } catch (err: any) {
-      const errorMsg = err.response?.data || 'Error creating account';
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : null) || 'Error creating account';
       setErrors({ general: errorMsg });
     } finally {
       setLoading(false);

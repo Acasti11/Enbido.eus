@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface UserGameProfileRepository extends JpaRepository<UserGameProfile, Long> {
 
-    @Query("SELECT p FROM UserGameProfile p ORDER BY p.elo DESC")
-    List<UserGameProfile> findAllOrderByEloDesc();
+    List<UserGameProfile> findAllByOrderByEloDesc();
 }

@@ -4,10 +4,11 @@ import com.mus.backend.model.Usuario;
 import com.mus.backend.model.UserGameProfile;
 import com.mus.backend.repository.UsuarioRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
-import com.mus.backend.service.JwtService;
 import com.mus.backend.dto.UserRegisterDto;
+import com.mus.backend.dto.LoginResponseDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @Service
@@ -17,20 +18,24 @@ public class UserService {
     private final UserGameProfileRepository userGameProfileRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     public UserService(UsuarioRepository usuarioRepository,
                        UserGameProfileRepository userGameProfileRepository,
                        JwtService jwtService,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       MailService mailService) {
         this.usuarioRepository = usuarioRepository;
         this.userGameProfileRepository = userGameProfileRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.mailService = mailService;
     }
 
     // ============================================
     // REGISTRO: crea usuario + perfil de juego
     // ============================================
+    @Transactional
     public String registrarUsuario(UserRegisterDto dto) {
         if (usuarioRepository.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Username ya existe");
@@ -62,9 +67,10 @@ public class UserService {
     }
 
     // ============================================
-    // LOGIN: devuelve SOLO el token
+    // LOGIN: maneja Doble Factor o devuelve token directo
     // ============================================
-    public String authenticate(String username, String password) {
+    @Transactional
+    public LoginResponseDto authenticate(String username, String password) {
         Usuario usuario = usuarioRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
@@ -76,10 +82,69 @@ public class UserService {
             throw new RuntimeException("Usuario baneado");
         }
 
+        if (Boolean.TRUE.equals(usuario.getTwoFactorEnabled())) {
+            // Generar código aleatorio de 6 dígitos
+            String code = String.format("%06d", new java.util.Random().nextInt(1000000));
+            usuario.setTwoFactorCode(code);
+            usuario.setTwoFactorCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
+            usuarioRepository.save(usuario);
+
+            // Enviar correo
+            mailService.sendTwoFactorCode(usuario.getEmail(), usuario.getUsername(), code);
+
+            return new LoginResponseDto(true, usuario.getUserId(), null);
+        }
+
+        String token = jwtService.generateToken(
+            usuario.getUserId(),
+            usuario.getUsername(),
+            usuario.getRole()
+        );
+        return new LoginResponseDto(false, null, token);
+    }
+
+    // ============================================
+    // VERIFICAR 2FA: valida código y devuelve JWT
+    // ============================================
+    @Transactional
+    public String verify2Fa(Long userId, String code) {
+        Usuario usuario = usuarioRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (usuario.getTwoFactorCode() == null || !usuario.getTwoFactorCode().equals(code)) {
+            throw new RuntimeException("Código de verificación incorrecto");
+        }
+
+        if (usuario.getTwoFactorCodeExpiresAt() == null || usuario.getTwoFactorCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El código de verificación ha expirado");
+        }
+
+        // Limpiar código de verificación usado
+        usuario.setTwoFactorCode(null);
+        usuario.setTwoFactorCodeExpiresAt(null);
+        usuarioRepository.save(usuario);
+
         return jwtService.generateToken(
             usuario.getUserId(),
             usuario.getUsername(),
             usuario.getRole()
         );
+    }
+
+    // ============================================
+    // TOGGLE 2FA: activa o desactiva 2FA
+    // ============================================
+    @Transactional
+    public boolean toggle2Fa(Long userId, boolean enabled) {
+        Usuario usuario = usuarioRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setTwoFactorEnabled(enabled);
+        if (!enabled) {
+            usuario.setTwoFactorCode(null);
+            usuario.setTwoFactorCodeExpiresAt(null);
+        }
+        usuarioRepository.save(usuario);
+        return enabled;
     }
 }

@@ -21,6 +21,12 @@ services:
       timeout: 5s
       retries: 5
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   backend:
     image: docker.io/maven:3.9-eclipse-temurin-21
 
@@ -29,6 +35,9 @@ services:
     volumes:
       - .:/workspace:Z
       - maven_cache:/root/.m2
+
+    env_file:
+      - .env
 
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}

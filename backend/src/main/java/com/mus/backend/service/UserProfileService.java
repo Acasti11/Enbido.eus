@@ -64,7 +64,7 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public List<UserLeaderboardDto> getLeaderboard() {
-        List<UserGameProfile> profiles = profileRepository.findAllOrderByEloDesc();
+        List<UserGameProfile> profiles = profileRepository.findAllByOrderByEloDesc();
         return profiles.stream().map(profile -> {
             String username = usuarioRepository.findById(profile.getUserId())
                     .map(Usuario::getUsername)
