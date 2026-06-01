@@ -4,10 +4,15 @@ const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:';
-  const port = window.location.protocol === 'https:' ? '443' : '8080';
-  return `${protocol}//${host}:${port}/api`;
+  if (typeof window !== 'undefined') {
+    // If running in local Vite development, target port 8080 directly
+    if (window.location.port === '5173') {
+      return `http://${window.location.hostname}:8080/api`;
+    }
+    // In production, route through the proxy host origin
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:8080/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
