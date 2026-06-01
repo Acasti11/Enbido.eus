@@ -4,30 +4,14 @@ import { useTranslation } from 'react-i18next';
 const ShopLoading: React.FC = (): React.JSX.Element => {
     const { t } = useTranslation();
     return (
-    <div className="shop-page" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
-        <div className="shop-loading" style={{ textAlign: 'center', color: '#f1cd4f' }}>
-        <div
-            className="spinner"
-            style={{
-            width: '50px',
-            height: '50px',
-            border: '5px solid rgba(255,255,255,0.1)',
-            borderTop: '5px solid #f1cd4f',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px',
-            }}
-        />
-        <style>{`
-            @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-            }
-        `}</style>
-        <h2>{t('shop.loading')}</h2>
+      <div className="shop-page shop-page-loading-wrapper">
+        <div className="shop-loading shop-loading-box">
+          <div className="spinner shop-loading-spinner" />
+            <h2>{t('shop.loading')}</h2>
+            </div>
         </div>
-    </div>
-    );
+      );
 };
+
 
 export default ShopLoading;

@@ -231,7 +231,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         osc.frequency.setValueAtTime(523.25, now); // C5
         gainNode.gain.setValueAtTime(settings.soundVolume * 0.4, now);
         gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-        
+
         const osc2 = ctx.createOscillator();
         const gain2 = ctx.createGain();
         osc2.connect(gain2);
@@ -255,7 +255,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const triggerNotification = (title: string, message: string, type: 'message' | 'friend', meta?: any) => {
     const id = Math.random().toString();
     setActiveNotification({ id, title, message, type, meta });
-    
+
     // Play SFX
     playSfx('message');
   };
@@ -354,29 +354,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }}
     >
       {children}
-      
+
       {/* Toast Notification Popup UI */}
       {activeNotification && (
-        <div 
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            zIndex: 9999,
-            width: '320px',
-            background: 'rgba(15, 30, 22, 0.95)',
-            border: '1px solid #d4af37',
-            borderRadius: '12px',
-            padding: '16px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 15px rgba(212,175,55,0.2)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease-in-out',
-            color: 'white',
-            fontFamily: 'Inter, sans-serif'
-          }}
+        <div
+          className="toast-notification"
           onClick={() => {
             if (activeNotification.type === 'message' && activeNotification.meta) {
               // Trigger lobby private chat redirect
@@ -390,18 +372,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             dismissNotification();
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="toast-header">
+            <span className="toast-title">
               {activeNotification.type === 'message' ? '💬 Nuevo Mensaje' : '👥 Petición Amistad'}
             </span>
-            <button 
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#aaa',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+            <button
+              className="toast-close-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 dismissNotification();
@@ -410,10 +386,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               ✕
             </button>
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#d4af37' }}>
+          <div className="toast-body">
             {activeNotification.title}
           </div>
-          <div style={{ fontSize: '12px', color: '#ccc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div className="toast-message">
             {activeNotification.message}
           </div>
         </div>

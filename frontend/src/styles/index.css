@@ -67,7 +67,8 @@ ul {
 }
 
 /* Safety Overflow & Dynamic Spacing for Mobile Devices */
-html, body {
+html,
+body {
   overflow-x: hidden;
   max-width: 100%;
 }

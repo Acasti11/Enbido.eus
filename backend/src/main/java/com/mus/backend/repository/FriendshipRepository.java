@@ -11,15 +11,11 @@ import java.util.Optional;
 @Repository
 public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 
-    @Query("SELECT f FROM Friendship f WHERE (f.userId1 = :userId OR f.userId2 = :userId) AND f.status = 'accepted'")
-    List<Friendship> findAcceptedFriends(@Param("userId") Long userId);
+    List<Friendship> findByUserId1AndStatusOrUserId2AndStatus(Long userId1, String status1, Long userId2, String status2);
 
-    @Query("SELECT f FROM Friendship f WHERE f.userId2 = :userId AND f.status = 'pending'")
-    List<Friendship> findPendingRequestsReceived(@Param("userId") Long userId);
+    List<Friendship> findByUserId2AndStatus(Long userId, String status);
 
-    @Query("SELECT f FROM Friendship f WHERE f.userId1 = :userId AND f.status = 'pending'")
-    List<Friendship> findPendingRequestsSent(@Param("userId") Long userId);
+    List<Friendship> findByUserId1AndStatus(Long userId, String status);
 
-    @Query("SELECT f FROM Friendship f WHERE (f.userId1 = :u1 AND f.userId2 = :u2) OR (f.userId1 = :u2 AND f.userId2 = :u1)")
-    Optional<Friendship> findFriendshipBetween(@Param("u1") Long u1, @Param("u2") Long u2);
+    Optional<Friendship> findByUserId1AndUserId2OrUserId2AndUserId1(Long userId1, Long userId2, Long userId2Dup, Long userId1Dup);
 }

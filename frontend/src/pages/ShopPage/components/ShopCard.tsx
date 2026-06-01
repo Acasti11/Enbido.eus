@@ -34,45 +34,45 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
 
     const handleClick = () => {
         if (item.equipped) {
-        onUnequip(item.category, item.name);
+            onUnequip(item.category, item.name);
         } else if (item.owned) {
-        onEquip(item.id, item.category, item.name);
+            onEquip(item.id, item.category, item.name);
         } else {
-        onBuy(item.id, item.price, item.name);
+            onBuy(item.id, item.price, item.name);
         }
     };
 
     const renderPreview = (): React.JSX.Element => {
         if (item.category === 'profiles') {
-        const ringClass = item.id === 1 ? 'shop-card__profile-ring--gold' : 'shop-card__profile-ring--green';
-        return (
-            <div className="shop-card__profile">
-            <div className="shop-card__avatar">{initials}</div>
-            <div className={`shop-card__profile-ring ${ringClass}`} />
-            </div>
-        );
+            const ringClass = item.id === 1 ? 'shop-card__profile-ring--gold' : 'shop-card__profile-ring--green';
+            return (
+                <div className="shop-card__profile">
+                    <div className="shop-card__avatar">{initials}</div>
+                    <div className={`shop-card__profile-ring ${ringClass}`} />
+                </div>
+            );
         }
 
         if (item.category === 'decks') {
-        const cardBackClass = item.id === 3 ? 'euskal-back' : 'gau-beltza-back';
-        return (
-            <div className="shop-card__deck" aria-hidden="true">
-            <div className={`shop-card__playing-card shop-card__playing-card--left ${cardBackClass}`}>
-                <span>4</span>
-                <span>&clubs;</span>
-            </div>
-            <div className={`shop-card__playing-card shop-card__playing-card--right ${cardBackClass}`}>
-                <span>7</span>
-                <span>&hearts;</span>
-            </div>
-            </div>
-        );
+            const cardBackClass = item.id === 3 ? 'euskal-back' : 'gau-beltza-back';
+            return (
+                <div className="shop-card__deck" aria-hidden="true">
+                    <div className={`shop-card__playing-card shop-card__playing-card--left ${cardBackClass}`}>
+                        <span>4</span>
+                        <span>&clubs;</span>
+                    </div>
+                    <div className={`shop-card__playing-card shop-card__playing-card--right ${cardBackClass}`}>
+                        <span>7</span>
+                        <span>&hearts;</span>
+                    </div>
+                </div>
+            );
         }
 
         return (
-        <div className="shop-card__alias">
-            <span>{item.name}</span>
-        </div>
+            <div className="shop-card__alias">
+                <span>{item.name}</span>
+            </div>
         );
     };
 
