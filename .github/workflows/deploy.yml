@@ -3,7 +3,7 @@ name: Deploy to Fedora Server (Podman)
 on:
   push:
     branches:
-      - autentificacion # Cambiar a 'main' si es la rama principal de producción
+      - debugging/partidas-online-funcionar # Cambiar a 'main' si es la rama principal de producción
 
 jobs:
   deploy:
