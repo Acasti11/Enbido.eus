@@ -9,6 +9,7 @@ import ProfilePage from './pages/ProfilePage/ProfilePage';
 import ShopPage from './pages/ShopPage/ShopPage';
 import HomePage from './pages/HomePage/HomePage';
 import RulesPage from './pages/RulesPage/RulesPage';
+import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage'; // <- Import añadido
 
 const NotFound: React.FC = () => <div className="page"><h1>404 - Página no encontrada</h1></div>;
 
@@ -24,6 +25,7 @@ const App: React.FC = (): React.JSX.Element => {
             <Route path="/torneos" element={<TournamentPage />} />
             <Route path="/quedadas" element={<MeetupPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/recuperar-password" element={<ResetPasswordPage />} /> {/* Route añadida */}
             <Route path="/tienda" element={<ShopPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
             <Route path="/reglas" element={<RulesPage />} />

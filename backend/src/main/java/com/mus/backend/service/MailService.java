@@ -95,4 +95,69 @@ public class MailService {
             System.out.println(">>> [MAIL-SERVICE] Servidor SMTP no configurado. Código impreso en consola para desarrollo.");
         }
     }
+
+    @Async
+    public void sendResetPasswordEmail(String toEmail, String userNickname, String resetLink) {
+        System.out.println("\n");
+        System.out.println("****************************************************************");
+        System.out.println("🔑 [ENBIDO.EUS] - RESTABLECER CONTRASEÑA / PASAHITZA BERRESKURATU");
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("Destinatario: " + toEmail + " (" + userNickname + ")");
+        System.out.println("Link:         " + resetLink);
+        System.out.println("Expiración:   En 15 minutos");
+        System.out.println("****************************************************************");
+        System.out.println("\n");
+
+        if (mailHost != null && !mailHost.isEmpty()) {
+            try {
+                Properties prop = new Properties();
+                prop.put("mail.smtp.host", mailHost);
+                prop.put("mail.smtp.port", String.valueOf(mailPort));
+                prop.put("mail.smtp.auth", smtpAuth);
+                prop.put("mail.smtp.starttls.enable", starttlsEnable);
+                
+                prop.put("mail.smtp.connectiontimeout", "3000");
+                prop.put("mail.smtp.timeout", "3000");
+                prop.put("mail.smtp.writetimeout", "3000");
+
+                Session session;
+                if ("true".equalsIgnoreCase(smtpAuth)) {
+                    session = Session.getInstance(prop, new Authenticator() {
+                        @Override
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(username, password);
+                        }
+                    });
+                } else {
+                    session = Session.getInstance(prop);
+                }
+
+                Message message = new MimeMessage(session);
+                String fromAddress = mailFrom != null && !mailFrom.isEmpty() 
+                    ? mailFrom 
+                    : (username != null && !username.isEmpty() ? username : "noreply@enbido.eus");
+                message.setFrom(new InternetAddress(fromAddress));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+                message.setSubject("Enbido.eus - Restablecer contraseña / Pasahitza berreskuratu");
+
+                String body = "Hola " + userNickname + ",\n\n" +
+                        "Hemos recibido una solicitud para restablecer tu contraseña en Enbido.eus.\n\n" +
+                        "Para hacerlo, haz clic en el siguiente enlace:\n" +
+                        resetLink + "\n\n" +
+                        "Este enlace es válido por 15 minutos.\n\n" +
+                        "Si no has solicitado este cambio, por favor ignora este mensaje. Tu contraseña seguirá siendo la misma.\n\n" +
+                        "¡Nos vemos en las mesas de Mus!\n" +
+                        "El equipo de Enbido.eus";
+
+                message.setText(body);
+
+                Transport.send(message);
+                System.out.println(">>> [MAIL-SERVICE] Correo de recuperación SMTP enviado con éxito a " + toEmail);
+            } catch (Exception e) {
+                System.err.println(">>> [MAIL-SERVICE] Error enviando correo de recuperación SMTP: " + e.getMessage());
+            }
+        } else {
+            System.out.println(">>> [MAIL-SERVICE] Servidor SMTP no configurado. Enlace impreso en consola para desarrollo.");
+        }
+    }
 }

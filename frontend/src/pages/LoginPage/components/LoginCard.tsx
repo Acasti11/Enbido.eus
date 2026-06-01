@@ -6,9 +6,10 @@ import '../styles/login-card.css';
 
 interface LoginCardProps {
   onSwitchToRegister: () => void;
+  onSwitchToRecover: () => void;
 }
 
-const LoginCard: React.FC<LoginCardProps> = ({ onSwitchToRegister }): React.JSX.Element => {
+const LoginCard: React.FC<LoginCardProps> = ({ onSwitchToRegister, onSwitchToRecover }): React.JSX.Element => {
   return (
     <div className="login-card">
       <div className="login-card__header">
@@ -16,7 +17,7 @@ const LoginCard: React.FC<LoginCardProps> = ({ onSwitchToRegister }): React.JSX.
         <h1 className="login-card__title">ENBIDO</h1>
         <p className="login-card__subtitle">Conectando con la mesa... / Mahaira konektatzen...</p>
       </div>
-      <LoginForm/>
+      <LoginForm onSwitchToRecover={onSwitchToRecover} />
       <SocialDivider onSwitchToRegister={onSwitchToRegister} />
     </div>
   );

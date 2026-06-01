@@ -34,7 +34,11 @@ const EyeIcon = ({ open }: { open: boolean }) => (
   </svg>
 );
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  onSwitchToRecover: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -222,7 +226,20 @@ const LoginForm: React.FC = () => {
       <div className="login-form__field">
         <div className="login-form__label-row">
           <label className="login-form__label">Contraseña / Pasahitza</label>
-          <a href="#" className="login-form__forgot">¿Olvidaste la contraseña? / Ahaztu zaizu?</a>
+          <button
+            type="button"
+            className="login-form__forgot"
+            onClick={onSwitchToRecover}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: 'inherit'
+            }}
+          >
+            ¿Olvidaste la contraseña? / Ahaztu zaizu?
+          </button>
         </div>
         <div className="login-form__input-wrapper">
           <LockIcon />

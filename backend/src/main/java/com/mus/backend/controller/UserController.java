@@ -163,6 +163,50 @@ public class UserController {
     }
 
     // ============================================
+    // PÚBLICO: Solicitar recuperación de contraseña (sin token)
+    // ============================================
+    @PostMapping("/login/recover-password")
+    public ResponseEntity<?> recoverPassword(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            String frontendUrl = body.get("frontendUrl");
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El correo electrónico es obligatorio"));
+            }
+            if (frontendUrl == null || frontendUrl.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "La URL de redirección es obligatoria"));
+            }
+            
+            userService.requestPasswordReset(email.trim(), frontendUrl.trim());
+            return ResponseEntity.ok(Map.of("message", "Se ha enviado un correo electrónico con instrucciones para restablecer tu contraseña"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ============================================
+    // PÚBLICO: Restablecer contraseña con token (sin token)
+    // ============================================
+    @PostMapping("/login/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        try {
+            String token = body.get("token");
+            String newPassword = body.get("newPassword");
+            if (token == null || token.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El token es obligatorio"));
+            }
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "La nueva contraseña es obligatoria"));
+            }
+            
+            userService.resetPassword(token.trim(), newPassword.trim());
+            return ResponseEntity.ok(Map.of("message", "Tu contraseña ha sido restablecida con éxito"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ============================================
     // HELPER: extrae userId del request attribute
     // Lo guarda JwtInterceptor al validar token
     // ============================================

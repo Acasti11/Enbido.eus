@@ -147,4 +147,39 @@ public class UserService {
         usuarioRepository.save(usuario);
         return enabled;
     }
+
+    // ============================================
+    // RECUPERAR CONTRASEÑA: genera token y envía mail
+    // ============================================
+    @Transactional
+    public void requestPasswordReset(String email, String frontendUrl) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("No se encontró ningún usuario con ese correo electrónico / Ez da posta hori duen erabiltzailerik aurkitu"));
+
+        String token = java.util.UUID.randomUUID().toString();
+        usuario.setResetPasswordToken(token);
+        usuario.setResetPasswordTokenExpiresAt(LocalDateTime.now().plusMinutes(15));
+        usuarioRepository.save(usuario);
+
+        String resetLink = frontendUrl + "?token=" + token;
+        mailService.sendResetPasswordEmail(usuario.getEmail(), usuario.getUsername(), resetLink);
+    }
+
+    // ============================================
+    // RESTABLECER CONTRASEÑA: valida token y cambia pass
+    // ============================================
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        Usuario usuario = usuarioRepository.findByResetPasswordToken(token)
+            .orElseThrow(() -> new RuntimeException("El enlace de recuperación no es válido / Berreskuratze esteka ez da baliozkoa"));
+
+        if (usuario.getResetPasswordTokenExpiresAt() == null || usuario.getResetPasswordTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El enlace de recuperación ha expirado / Berreskuratze esteka iraungi egin da");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(newPassword));
+        usuario.setResetPasswordToken(null);
+        usuario.setResetPasswordTokenExpiresAt(null);
+        usuarioRepository.save(usuario);
+    }
 }

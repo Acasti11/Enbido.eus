@@ -56,4 +56,10 @@ public class Usuario {
 
     @Column(name = "two_factor_code_expires_at")
     private LocalDateTime twoFactorCodeExpiresAt;
+
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_token_expires_at")
+    private LocalDateTime resetPasswordTokenExpiresAt;
 }
