@@ -9,7 +9,10 @@
     "profile": "Perfil",
     "login": "Login",
     "logout": "Cerrar sesión",
-    "rules": "Reglas"
+    "rules": "Reglas",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "availableLanguages": "Idiomas disponibles"
   },
   "home": {
     "tagline": "🏆 ENBIDO MAISUAREN ETXEA 🏆",

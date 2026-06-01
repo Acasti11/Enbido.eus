@@ -9,7 +9,10 @@
     "profile": "Profil",
     "login": "Connexion",
     "logout": "Déconnexion",
-    "rules": "Règles"
+    "rules": "Règles",
+    "language": "Langue",
+    "selectLanguage": "Choisir la langue",
+    "availableLanguages": "Langues disponibles"
   },
   "home": {
     "tagline": "🏆 MAISON DU MAÎTRE ENBIDO 🏆",

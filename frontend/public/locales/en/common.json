@@ -1,16 +1,19 @@
 {
   "nav": {
-    "home": "Home",
-    "play": "Play",
-    "tournaments": "Tournaments",
-    "meetups": "Meetups",
-    "shop": "Shop",
-    "settings": "Settings",
-    "profile": "Profile",
-    "login": "Login",
-    "logout": "Log out",
-    "rules": "Rules"
-  },
+  "home": "Home",
+  "play": "Play",
+  "tournaments": "Tournaments",
+  "meetups": "Meetups",
+  "shop": "Shop",
+  "settings": "Settings",
+  "profile": "Profile",
+  "login": "Login",
+  "logout": "Log out",
+  "rules": "Rules",
+  "language": "Language",
+  "selectLanguage": "Select language",
+  "availableLanguages": "Available languages"
+},
   "home": {
     "tagline": "🏆 HOUSE OF THE ENBIDO MASTER 🏆",
     "title": "Play Mus Online",

@@ -6,8 +6,8 @@ export type ShopItem = {
     name: string;
     description: string;
     price: number;
-    owned?: boolean;
-    equipped?: boolean;
+    owned: boolean;
+    equipped: boolean;
     accent: 'gold' | 'red' | 'green';
 };
 

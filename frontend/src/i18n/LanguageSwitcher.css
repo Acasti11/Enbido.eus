@@ -1,0 +1,154 @@
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Botón trigger - integrado con navbar oscuro */
+.language-switcher__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  letter-spacing: 0.025em;
+}
+
+.language-switcher__trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.language-switcher__trigger:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
+/* Texto del idioma activo */
+.language-switcher__current {
+  font-weight: 700;
+  min-width: 1.75rem;
+  text-align: center;
+}
+
+/* Flecha del dropdown */
+.language-switcher__arrow {
+  transition: transform 0.2s ease;
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.language-switcher__arrow--open {
+  transform: rotate(180deg);
+}
+
+/* ============================================
+   DROPDOWN - Se abre HACIA ABAJO
+   ============================================ */
+.language-switcher__dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);      /* Abajo del trigger */
+  right: 0;                       /* Alineado a la derecha */
+  left: auto;
+  min-width: 8rem;
+  background: rgba(15, 41, 30, 0.98);  /* Mismo color que navbar */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.375rem;
+  list-style: none;
+  margin: 0;
+  z-index: 100;                   /* Por encima del navbar (z-index: 10) */
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+
+  animation: dropdownSlideDown 0.15s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes dropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Opciones del dropdown */
+.language-switcher__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.language-switcher__option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.language-switcher__option:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Opción activa (seleccionada) */
+.language-switcher__option--active {
+  color: #d4af37;                 /* Dorado del tema */
+  background: rgba(212, 175, 55, 0.1);
+  font-weight: 600;
+}
+
+.language-switcher__option--active:hover {
+  background: rgba(212, 175, 55, 0.15);
+}
+
+/* Código del idioma */
+.language-switcher__option-code {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Checkmark */
+.language-switcher__check {
+  color: #d4af37;
+  flex-shrink: 0;
+  margin-left: 0.75rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .language-switcher__trigger {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8rem;
+  }
+
+  .language-switcher__dropdown {
+    min-width: 7rem;
+    right: -0.5rem;
+  }
+}

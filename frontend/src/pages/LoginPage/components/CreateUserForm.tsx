@@ -239,13 +239,13 @@ interface CreateUserFieldsProps {
 const CreateUserFields: React.FC<CreateUserFieldsProps> = ({ formData, handleChange, handleBlur, fieldError, t }): React.JSX.Element => (
   <>
     <FormInput name="name" label={t('login.name')} placeholder={t('login.placeholderName')} value={formData.name} onChange={handleChange} onBlur={handleBlur} icon={<UserIcon />} error={fieldError('name')} required />
-    <FormInput name="surname" label={t('login.surname')} placeholder={t('login.placeholderSurname')} value={formData.surname} onChange={handleChange} icon={<UserIcon />} />
+    <FormInput name="surname" label={t('login.surname')} placeholder={t('login.placeholderSurname')} value={formData.surname as string} onChange={handleChange} icon={<UserIcon />} />
     <FormInput name="email" type="email" label={t('login.email')} placeholder={t('login.placeholderEmail')} value={formData.email} onChange={handleChange} onBlur={handleBlur} icon={<MailIcon />} error={fieldError('email')} required />
     <FormInput name="username" label={t('login.username')} placeholder={t('login.placeholderUsername')} value={formData.username} onChange={handleChange} onBlur={handleBlur} icon={<UserIcon />} error={fieldError('username')} required />
     <FormInput name="password" type="password" label={t('login.password')} placeholder={t('login.placeholderPassword')} value={formData.password} onChange={handleChange} onBlur={handleBlur} icon={<LockIcon />} error={fieldError('password')} required />
     <FormInput name="birthDate" type="date" label={t('login.birthDate')} placeholder="" value={formData.birthDate} onChange={handleChange} onBlur={handleBlur} icon={<CalendarIcon />} error={fieldError('birthDate')} required />
-    <FormInput name="phone_number" label={t('login.phone')} placeholder={t('login.placeholderPhone')} value={formData.phone_number} onChange={handleChange} icon={<PhoneIcon />} />
-    <FormInput name="postal_code" label={t('login.postalCode')} placeholder={t('login.placeholderPostalCode')} value={formData.postal_code} onChange={handleChange} icon={<MapPinIcon />} />
+    <FormInput name="phone_number" label={t('login.phone')} placeholder={t('login.placeholderPhone')} value={formData.phone_number as string} onChange={handleChange} icon={<PhoneIcon />} />
+    <FormInput name="postal_code" label={t('login.postalCode')} placeholder={t('login.placeholderPostalCode')} value={formData.postal_code as string} onChange={handleChange} icon={<MapPinIcon />} />
   </>
 );
 
