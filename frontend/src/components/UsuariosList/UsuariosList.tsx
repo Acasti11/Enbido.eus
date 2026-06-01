@@ -5,7 +5,7 @@ export const UsuariosList = (): React.JSX.Element => {
   const { usuarios, loading, error } = useUsuarios();
 
   if (loading) return <p>Cargando...</p>;
-  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
+  if (error) return <p className="usuarios-list-error">Error: {error}</p>;
 
   return (
     <div>
@@ -13,20 +13,14 @@ export const UsuariosList = (): React.JSX.Element => {
       {usuarios.length === 0 ? (
         <p>No hay usuarios registrados</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <ul className="usuarios-list-container">
           {usuarios.map(usuario => (
-            <li 
-              key={usuario.userId || usuario.user_id} 
-              style={{ 
-                padding: '1rem', 
-                margin: '0.5rem 0', 
-                background: '#f5f5f5', 
-                borderRadius: '8px',
-                borderLeft: '4px solid #646cff'
-              }}
+            <li
+              key={usuario.userId || usuario.user_id}
+              className="usuarios-list-item"
             >
               <strong>{usuario.name}</strong>
-              <span style={{ color: '#666', marginLeft: '1rem' }}>{usuario.email}</span>
+              <span className="usuarios-list-item-email">{usuario.email}</span>
             </li>
           ))}
         </ul>

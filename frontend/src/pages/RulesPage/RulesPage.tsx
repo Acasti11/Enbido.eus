@@ -47,7 +47,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
           <span>🃏</span> Zer da Mus-a? / ¿Qué es el Mus?
         </h2>
         <p className="rules-intro-text">
-          El Mus es un juego de cartas tradicional de origen vasco, ampliamente jugado en toda España y partes de Hispanoamérica. 
+          El Mus es un juego de cartas tradicional de origen vasco, ampliamente jugado en toda España y partes de Hispanoamérica.
           Se juega por parejas (4 jugadores en total) utilizando la baraja española de 40 cartas. El objetivo es llegar antes que la pareja rival a un número determinado de puntos (usualmente 30 u 40 puntos).
         </p>
         <p className="rules-intro-text">
@@ -65,7 +65,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
         </p>
 
         <div className="lances-grid">
-          
+
           <div className="lance-card">
             <div className="lance-num">1</div>
             <h3 className="lance-title">Handia / La Grande</h3>
@@ -79,7 +79,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
             <div className="lance-num">2</div>
             <h3 className="lance-title">Txikia / La Chica</h3>
             <p className="lance-desc">
-              Se juega al revés que a la Grande: gana la pareja que tenga las cartas de menor valor. 
+              Se juega al revés que a la Grande: gana la pareja que tenga las cartas de menor valor.
               Los Ases y los Dues (en la variante de 8 reyes) son las mejores cartas para esta ronda.
             </p>
           </div>
@@ -91,7 +91,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
               Ronda donde se premia tener cartas del mismo valor. Antes de apostar, cada jugador anuncia si tiene pares. Si nadie tiene, se salta la ronda.
               Los tipos de pares de menor a mayor son:
             </p>
-            <ul style={{ fontSize: '0.85rem', color: 'var(--color-text-white-70)', paddingLeft: '20px', marginTop: '5px' }}>
+            <ul className="lance-sublist">
               <li><strong>Par (Pareak):</strong> Dos cartas iguales.</li>
               <li><strong>Medias (Erdikoak):</strong> Tres cartas iguales.</li>
               <li><strong>Duples (Bikoitzak):</strong> Dos parejas de cartas iguales o cuatro cartas iguales.</li>
@@ -103,7 +103,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
             <h3 className="lance-title">Jokoa edo Puntua / El Juego o Punto</h3>
             <p className="lance-desc">
               Se suma el valor de las 4 cartas. Si algún jugador suma 31 o más, hay "Juego". Si nadie llega, se juega al "Punto".
-              El mejor juego es 31 (llamado "Joko Nagusia"), seguido de 40, 36, 37, 35, 34, 33 y 32. 
+              El mejor juego es 31 (llamado "Joko Nagusia"), seguido de 40, 36, 37, 35, 34, 33 y 32.
               En caso de jugar al Punto, gana el jugador que sume un valor lo más cercano posible a 31 (siendo 30 el mejor punto).
             </p>
           </div>
@@ -121,7 +121,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
         </p>
 
         <div className="senas-grid">
-          
+
           <div className="sena-card">
             <span className="sena-emoji">👄</span>
             <div className="sena-info">
@@ -184,20 +184,20 @@ const RulesPage: React.FC = (): React.JSX.Element => {
         <h2 id="variations-title" className="rules-section-title">
           <span>⚙️</span> Arau Bertsioak / 4 Reyes vs 8 Reyes
         </h2>
-        
+
         <div className="variations-box">
           <div className="variation-item">
             <span className="variation-title">8 Reyes (Variante estándar de Enbido.eus)</span>
             <p className="variation-desc">
-              Es la modalidad más jugada en Vizcaya y Guipúzcoa. Los **Treses** equivalen a Reyes, y los **Dues** equivalen a Ases. 
+              Es la modalidad más jugada en Vizcaya y Guipúzcoa. Los **Treses** equivalen a Reyes, y los **Dues** equivalen a Ases.
               Esto hace que haya 8 Reyes y 8 Ases en la baraja, provocando muchas más manos con parejas altas, juego fuerte y duples, lo que agiliza y aumenta la emoción de la partida.
             </p>
           </div>
 
-          <div className="variation-item" style={{ marginTop: '10px' }}>
+          <div className="variation-item variation-item--secondary">
             <span className="variation-title">4 Reyes (Variante clásica castellana o de Álava)</span>
             <p className="variation-desc">
-              Los Treses y Dues son cartas numéricas normales con su valor de 3 y 2 puntos respectivamente. 
+              Los Treses y Dues son cartas numéricas normales con su valor de 3 y 2 puntos respectivamente.
               En esta variante los pares altos y las manos de 31 son mucho más escasas, obligando a jugar un mus táctico y de mayor control.
             </p>
           </div>

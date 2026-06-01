@@ -52,3 +52,31 @@
     font-size: 2rem;
   }
 }
+
+.profile-header__info {
+  text-align: center;
+}
+
+.profile-header__avatar--gold {
+  border: 5px solid #d4af37 !important;
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.85) !important;
+  transform: scale(1.03) !important;
+}
+
+.profile-header__avatar--green {
+  border: 5px solid #2e7d32 !important;
+  box-shadow: 0 0 20px rgba(46, 125, 50, 0.7) !important;
+  transform: scale(1.02) !important;
+}
+
+.profile-header__subtitle--handia {
+  color: #2e7d32 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.15em !important;
+}
+
+.profile-header__subtitle--maisu {
+  color: #b8860b !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.15em !important;
+}

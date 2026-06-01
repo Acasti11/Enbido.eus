@@ -87,7 +87,7 @@ const TimerCircle: React.FC<{ timeLeft: number; isActive: boolean }> = ({ timeLe
   }
 
   return (
-    <svg className="timer-svg" width="64" height="64" viewBox="0 0 64 64" style={{ position: 'absolute', top: '-6px', left: '-6px', pointerEvents: 'none', zIndex: 10 }}>
+    <svg className="timer-svg" width="64" height="64" viewBox="0 0 64 64">
       <circle
         cx="32"
         cy="32"
@@ -98,7 +98,6 @@ const TimerCircle: React.FC<{ timeLeft: number; isActive: boolean }> = ({ timeLe
         strokeDasharray={circumference}
         strokeDashoffset={strokeDashoffset}
         strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s' }}
         transform="rotate(-90 32 32)"
       />
     </svg>
@@ -107,7 +106,7 @@ const TimerCircle: React.FC<{ timeLeft: number; isActive: boolean }> = ({ timeLe
 
 const MiniDeckToken: React.FC<{ size?: number; className?: string }> = ({ size = 28, className }) => {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.35))' }}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={`mini-deck-token ${className || ''}`}>
       <rect x="5" y="7" width="14" height="11" rx="1.5" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.8" />
       <rect x="4.5" y="6" width="14" height="11" rx="1.5" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.8" />
       <rect x="4" y="5" width="14" height="11" rx="1.5" fill="#c2410c" stroke="#ffffff" strokeWidth="1" />
@@ -370,21 +369,6 @@ const MusGamePage: React.FC = () => {
                 <button
                   className="leave-felt-btn"
                   onClick={onLeaveRoom}
-                  style={{
-                    marginTop: '10px',
-                    padding: '6px 12px',
-                    backgroundColor: 'rgba(220, 38, 38, 0.85)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    transition: 'background-color 0.2s',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
-                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.85)')}
                 >
                   🚪 Abandonar Mesa
                 </button>
@@ -394,7 +378,7 @@ const MusGamePage: React.FC = () => {
             {/* JUGADOR NORTE (Mapeado dinámicamente) */}
             <div className={`player-position position-north ${activeTurnIdx === 2 ? 'active-zone' : ''}`}>
               <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+                <div className="player-avatar-wrapper">
                   <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 2} />
                   <div className={`player-avatar-circle partner-theme ${activeSigns[2] ? 'has-active-sign' : ''}`}>
                     {(seats[2]?.username || 'Bot Norte').slice(0, 2).toUpperCase()}
@@ -437,7 +421,7 @@ const MusGamePage: React.FC = () => {
             {/* JUGADOR OESTE (Silla relative 3 - Rival 2) */}
             <div className={`player-position position-west ${activeTurnIdx === 3 ? 'active-zone' : ''}`}>
               <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+                <div className="player-avatar-wrapper">
                   <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 3} />
                   <div className={`player-avatar-circle rival-theme ${activeSigns[3] ? 'has-active-sign' : ''}`}>
                     {(seats[3]?.username || 'Bot Oeste').slice(0, 2).toUpperCase()}
@@ -480,7 +464,7 @@ const MusGamePage: React.FC = () => {
             {/* JUGADOR ESTE (Silla relative 1 - Rival 1) */}
             <div className={`player-position position-east ${activeTurnIdx === 1 ? 'active-zone' : ''}`}>
               <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+                <div className="player-avatar-wrapper">
                   <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 1} />
                   <div className={`player-avatar-circle rival-theme ${activeSigns[1] ? 'has-active-sign' : ''}`}>
                     {(seats[1]?.username || 'Bot Este').slice(0, 2).toUpperCase()}
@@ -523,7 +507,7 @@ const MusGamePage: React.FC = () => {
             {/* TÚ (JUGADOR SUR - Silla relative 0) */}
             <div className={`player-position position-south ${activeTurnIdx === 0 ? 'active-zone' : ''}`}>
               <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+                <div className="player-avatar-wrapper">
                   <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 0} />
                   <div className={`player-avatar-circle player-theme ${activeSigns[0] ? 'has-active-sign' : ''} ${profile?.equippedAvatarItemId === 1 ? 'avatar-premium-gold' : profile?.equippedAvatarItemId === 2 ? 'avatar-premium-green' : ''}`}>
                     {(seats[0]?.username || 'Tú').slice(0, 2).toUpperCase()}
@@ -540,7 +524,7 @@ const MusGamePage: React.FC = () => {
                   {profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
                 </div>
               </div>
-              
+
               <div className="player-hand-wrapper">
                 <div className="player-cards-slot-bg">
                   <div className="slot-outline-card"></div>
@@ -635,25 +619,13 @@ const MusGamePage: React.FC = () => {
         <aside className={`sidebar-panel ${isMobile ? 'mobile-drawer' : ''} ${isSidebarOpen ? 'is-open' : ''}`}>
 
           {isMobile && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '10px' }}>
+            <div className="drawer-header-actions">
               <button className="drawer-close-btn" onClick={() => setIsSidebarOpen(false)}>
                 ✕ Cerrar Panel
               </button>
               <button
-                className="leave-felt-btn"
+                className="leave-felt-btn leave-felt-btn--mobile"
                 onClick={onLeaveRoom}
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: 'rgba(220, 38, 38, 0.85)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  height: 'fit-content',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
-                }}
               >
                 🚪 Abandonar
               </button>
@@ -662,61 +634,27 @@ const MusGamePage: React.FC = () => {
 
           <GameScoreBoard score={score} maxRounds={maxRounds} />
 
-          <div className="sound-toggle-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0', padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Sonidos de Juego</span>
+          <div className="sound-toggle-container">
+            <span className="sound-toggle-label">Sonidos de Juego</span>
             <button
               onClick={toggleMute}
-              style={{
-                background: isMuted ? '#ef4444' : '#10b981',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
+              className={`sound-toggle-btn ${isMuted ? 'sound-toggle-btn--muted' : 'sound-toggle-btn--active'}`}
             >
               {isMuted ? '🔇 Silenciado' : '🔊 Activado'}
             </button>
           </div>
 
           <div className="game-logs-widget">
-            <div className="logs-header-tabs" style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: '10px' }}>
+            <div className="logs-header-tabs">
               <button
                 onClick={() => setActiveTab('logs')}
-                style={{
-                  flex: 1,
-                  padding: '8px 4px',
-                  background: activeTab === 'logs' ? 'rgba(255, 255, 255, 0.05)' : 'none',
-                  border: 'none',
-                  color: activeTab === 'logs' ? '#fff' : 'rgba(255, 255, 255, 0.5)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '0.75rem',
-                  borderBottom: activeTab === 'logs' ? '2px solid #3b82f6' : '2px solid transparent',
-                  transition: 'all 0.2s',
-                  borderRadius: '4px 4px 0 0'
-                }}
+                className={`logs-tab-btn ${activeTab === 'logs' ? 'logs-tab-btn--active' : ''}`}
               >
                 📋 Historial
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                style={{
-                  flex: 1,
-                  padding: '8px 4px',
-                  background: activeTab === 'chat' ? 'rgba(255, 255, 255, 0.05)' : 'none',
-                  border: 'none',
-                  color: activeTab === 'chat' ? '#fff' : 'rgba(255, 255, 255, 0.5)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '0.75rem',
-                  borderBottom: activeTab === 'chat' ? '2px solid #3b82f6' : '2px solid transparent',
-                  transition: 'all 0.2s',
-                  borderRadius: '4px 4px 0 0'
-                }}
+                className={`logs-tab-btn ${activeTab === 'chat' ? 'logs-tab-btn--active' : ''}`}
               >
                 💬 Chat Mesa
               </button>
@@ -725,26 +663,13 @@ const MusGamePage: React.FC = () => {
             {activeTab === 'logs' ? (
               <GameConsoleLogs logs={logs} />
             ) : (
-              <div className="game-chat-tab-container" style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', overflow: 'hidden' }}>
+              <div className="game-chat-tab-container">
                 <div
                   className="game-chat-messages-box"
                   ref={chatEndRef}
-                  style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    padding: '8px 4px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    fontSize: '0.75rem',
-                    background: '#000',
-                    borderRadius: '8px',
-                    border: '1px solid #222',
-                    minHeight: '200px'
-                  }}
                 >
                   {chatMessages.length === 0 ? (
-                    <div style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: '30px', fontStyle: 'italic' }}>
+                    <div className="game-chat-empty-msg">
                       No hay mensajes aún. ¡Di hola!
                     </div>
                   ) : (
@@ -755,66 +680,26 @@ const MusGamePage: React.FC = () => {
                       const isMe = sender === username;
 
                       return (
-                        <div key={idx} style={{
-                          alignSelf: isMe ? 'flex-end' : 'flex-start',
-                          maxWidth: '85%',
-                          background: isMe ? 'rgba(59, 130, 246, 0.25)' : 'rgba(255, 255, 255, 0.08)',
-                          border: isMe ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
-                          padding: '6px 10px',
-                          borderRadius: '8px',
-                          color: '#fff',
-                          wordBreak: 'break-word',
-                          animation: 'slideUp 0.2s ease-out'
-                        }}>
-                          <strong style={{ color: isMe ? '#60a5fa' : '#fbbf24', display: 'block', fontSize: '0.65rem', marginBottom: '2px' }}>
+                        <div key={idx} className={`game-chat-message ${isMe ? 'game-chat-message--me' : 'game-chat-message--other'}`}>
+                          <strong className={`game-chat-message-sender ${isMe ? 'game-chat-message-sender--me' : 'game-chat-message-sender--other'}`}>
                             {sender}
                           </strong>
-                          <span style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>{content}</span>
+                          <span className="game-chat-message-content">{content}</span>
                         </div>
                       );
                     })
                   )}
                 </div>
 
-                <form
-                  onSubmit={handleSendChat}
-                  style={{
-                    display: 'flex',
-                    paddingTop: '8px',
-                    gap: '6px'
-                  }}
-                >
+                <form onSubmit={handleSendChat} className="game-chat-form">
                   <input
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder="Escribe en la mesa..."
-                    style={{
-                      flex: 1,
-                      background: 'rgba(0, 0, 0, 0.4)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      borderRadius: '6px',
-                      padding: '6px 10px',
-                      color: '#fff',
-                      fontSize: '0.75rem',
-                      outline: 'none',
-                      transition: 'border-color 0.2s'
-                    }}
+                    className="game-chat-input"
                   />
-                  <button
-                    type="submit"
-                    style={{
-                      background: '#3b82f6',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
+                  <button type="submit" className="game-chat-submit-btn">
                     Enviar
                   </button>
                 </form>

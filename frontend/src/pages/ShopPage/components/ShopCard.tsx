@@ -28,85 +28,80 @@ interface ShopCardProps {
 const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onUnequip }): React.JSX.Element => {
     const handleClick = () => {
         if (item.equipped) {
-        onUnequip(item.category, item.name);
+            onUnequip(item.category, item.name);
         } else if (item.owned) {
-        onEquip(item.id, item.category, item.name);
+            onEquip(item.id, item.category, item.name);
         } else {
-        onBuy(item.id, item.price, item.name);
+            onBuy(item.id, item.price, item.name);
         }
     };
 
     const renderPreview = (): React.JSX.Element => {
         if (item.category === 'profiles') {
-        const ringClass = item.id === 1 ? 'shop-card__profile-ring--gold' : 'shop-card__profile-ring--green';
-        return (
-            <div className="shop-card__profile">
-            <div className="shop-card__avatar">{initials}</div>
-            <div className={`shop-card__profile-ring ${ringClass}`} />
-            </div>
-        );
+            const ringClass = item.id === 1 ? 'shop-card__profile-ring--gold' : 'shop-card__profile-ring--green';
+            return (
+                <div className="shop-card__profile">
+                    <div className="shop-card__avatar">{initials}</div>
+                    <div className={`shop-card__profile-ring ${ringClass}`} />
+                </div>
+            );
         }
 
         if (item.category === 'decks') {
-        const cardBackClass = item.id === 3 ? 'euskal-back' : 'gau-beltza-back';
-        return (
-            <div className="shop-card__deck" aria-hidden="true">
-            <div className={`shop-card__playing-card shop-card__playing-card--left ${cardBackClass}`}>
-                <span>4</span>
-                <span>&clubs;</span>
-            </div>
-            <div className={`shop-card__playing-card shop-card__playing-card--right ${cardBackClass}`}>
-                <span>7</span>
-                <span>&hearts;</span>
-            </div>
-            </div>
-        );
+            const cardBackClass = item.id === 3 ? 'euskal-back' : 'gau-beltza-back';
+            return (
+                <div className="shop-card__deck" aria-hidden="true">
+                    <div className={`shop-card__playing-card shop-card__playing-card--left ${cardBackClass}`}>
+                        <span>4</span>
+                        <span>&clubs;</span>
+                    </div>
+                    <div className={`shop-card__playing-card shop-card__playing-card--right ${cardBackClass}`}>
+                        <span>7</span>
+                        <span>&hearts;</span>
+                    </div>
+                </div>
+            );
         }
 
         return (
-        <div className="shop-card__alias">
-            <span>{item.name}</span>
-        </div>
+            <div className="shop-card__alias">
+                <span>{item.name}</span>
+            </div>
         );
     };
 
     return (
         <article className={`shop-card shop-card--${item.accent}`}>
-        <div className="shop-card__media">
-            <span className="shop-card__category">{CATEGORY_LABELS[item.category]}</span>
-            {renderPreview()}
-        </div>
-
-        <div className="shop-card__body">
-            <div className="shop-card__title-row">
-            <h2>{item.name}</h2>
-            {!item.owned && (
-                <span className="shop-card__price">
-                <CoinIcon />
-                {item.price.toLocaleString('es-ES')} tx
-                </span>
-            )}
+            <div className="shop-card__media">
+                <span className="shop-card__category">{CATEGORY_LABELS[item.category]}</span>
+                {renderPreview()}
             </div>
-            <p>{item.description}</p>
 
-            <div className="shop-card__footer">
-            <span className="shop-card__state">
-                {item.equipped ? 'Activo ahora' : item.owned ? 'Ya comprado' : 'Disponible'}
-            </span>
-            <button
-                className="shop-card__button"
-                type="button"
-                onClick={handleClick}
-                style={{
-                backgroundColor: item.equipped ? 'rgba(212, 175, 55, 0.2)' : undefined,
-                color: item.equipped ? '#f1cd4f' : undefined,
-                border: item.equipped ? '1px solid #f1cd4f' : undefined,
-                }}
-            >
-                {item.equipped ? 'Equipado' : item.owned ? 'Equipar' : 'Comprar'}
-            </button>
+            <div className="shop-card__body">
+                <div className="shop-card__title-row">
+                    <h2>{item.name}</h2>
+                    {!item.owned && (
+                        <span className="shop-card__price">
+                            <CoinIcon />
+                            {item.price.toLocaleString('es-ES')} tx
+                        </span>
+                    )}
+                </div>
+                <p>{item.description}</p>
+
+                <div className="shop-card__footer">
+                    <span className="shop-card__state">
+                        {item.equipped ? 'Activo ahora' : item.owned ? 'Ya comprado' : 'Disponible'}
+                    </span>
+                    <button
+                        className={`shop-card__button ${item.equipped ? 'shop-card__button--equipped' : ''}`}
+                        type="button"
+                        onClick={handleClick}
+                    >
+                        {item.equipped ? 'Equipado' : item.owned ? 'Equipar' : 'Comprar'}
+                    </button>
+                </div>
             </div>
-        </div>
         </article>
     );
 };

@@ -71,7 +71,7 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
         onChange={onChange}
         isRequired
       />
-      <div style={{ display: 'flex', gap: '15px' }}>
+      <div className="form-row">
         <TextInput
           label="Izen-ematea (Monedas / tx)"
           name="coinsFee"

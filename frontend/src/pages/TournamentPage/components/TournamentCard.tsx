@@ -8,11 +8,11 @@ interface TournamentCardProps {
 
 const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps): React.JSX.Element => {
   return (
-    <article className="tournament-card" onClick={() => onClickDetail(tournamentData.id)} style={{ cursor: 'pointer' }}>
+    <article className="tournament-card" onClick={() => onClickDetail(tournamentData.id)}>
       <div className="card-poster">
-        <img 
-          src={tournamentData.posterImage || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80'} 
-          alt={tournamentData.tournamentName} 
+        <img
+          src={tournamentData.posterImage || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80'}
+          alt={tournamentData.tournamentName}
           className="card-poster-img"
         />
         <div className="card-poster-overlay">
@@ -20,28 +20,27 @@ const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps):
         </div>
       </div>
       <div className="card-content">
-        <div className="card-header" style={{ marginBottom: '10px', paddingBottom: '10px' }}>
-          <span className="card-tag" style={{ marginBottom: '6px' }}>
+        <div className="card-header tournament-card-header">
+          <span className="card-tag tournament-card-tag">
             📍 Presencial
           </span>
-          <h3 className="card-title" style={{ margin: '4px 0 0 0', fontSize: '1.2rem' }}>{tournamentData.tournamentName}</h3>
+          <h3 className="card-title tournament-card-title">{tournamentData.tournamentName}</h3>
         </div>
-        
-        <div className="card-body" style={{ gap: '8px', fontSize: '0.9rem', color: '#9ca3af' }}>
-          <p style={{ margin: 0 }}>📍 <strong>Ubicación:</strong> {tournamentData.tournamentLocation}</p>
-          <p style={{ margin: 0 }}>🗓️ <strong>Fecha:</strong> {tournamentData.tournamentDate} a las {tournamentData.tournamentTime}</p>
+
+        <div className="card-body tournament-card-body">
+          <p className="tournament-card-body-text">📍 <strong>Ubicación:</strong> {tournamentData.tournamentLocation}</p>
+          <p className="tournament-card-body-text">🗓️ <strong>Fecha:</strong> {tournamentData.tournamentDate} a las {tournamentData.tournamentTime}</p>
           {tournamentData.contactEmail && (
-            <p style={{ margin: 0 }}>✉️ <strong>Contacto:</strong> {tournamentData.contactEmail}</p>
+            <p className="tournament-card-body-text">✉️ <strong>Contacto:</strong> {tournamentData.contactEmail}</p>
           )}
         </div>
-        
-        <button 
-          className="btn-action" 
+
+        <button
+          className="btn-action tournament-card-btn"
           onClick={(e) => {
             e.stopPropagation();
             onClickDetail(tournamentData.id);
           }}
-          style={{ width: '100%', marginTop: '20px', padding: '10px 0', fontSize: '0.85rem' }}
         >
           Ver Más Detalles
         </button>

@@ -115,7 +115,7 @@ const TournamentPage = (): React.JSX.Element => {
 
       const res = await api.post('/tournaments', payload);
       const saved = res.data;
-      
+
       const newTournament: TournamentDto = {
         id: saved.tournamentId,
         tournamentName: saved.title,
@@ -147,23 +147,23 @@ const TournamentPage = (): React.JSX.Element => {
     <div className="tournament-app-wrapper">
       <main className="page-content">
         {loading ? (
-          <div style={{ color: '#fff', textAlign: 'center', marginTop: '40px' }}>
-            <div className="lobby-loader" style={{ margin: '0 auto 15px auto' }}></div>
+          <div className="tourney-list-loading-box">
+            <div className="lobby-loader tourney-list-loading-spinner"></div>
             Kargatzen / Cargando...
           </div>
         ) : (
           <>
             {currentView === CONST_VIEW_LIST && (
-              <TournamentList 
-                tournaments={tournamentsList} 
-                onPublish={() => setCurrentView(CONST_VIEW_PUBLISH)} 
+              <TournamentList
+                tournaments={tournamentsList}
+                onPublish={() => setCurrentView(CONST_VIEW_PUBLISH)}
                 onClickDetail={handleOpenDetail}
               />
             )}
             {currentView === CONST_VIEW_PUBLISH && (
-              <PublishForm 
-                onAddTournament={handleSaveTournament} 
-                onCancelPublish={() => setCurrentView(CONST_VIEW_LIST)} 
+              <PublishForm
+                onAddTournament={handleSaveTournament}
+                onCancelPublish={() => setCurrentView(CONST_VIEW_LIST)}
               />
             )}
           </>
@@ -173,70 +173,70 @@ const TournamentPage = (): React.JSX.Element => {
       {/* ---------- DETAIL MODAL OVERLAY ---------- */}
       {selectedId && details && (
         <div className="modal-overlay" onClick={() => { setSelectedId(null); setDetails(null); }}>
-          <div className="form-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '850px', width: '90%', maxHeight: '90vh', overflowY: 'auto', background: 'radial-gradient(circle at top left, #121915, #080c0a)', border: '1px solid #d4af37', padding: '30px' }}>
-            
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '15px', marginBottom: '20px' }}>
+          <div className="form-container tourney-detail-modal" onClick={(e) => e.stopPropagation()}>
+
+            <header className="tourney-detail-header">
               <div>
-                <span className="welcome-tag" style={{ color: '#d4af37' }}>DETALLES DEL TORNEO</span>
-                <h2 className="welcome-title" style={{ fontSize: '24px', margin: '4px 0 0 0', color: '#fff' }}>{details.tournament.title}</h2>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#9ca3af' }}>📍 {details.tournament.specificLocation}, {details.tournament.city}</p>
+                <span className="welcome-tag tourney-detail-tag">DETALLES DEL TORNEO</span>
+                <h2 className="welcome-title tourney-detail-title">{details.tournament.title}</h2>
+                <p className="tourney-detail-location">📍 {details.tournament.specificLocation}, {details.tournament.city}</p>
               </div>
-              <button 
+              <button
                 onClick={() => { setSelectedId(null); setDetails(null); }}
-                style={{ background: 'transparent', border: 'none', color: '#6b7280', fontSize: '24px', cursor: 'pointer' }}
+                className="tourney-detail-close-btn"
               >
                 &times;
               </button>
             </header>
 
             {loadingDetails ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', width: '100%' }}>
-                <div className="lobby-loader" style={{ margin: '0 auto 15px auto' }}></div>
-                <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Kargatzen / Cargando...</p>
+              <div className="tourney-detail-loading-box">
+                <div className="lobby-loader tourney-list-loading-spinner"></div>
+                <p className="tourney-detail-loading-text">Kargatzen / Cargando...</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
+              <div className="tourney-detail-body">
                 {/* Left Side: Poster and info */}
-                <div style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <img 
-                    src={details.tournament.posterImage || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80'} 
+                <div className="tourney-detail-left">
+                  <img
+                    src={details.tournament.posterImage || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80'}
                     alt={details.tournament.title}
-                    style={{ width: '100%', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.2)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+                    className="tourney-detail-poster-img"
                   />
                 </div>
 
                 {/* Right Side: Information sheet */}
-                <div style={{ flex: '2 2 380px', display: 'flex', flexDirection: 'column', gap: '20px', color: '#ddd' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px' }}>
-                    <h3 style={{ margin: '0 0 15px 0', color: '#d4af37', fontSize: '1.1rem', borderBottom: '1px solid rgba(212,175,55,0.15)', paddingBottom: '8px' }}>
+                <div className="tourney-detail-right">
+                  <div className="tourney-detail-card">
+                    <h3 className="tourney-detail-card-title">
                       📋 Ficha de Torneo Presencial
                     </h3>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem' }}>
+
+                    <div className="tourney-detail-card-list">
                       <div>
-                        <strong style={{ color: '#fff' }}>📍 Lugar:</strong>
-                        <p style={{ margin: '4px 0 0 10px', color: '#aaa' }}>{details.tournament.specificLocation}, {details.tournament.city}</p>
+                        <strong className="tourney-detail-label">📍 Lugar:</strong>
+                        <p className="tourney-detail-value">{details.tournament.specificLocation}, {details.tournament.city}</p>
                       </div>
                       <div>
-                        <strong style={{ color: '#fff' }}>🗓️ Fecha y Hora:</strong>
-                        <p style={{ margin: '4px 0 0 10px', color: '#aaa' }}>
+                        <strong className="tourney-detail-label">🗓️ Fecha y Hora:</strong>
+                        <p className="tourney-detail-value">
                           {details.tournament.startDatetime ? details.tournament.startDatetime.replace('T', ' a las ').substring(0, 16) : 'Por determinar'}
                         </p>
                       </div>
                       <div>
-                        <strong style={{ color: '#fff' }}>📧 Email de Contacto:</strong>
-                        <p style={{ margin: '4px 0 0 10px', color: '#aaa' }}>{details.tournament.organizer?.email || 'harreman@mus.eus'}</p>
+                        <strong className="tourney-detail-label">📧 Email de Contacto:</strong>
+                        <p className="tourney-detail-value">{details.tournament.organizer?.email || 'harreman@mus.eus'}</p>
                       </div>
                       <div>
-                        <strong style={{ color: '#fff' }}>🏆 Premios y Trofeos:</strong>
-                        <p style={{ margin: '4px 0 0 10px', color: '#aaa' }}>Txapela para la pareja ganadora + Premios locales del organizador.</p>
+                        <strong className="tourney-detail-label">🏆 Premios y Trofeos:</strong>
+                        <p className="tourney-detail-value">Txapela para la pareja ganadora + Premios locales del organizador.</p>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px' }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: '#fff', fontSize: '0.95rem' }}>ℹ️ Descripción y Normativa</h4>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#9ca3af', lineHeight: '1.6' }}>
+                  <div className="tourney-detail-rules-card">
+                    <h4 className="tourney-detail-rules-title">ℹ️ Descripción y Normativa</h4>
+                    <p className="tourney-detail-rules-text">
                       Este es un torneo de Mus presencial organizado por la comunidad. La inscripción, los pagos y el registro de partidas se realizarán directamente en el local de juego bajo la supervisión de los organizadores del torneo. Para más detalles sobre las bases del campeonato, por favor ponte en contacto a través del correo electrónico facilitado.
                     </p>
                   </div>
