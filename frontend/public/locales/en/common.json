@@ -71,7 +71,13 @@
     "invalidBirthDate": "Birth date must be in the past",
     "errorLogin": "Error logging in",
     "errorCreateAccount": "Error creating account",
-    "successCreateAccount": "Account created! Redirecting to login..."
+    "successCreateAccount": "Account created! Redirecting to login...",
+    "twoFactorTitle": "Two-Factor Authentication (2FA)",
+    "twoFactorDescription": "We have sent a code to your email. Enter the 6 digits below:",
+    "codeExpiresIn": "Code expires in",
+    "codeExpired": "The code has expired. Go back to generate another one.",
+    "verifyAndEnter": "Verify and Enter",
+    "invalidCode": "Enter a 6-digit code"
   },
   "meetup": {
     "title": "Find Physical Game",

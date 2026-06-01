@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // ← Añadido useEffect
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import type { AxiosError } from 'axios';
 import api from '../../../services/api';
 import '../styles/login-form.css';
 
@@ -35,69 +34,67 @@ const EyeIcon = ({ open }: { open: boolean }) => (
   </svg>
 );
 
-type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
-
-const decodeJwtPayload = (token: string): Record<string, string> => {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch {
-    return {};
-  }
-};
-
+// UsernameField usa useTranslation internamente, NO recibe t como prop
 interface UsernameFieldProps {
   value: string;
   onChange: (value: string) => void;
-  t: TranslateFn;
 }
 
-const UsernameField: React.FC<UsernameFieldProps> = ({ value, onChange, t }): React.JSX.Element => (
-  <div className="login-form__field">
-    <label className="login-form__label">{t('login.usernameOrEmail')}</label>
-    <div className="login-form__input-wrapper">
-      <UserIcon />
-      <input
-        type="text"
-        className="login-form__input"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={t('login.placeholderUsername')}
-        required
-      />
+const UsernameField: React.FC<UsernameFieldProps> = ({ value, onChange }): React.JSX.Element => {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="login-form__field">
+      <label className="login-form__label">{t('login.usernameOrEmail')}</label>
+      <div className="login-form__input-wrapper">
+        <UserIcon />
+        <input
+          type="text"
+          className="login-form__input"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={t('login.placeholderUsername')}
+          required
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
+// PasswordField usa useTranslation internamente
 interface PasswordFieldProps {
   value: string;
   onChange: (value: string) => void;
   showPassword: boolean;
   onToggleShow: () => void;
-  t: TranslateFn;
 }
 
-const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPassword, onToggleShow, t }): React.JSX.Element => (
-  <div className="login-form__field">
-    <div className="login-form__label-row">
-      <label className="login-form__label">{t('login.password')}</label>
-      <a href="#" className="login-form__forgot">{t('login.forgotPassword')}</a>
+const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPassword, onToggleShow }): React.JSX.Element => {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="login-form__field">
+      <div className="login-form__label-row">
+        <label className="login-form__label">{t('login.password')}</label>
+        <a href="#" className="login-form__forgot">{t('login.forgotPassword')}</a>
+      </div>
+      <div className="login-form__input-wrapper">
+        <LockIcon />
+        <input
+          type={showPassword ? 'text' : 'password'}
+          className="login-form__input"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={t('login.placeholderPassword')}
+          required
+        />
+        <button type="button" className="login-form__toggle" onClick={onToggleShow}>
+          <EyeIcon open={showPassword} />
+        </button>
+      </div>
     </div>
-    <div className="login-form__input-wrapper">
-      <LockIcon />
-      <input
-        type={showPassword ? 'text' : 'password'}
-        className="login-form__input"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={t('login.placeholderPassword')}
-        required
-      />
-      <button type="button" className="login-form__toggle" onClick={onToggleShow}>
-        <EyeIcon open={showPassword} />
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 const LoginForm: React.FC = () => {
   const { t } = useTranslation();
@@ -115,7 +112,7 @@ const LoginForm: React.FC = () => {
 
   // Manejar temporizador de expiración
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval>;
     if (twoFactorRequired && countdown > 0) {
       timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
@@ -166,7 +163,7 @@ const LoginForm: React.FC = () => {
     setError('');
 
     if (verificationCode.length !== 6) {
-      setError('Introduce un código de 6 dígitos');
+      setError(t('login.invalidCode')); // ← Usar traducción si existe
       return;
     }
 
@@ -193,15 +190,22 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  // Formato del tiempo para 2FA
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
+
   if (twoFactorRequired) {
     return (
       <form className="login-form" onSubmit={handleVerify2Fa}>
         <div className="login-form__field" style={{ textAlign: 'center' }}>
           <h2 style={{ color: '#d4af37', marginBottom: '8px', fontSize: '18px', fontWeight: 'bold' }}>
-            🔑 Doble Factor (2FA)
+            🔑 {t('login.twoFactorTitle')}
           </h2>
           <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
-            Hemos enviado un código a tu correo electrónico. Introduce los 6 dígitos a continuación:
+            {t('login.twoFactorDescription')}
           </p>
           
           <div className="login-form__input-wrapper" style={{ justifyContent: 'center' }}>
@@ -233,9 +237,9 @@ const LoginForm: React.FC = () => {
 
           <div style={{ marginTop: '16px', fontSize: '12px', color: countdown > 0 ? '#aaa' : '#e06c75' }}>
             {countdown > 0 ? (
-              <span>El código expira en: <strong style={{ color: '#d4af37' }}>{Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}</strong></span>
+              <span>{t('login.codeExpiresIn')}: <strong style={{ color: '#d4af37' }}>{formatTime(countdown)}</strong></span>
             ) : (
-              <strong>⚠️ El código ha expirado. Regresa para generar otro.</strong>
+              <strong>⚠️ {t('login.codeExpired')}</strong>
             )}
           </div>
         </div>
@@ -253,7 +257,7 @@ const LoginForm: React.FC = () => {
               setError('');
             }}
           >
-            Volver
+            {t('common.back')}
           </button>
           
           <button 
@@ -262,7 +266,7 @@ const LoginForm: React.FC = () => {
             disabled={countdown <= 0}
             style={countdown <= 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
           >
-            Verificar y Entrar
+            {t('login.verifyAndEnter')}
           </button>
         </div>
       </form>
@@ -270,9 +274,9 @@ const LoginForm: React.FC = () => {
   }
 
   return (
-    <form className="login-form" onSubmit={onSubmit}>
-      <UsernameField value={username} onChange={setUsername} t={t} />
-      <PasswordField value={password} onChange={setPassword} showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} t={t} />
+    <form className="login-form" onSubmit={handleSubmit}>
+      <UsernameField value={username} onChange={setUsername} />
+      <PasswordField value={password} onChange={setPassword} showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} />
       {error && <p className="login-form__error">{error}</p>}
       <button type="submit" className="login-form__submit">
         {t('login.submit')}

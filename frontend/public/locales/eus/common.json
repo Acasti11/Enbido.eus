@@ -71,7 +71,13 @@
     "invalidBirthDate": "Jaiotze-datak iraganekoa izan behar du",
     "errorLogin": "Errorea saioa hastean",
     "errorCreateAccount": "Errorea kontua sortzean",
-    "successCreateAccount": "Kontua sortu da! Saio-hasierara bideratzen..."
+    "successCreateAccount": "Kontua sortu da! Saio-hasierara bideratzen...",
+    "twoFactorTitle": "Bi faktoreko autentifikazioa (2FA)",
+    "twoFactorDescription": "Kode bat bidali dugu zure posta elektronikora. Sartu 6 digitoak behean:",
+    "codeExpiresIn": "Kodea honetan iraungitzen da",
+    "codeExpired": "Kodea iraungitu da. Bueltatu bestea sortzeko.",
+    "verifyAndEnter": "Egiaztatu eta sartu",
+    "invalidCode": "Sartu 6 digitoko kode bat"
   },
   "meetup": {
     "title": "Aurkitu Partida Fisikoa",
