@@ -82,15 +82,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
 
-  const fetchOnlineTournaments = async () => {
+  const fetchOnlineTournaments = async (isBackground: boolean | any = false) => {
+    const bg = isBackground === true;
     try {
-      setLoadingTournaments(true);
+      if (!bg) setLoadingTournaments(true);
       const res = await api.get('/tournaments');
       setOnlineTournaments(res.data);
     } catch (err) {
       console.error('Error fetching online tournaments:', err);
     } finally {
-      setLoadingTournaments(false);
+      if (!bg) setLoadingTournaments(false);
     }
   };
 
@@ -263,12 +264,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     }
   };
 
-  // ---------- INITIALIZE PROFILE & SOCIAL ----------
+  // ---------- INITIALIZE PROFILE & SOCIAL & POLLING ----------
   useEffect(() => {
     fetchProfileData();
     fetchFriends();
     fetchRequests();
-    fetchOnlineTournaments();
+    fetchOnlineTournaments(false);
+
+    // Poll lobby state every 6 seconds to keep friends, requests, and tournaments synced
+    const pollInterval = setInterval(() => {
+      fetchProfileData();
+      fetchFriends();
+      fetchRequests();
+      fetchOnlineTournaments(true); // background update
+    }, 6000);
+
+    return () => clearInterval(pollInterval);
   }, [currentUserId]);
 
   // Sincronizar chat con el usuario activo (con polling para usuarios reales en DB)
@@ -756,17 +767,28 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         Introduce el nombre y dale a buscar.
                       </div>
                     ) : (
-                      searchResults.map(user => (
-                        <div key={user.user_id} className="user-search-item">
-                          <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{user.username}</span>
-                          <button 
-                            className="btn-social-mini btn-add-friend-mini"
-                            onClick={() => handleSendFriendRequest(user)}
-                          >
-                            + Agregar
-                          </button>
-                        </div>
-                      ))
+                      searchResults.map(user => {
+                        const isFriend = friends.some(f => f.username === user.username);
+                        const isPending = requests.some(r => r.username === user.username);
+                        
+                        return (
+                          <div key={user.userId || user.user_id || user.id} className="user-search-item">
+                            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{user.username}</span>
+                            {isFriend ? (
+                              <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 'bold' }}>✓ Amigos</span>
+                            ) : isPending ? (
+                              <span style={{ fontSize: '11px', color: '#fbbf24', fontStyle: 'italic' }}>Pendiente</span>
+                            ) : (
+                              <button 
+                                className="btn-social-mini btn-add-friend-mini"
+                                onClick={() => handleSendFriendRequest(user)}
+                              >
+                                + Agregar
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 </>

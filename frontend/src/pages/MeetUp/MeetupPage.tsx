@@ -82,9 +82,9 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
     }
   };
 
-  const fetchMeetups = async () => {
+  const fetchMeetups = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await api.get('/meetups');
       const mapped = res.data.map((ad: any) => ({
         adId: ad.adId,
@@ -103,12 +103,19 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
     } catch (err) {
       console.error('Error fetching physical meetups:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMeetups();
+    fetchMeetups(false);
+
+    // Poll for physical meetups changes every 8 seconds
+    const intervalId = setInterval(() => {
+      fetchMeetups(true);
+    }, 8000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   // Filtrar los anuncios localmente

@@ -39,12 +39,17 @@ public class GameSessionManager {
     public static class MatchmakerEntry {
         public Long userId;
         public String username;
-        public String socketId; // will be resolved in socket mapping
-        public String reyesOption; // "4" or "8"
+        public double elo;
+        public double ratingDeviation;
+        public long entryTime;
+        public String reyesOption;
 
-        public MatchmakerEntry(Long userId, String username, String reyesOption) {
+        public MatchmakerEntry(Long userId, String username, double elo, double ratingDeviation, String reyesOption) {
             this.userId = userId;
             this.username = username;
+            this.elo = elo;
+            this.ratingDeviation = ratingDeviation;
+            this.entryTime = System.currentTimeMillis();
             this.reyesOption = reyesOption;
         }
     }
@@ -88,30 +93,109 @@ public class GameSessionManager {
         matchmakingQueue4.removeIf(entry -> entry.userId.equals(userId));
         matchmakingQueue8.removeIf(entry -> entry.userId.equals(userId));
         
-        targetQueue.add(new MatchmakerEntry(userId, username, reyesOption));
+        // Cargar estadísticas Glicko-2 del jugador
+        UserGameProfile profile = profileRepository.findById(userId)
+                .orElseGet(() -> new UserGameProfile(userId));
         
-        if (targetQueue.size() >= 4) {
-            // Creamos sala automática de Matchmaking
-            String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-") + (int)Math.floor(100 + Math.random() * 900);
-            GameSession session = createRoom(autoRoomId);
-            
-            // Configurar modo de reyes y rondas por defecto (3 chicos a ganar - mejor de 5)
-            session.getConfig().setReyesOption(reyesOption);
-            session.getConfig().setMaxRounds(3);
-            
-            // Sentamos a los 4 jugadores
-            for (int chair = 0; chair < 4; chair++) {
-                MatchmakerEntry player = targetQueue.remove(0);
-                session.addPlayer(chair, player.userId, player.username);
-            }
-            
-            // Persistimos la partida iniciada en la Base de Datos
-            saveNewGameToDb(session);
-            
-            session.startMatch();
-            return autoRoomId;
+        // Validar penalización de ban de emparejamiento
+        if (profile.getMatchmakingBanUntil() != null && profile.getMatchmakingBanUntil().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("Estás temporalmente baneado de buscar partidas.");
         }
-        return null;
+        
+        double userElo = profile.getElo().doubleValue();
+        double userRd = profile.getRatingDeviation();
+        
+        targetQueue.add(new MatchmakerEntry(userId, username, userElo, userRd, reyesOption));
+        return null; // El Scheduler asíncrono se encargará del matching
+    }
+
+    public synchronized List<Map<String, Object>> runMatchmakingStep() {
+        List<Map<String, Object>> matchedRooms = new ArrayList<>();
+        matchedRooms.addAll(matchQueue("8", matchmakingQueue8));
+        matchedRooms.addAll(matchQueue("4", matchmakingQueue4));
+        return matchedRooms;
+    }
+    
+    private List<Map<String, Object>> matchQueue(String reyesOption, List<MatchmakerEntry> queue) {
+        List<Map<String, Object>> matched = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        
+        boolean foundGroup = true;
+        while (foundGroup && queue.size() >= 4) {
+            foundGroup = false;
+            
+            for (int i = 0; i < queue.size(); i++) {
+                MatchmakerEntry pA = queue.get(i);
+                // Ventana expande a +15 ELO por segundo
+                double deltaA = 100.0 + ((now - pA.entryTime) / 1000.0) * 15.0;
+                
+                List<Integer> candidateIndices = new ArrayList<>();
+                candidateIndices.add(i);
+                
+                for (int j = 0; j < queue.size(); j++) {
+                    if (i == j) continue;
+                    MatchmakerEntry pB = queue.get(j);
+                    double deltaB = 100.0 + ((now - pB.entryTime) / 1000.0) * 15.0;
+                    
+                    double eloDiff = Math.abs(pA.elo - pB.elo);
+                    if (eloDiff <= Math.max(deltaA, deltaB)) {
+                        candidateIndices.add(j);
+                    }
+                    
+                    if (candidateIndices.size() == 4) {
+                        break;
+                    }
+                }
+                
+                if (candidateIndices.size() == 4) {
+                    List<MatchmakerEntry> group = new ArrayList<>();
+                    Collections.sort(candidateIndices, Collections.reverseOrder());
+                    for (int idx : candidateIndices) {
+                        group.add(queue.remove(idx));
+                    }
+                    
+                    // Ordenar por ELO descendente para balancear equipos
+                    group.sort((o1, o2) -> Double.compare(o2.elo, o1.elo));
+                    
+                    MatchmakerEntry p1 = group.get(0);
+                    MatchmakerEntry p2 = group.get(1);
+                    MatchmakerEntry p3 = group.get(2);
+                    MatchmakerEntry p4 = group.get(3);
+                    
+                    String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-") + (int)Math.floor(100 + Math.random() * 900);
+                    GameSession session = createRoom(autoRoomId);
+                    session.getConfig().setReyesOption(reyesOption);
+                    session.getConfig().setMaxRounds(3);
+                    
+                    // Asignación balanceada de equipos (Parejas: 0 y 2 vs 1 y 3)
+                    // Equipo A = p1 (máx ELO) + p4 (mín ELO)
+                    session.addPlayer(0, p1.userId, p1.username);
+                    session.addPlayer(2, p4.userId, p4.username);
+                    
+                    // Equipo B = p2 + p3
+                    session.addPlayer(1, p2.userId, p2.username);
+                    session.addPlayer(3, p3.userId, p3.username);
+                    
+                    saveNewGameToDb(session);
+                    session.startMatch();
+                    
+                    Map<String, Object> matchInfo = new HashMap<>();
+                    matchInfo.put("roomId", autoRoomId);
+                    
+                    List<Long> playerIds = new ArrayList<>();
+                    playerIds.add(p1.userId);
+                    playerIds.add(p2.userId);
+                    playerIds.add(p3.userId);
+                    playerIds.add(p4.userId);
+                    matchInfo.put("playerIds", playerIds);
+                    
+                    matched.add(matchInfo);
+                    foundGroup = true;
+                    break;
+                }
+            }
+        }
+        return matched;
     }
 
     public synchronized void removeFromMatchmaking(Long userId) {
@@ -188,15 +272,75 @@ public class GameSessionManager {
     }
 
     private void syncUserStatsPostGame(GameSession session) {
-        boolean usWon = session.getScoreUs() >= 30;
+        boolean team1Won = session.getScoreUs() >= 30;
         
+        // Resolver ELOs y RDs actuales para los 4 asientos
+        double ratingA0 = 1500.0;
+        double rdA0 = 350.0;
+        GamePlayer gp0 = session.getPlayers().get(0);
+        if (gp0 != null && !gp0.isBot()) {
+            UserGameProfile prof = profileRepository.findById(gp0.getUserId()).orElse(null);
+            if (prof != null) {
+                ratingA0 = prof.getElo().doubleValue();
+                rdA0 = prof.getRatingDeviation();
+            }
+        }
+        
+        double ratingA2 = 1500.0;
+        double rdA2 = 350.0;
+        GamePlayer gp2 = session.getPlayers().get(2);
+        if (gp2 != null && !gp2.isBot()) {
+            UserGameProfile prof = profileRepository.findById(gp2.getUserId()).orElse(null);
+            if (prof != null) {
+                ratingA2 = prof.getElo().doubleValue();
+                rdA2 = prof.getRatingDeviation();
+            }
+        }
+        
+        double ratingB1 = 1500.0;
+        double rdB1 = 350.0;
+        GamePlayer gp1 = session.getPlayers().get(1);
+        if (gp1 != null && !gp1.isBot()) {
+            UserGameProfile prof = profileRepository.findById(gp1.getUserId()).orElse(null);
+            if (prof != null) {
+                ratingB1 = prof.getElo().doubleValue();
+                rdB1 = prof.getRatingDeviation();
+            }
+        }
+        
+        double ratingB3 = 1500.0;
+        double rdB3 = 350.0;
+        GamePlayer gp3 = session.getPlayers().get(3);
+        if (gp3 != null && !gp3.isBot()) {
+            UserGameProfile prof = profileRepository.findById(gp3.getUserId()).orElse(null);
+            if (prof != null) {
+                ratingB3 = prof.getElo().doubleValue();
+                rdB3 = prof.getRatingDeviation();
+            }
+        }
+
+        // Ratings y RDs compuestos de los equipos
+        double ratingTeamA = (ratingA0 + ratingA2) / 2.0;
+        double rdTeamA = (rdA0 + rdA2) / 2.0;
+        
+        double ratingTeamB = (ratingB1 + ratingB3) / 2.0;
+        double rdTeamB = (rdB1 + rdB3) / 2.0;
+
+        double scoreTeamA = team1Won ? 1.0 : 0.0;
+        double scoreTeamB = 1.0 - scoreTeamA;
+
+        // Procesar cambios para cada usuario real
         for (int chair = 0; chair < 4; chair++) {
             GamePlayer gp = session.getPlayers().get(chair);
             if (gp != null && !gp.isBot() && gp.getUserId() != null) {
                 Long uId = gp.getUserId();
-                boolean isUsTeam = (chair % 2 == 0);
-                boolean didWin = (isUsTeam == usWon);
+                boolean isTeamA = (chair % 2 == 0);
+                boolean didWin = (isTeamA == team1Won);
+                double outcome = isTeamA ? scoreTeamA : scoreTeamB;
                 
+                double oppTeamRating = isTeamA ? ratingTeamB : ratingTeamA;
+                double oppTeamRd = isTeamA ? rdTeamB : rdTeamA;
+
                 try {
                     UserGameProfile profile = profileRepository.findById(uId)
                             .orElseGet(() -> new UserGameProfile(uId));
@@ -204,14 +348,30 @@ public class GameSessionManager {
                     profile.setTotalGamesPlayed(profile.getTotalGamesPlayed() + 1);
                     if (didWin) {
                         profile.setTotalGamesWon(profile.getTotalGamesWon() + 1);
-                        profile.setElo(profile.getElo() + 15); // +15 ELO por victoria
-                        profile.setCoins(profile.getCoins() + 25); // +25 monedas por victoria
-                    } else {
-                        profile.setElo(Math.max(0, profile.getElo() - 8)); // -8 ELO por derrota (mínimo 0)
-                        profile.setCoins(profile.getCoins() + 5); // +5 monedas de cortesía por jugar
                     }
+                    
+                    // Ejecutar actualización de Glicko-2
+                    Glicko2Calculator.GlickoResult res = Glicko2Calculator.update(
+                        profile.getElo().doubleValue(),
+                        profile.getRatingDeviation(),
+                        profile.getVolatility(),
+                        oppTeamRating,
+                        oppTeamRd,
+                        outcome
+                    );
+                    
+                    int oldElo = profile.getElo();
+                    profile.setElo((int) Math.max(0, Math.round(res.rating)));
+                    profile.setRatingDeviation(res.ratingDeviation);
+                    profile.setVolatility(res.volatility);
+                    
+                    // Recompensa de monedas
+                    int coinsGained = didWin ? 25 : 5;
+                    profile.setCoins(profile.getCoins() + coinsGained);
+                    
                     profileRepository.save(profile);
-                    session.appendLog(String.format("[BD] Perfil de %s actualizado (ELO: %d)", gp.getUsername(), profile.getElo()));
+                    session.appendLog(String.format("[BD] Perfil de %s actualizado: ELO %d -> %d (RD: %.1f)", 
+                        gp.getUsername(), oldElo, profile.getElo(), profile.getRatingDeviation()));
                 } catch (Exception e) {
                     System.err.println("Error updating user statistics in DB: " + e.getMessage());
                 }

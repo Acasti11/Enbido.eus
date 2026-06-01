@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/friendships")
@@ -29,6 +30,15 @@ public class FriendshipController {
 
     @Autowired
     private UserProfileService userProfileService;
+
+    // Registry of user presence: userId -> lastActiveTimestamp in milliseconds
+    private static final Map<Long, Long> activeSessions = new ConcurrentHashMap<>();
+
+    private void updateSessionActivity(Long userId) {
+        if (userId != null) {
+            activeSessions.put(userId, System.currentTimeMillis());
+        }
+    }
 
     // Response Dto inside Controller for simplicity
     public static class FriendResponse {
@@ -50,6 +60,8 @@ public class FriendshipController {
     @GetMapping
     public ResponseEntity<?> getFriends(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
+        updateSessionActivity(userId);
+        
         List<Friendship> friendships = friendshipRepository.findAcceptedFriends(userId);
         List<FriendResponse> response = new ArrayList<>();
 
@@ -73,7 +85,10 @@ public class FriendshipController {
             res.elo = gp.getElo() != null ? gp.getElo() : 200;
             res.totalGamesPlayed = gp.getTotalGamesPlayed() != null ? gp.getTotalGamesPlayed() : 0;
             res.totalGamesWon = gp.getTotalGamesWon() != null ? gp.getTotalGamesWon() : 0;
-            res.status = Math.random() > 0.4 ? "online" : "offline"; // Dynamic status simulation
+            
+            // Check real-time presence (active in the last 20 seconds)
+            long lastActive = activeSessions.getOrDefault(friendId, 0L);
+            res.status = (System.currentTimeMillis() - lastActive) < 20000 ? "online" : "offline";
             
             response.add(res);
         }
@@ -84,6 +99,8 @@ public class FriendshipController {
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingRequests(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
+        updateSessionActivity(userId);
+        
         List<Friendship> received = friendshipRepository.findPendingRequestsReceived(userId);
         List<Friendship> sent = friendshipRepository.findPendingRequestsSent(userId);
         List<PendingRequestResponse> response = new ArrayList<>();
