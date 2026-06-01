@@ -10,6 +10,7 @@ public class GameMatch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "game_matches_id")
     private Long id;
 
     @Column(name = "user_id")

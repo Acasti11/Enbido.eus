@@ -6,7 +6,7 @@
   background-image: radial-gradient(circle at top right, rgba(45, 107, 69, 0.4), transparent 50%), linear-gradient(180deg, #18472f 0%, #0f291e 100%);
 }
 
-.page-content { 
+.page-content {  
   flex: 1; 
   padding: var(--spacing-xl); 
   max-width: 1200px; 
@@ -101,6 +101,16 @@
   accent-color: var(--color-brand-light);
 }
 
+.meetup-loading {
+  color: var(--color-text-white);
+  text-align: center;
+  margin-top: 40px;
+}
+
+.meetup-map {
+  width: 100%;
+  height: 100%;
+}
 /* =========================================
    RESPONSIVE MEETUP LANDING PAGE
    ========================================= */

@@ -45,7 +45,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     Long userId = jwtService.extractUserId(token);
                     String username = jwtService.extractUsername(token);
                     
-                    // ========== AÑADIR ESTO ==========
                     // Guardar userId como atributo del request para que los controllers lo lean
                     request.setAttribute("userId", userId);
                     // ==================================

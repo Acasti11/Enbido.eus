@@ -144,7 +144,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
 
         <button 
           className="navbar__shop-btn" 
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           title="Ajustes" 
           onClick={() => {
             playSfx('click');

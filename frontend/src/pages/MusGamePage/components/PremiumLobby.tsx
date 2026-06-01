@@ -76,7 +76,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [selectedTourneyId, setSelectedTourneyId] = useState<number | null>(null);
   const [tourneyDetails, setTourneyDetails] = useState<any>(null);
   const [loadingTourneyDetails, setLoadingTourneyDetails] = useState(false);
-  
+
   // Reporting states
   const [reportingMatchId, setReportingMatchId] = useState<number | null>(null);
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
@@ -206,13 +206,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<PendingRequest[]>([]);
-  
+
   // Chat & Profile overlays
   const [activeChatUser, setActiveChatUser] = useState<Friend | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [selectedProfileUser, setSelectedProfileUser] = useState<Friend | null>(null);
-  
+
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const handleOpenLeaderboard = async () => {
@@ -285,7 +285,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   // Sincronizar chat con el usuario activo (con polling para usuarios reales en DB)
   useEffect(() => {
     if (!activeChatUser) return;
-    
+
     const loadChat = async () => {
       if (activeChatUser.isBot) {
         const key = `enbido_chat_with_${currentUserId}_and_${activeChatUser.id}`;
@@ -308,7 +308,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     };
 
     loadChat();
-    
+
     // Auto-scroll al final del chat
     setTimeout(() => {
       if (chatEndRef.current) {
@@ -339,7 +339,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       if (targetUser) {
         localStorage.removeItem('enbido_open_dm_target');
         const parsed = JSON.parse(targetUser);
-        
+
         const exists = friends.find(f => f.username === parsed.username);
         if (exists) {
           setActiveChatUser(exists);
@@ -351,7 +351,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               fetchRequests();
             })
             .catch(err => console.error(err));
-          
+
           const newFriend: Friend = {
             id: parsed.id,
             username: parsed.username,
@@ -364,7 +364,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         }
       }
     };
-    
+
     const interval = setInterval(checkExternalChat, 500);
     return () => clearInterval(interval);
   }, [friends, currentUserId]);
@@ -375,8 +375,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     try {
       const res = await api.get('/usuarios');
       // Filtrar la lista de usuarios en base a la query (excluyendo el usuario propio)
-      const matches = res.data.filter((u: any) => 
-        u.username.toLowerCase().includes(searchQuery.toLowerCase()) && 
+      const matches = res.data.filter((u: any) =>
+        u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
         u.username !== activeUsername
       );
       setSearchResults(matches);
@@ -518,14 +518,14 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   return (
     <div className="premium-lobby-overlay">
       <div className="premium-lobby-card">
-        
+
         {/* LOBBY HEADER */}
         <header className="lobby-header">
           <div className="welcome-section">
             <span className="welcome-tag">JUGADOR REGISTRADO</span>
             <h1 className="welcome-title">¡Hola, {username}!</h1>
           </div>
-          
+
           {/* USER STATS BADGES */}
           {!loading && profile && (
             <div className="header-badges">
@@ -543,7 +543,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span className="badge-lbl">Monedas de Oro</span>
                 </div>
               </div>
-              <button 
+              <button
                 className="lobby-badge leaderboard-trigger-btn"
                 onClick={handleOpenLeaderboard}
                 title="Ver clasificación general"
@@ -554,15 +554,14 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span className="badge-lbl">Clasificación</span>
                 </div>
               </button>
-              <button 
+              <button
                 className="lobby-badge rules-trigger-btn"
                 onClick={() => setShowRulesModal(true)}
                 title="Aprender a jugar al Mus"
-                style={{ cursor: 'pointer', background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
               >
-                <span className="badge-icon" style={{ filter: 'none' }}>🃏</span>
+                <span className="badge-icon">🃏</span>
                 <div className="badge-details">
-                  <span className="badge-val" style={{ color: '#d4af37' }}>Reglas / Keinus</span>
+                  <span className="badge-val">Reglas / Keinus</span>
                   <span className="badge-lbl">Guía de Juego</span>
                 </div>
               </button>
@@ -571,7 +570,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </header>
 
         <div className="lobby-grid">
-          
+
           {/* COLUMN 1: QUICK MATCHMAKING */}
           <section className="lobby-column matchmaking-panel">
             <div className="panel-glow-header">
@@ -579,7 +578,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               <h2>Buscador de Partidas</h2>
             </div>
             <p className="panel-desc">Emparejamientos rápidos en red. Juega con los mejores musolaris conectados en directo.</p>
-            
+
             {isSearching ? (
               <div className="search-spinner-area">
                 <div className="lobby-loader"></div>
@@ -591,44 +590,26 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               </div>
             ) : (
               <>
-                <div className="reyes-selector-matchmaking" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px', width: '100%' }}>
-                  <label style={{ fontSize: '0.8rem', color: '#888', fontWeight: 700, letterSpacing: '0.5px' }}>REGLAS DE REYES:</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setSelectedReyes('8')} 
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        borderRadius: '8px',
-                        border: selectedReyes === '8' ? '2px solid #d4af37' : '1px solid #333',
-                        backgroundColor: selectedReyes === '8' ? 'rgba(212, 175, 55, 0.12)' : '#161616',
-                        color: selectedReyes === '8' ? '#d4af37' : '#aaa',
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        transition: 'all 0.2s',
-                        boxShadow: selectedReyes === '8' ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none'
-                      }}
+                <div className="reyes-selector">
+                  <label className="reyes-selector-label">REGLAS DE REYES:</label>
+                  <div className="reyes-selector-options">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReyes('8')}
+                      className={`reyes-option ${selectedReyes === '8'
+                        ? 'reyes-option--active'
+                        : 'reyes-option--inactive'
+                        }`}
                     >
                       👑 8 Reyes
                     </button>
-                    <button 
-                      type="button" 
-                      onClick={() => setSelectedReyes('4')} 
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        borderRadius: '8px',
-                        border: selectedReyes === '4' ? '2px solid #d4af37' : '1px solid #333',
-                        backgroundColor: selectedReyes === '4' ? 'rgba(212, 175, 55, 0.12)' : '#161616',
-                        color: selectedReyes === '4' ? '#d4af37' : '#aaa',
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        transition: 'all 0.2s',
-                        boxShadow: selectedReyes === '4' ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none'
-                      }}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReyes('4')}
+                      className={`reyes-option ${selectedReyes === '4'
+                        ? 'reyes-option--active'
+                        : 'reyes-option--inactive'
+                        }`}
                     >
                       ⚔️ 4 Reyes
                     </button>
@@ -648,7 +629,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               <h2>Salas de Juego Privadas</h2>
             </div>
             <p className="panel-desc">Crea una mesa de juego personalizada con amigos o un código de sala compartido.</p>
-            
+
             <button className="create-room-btn" onClick={handleCreateRoomLocal}>
               Crear Nueva Mesa Privada
             </button>
@@ -680,19 +661,19 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
             {/* TABS HEADER */}
             <div className="social-tabs">
-              <button 
+              <button
                 className={`social-tab-btn ${socialTab === 'amigos' ? 'social-tab-btn--active' : ''}`}
                 onClick={() => setSocialTab('amigos')}
               >
                 Amigos ({friends.length})
               </button>
-              <button 
+              <button
                 className={`social-tab-btn ${socialTab === 'buscar' ? 'social-tab-btn--active' : ''}`}
                 onClick={() => setSocialTab('buscar')}
               >
                 Buscar
               </button>
-              <button 
+              <button
                 className={`social-tab-btn ${socialTab === 'requests' ? 'social-tab-btn--active' : ''}`}
                 onClick={() => setSocialTab('requests')}
               >
@@ -702,11 +683,11 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
             {/* TAB CONTENT */}
             <div className="social-content-area">
-              
+
               {/* TAB 1: FRIENDS LIST */}
               {socialTab === 'amigos' && (
                 friends.length === 0 ? (
-                  <div style={{ color: '#6b7280', fontSize: '11px', textAlign: 'center', marginTop: '30px', fontStyle: 'italic' }}>
+                  <div className="social-empty-state social-empty-state--large">
                     Aún no tienes amigos agregados.
                   </div>
                 ) : (
@@ -714,7 +695,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                     <div key={friend.id} className="friend-item">
                       <div className="friend-info-block">
                         <div className="friend-avatar-circle">
-                          {friend.username.substring(0,2).toUpperCase()}
+                          {friend.username.substring(0, 2).toUpperCase()}
                         </div>
                         <div className="friend-details">
                           <span className="friend-name">{friend.username}</span>
@@ -724,16 +705,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="friend-actions-btns">
-                        <button 
+                        <button
                           className="btn-social-mini btn-chat-mini"
                           onClick={() => setActiveChatUser(friend)}
                           title="Abrir chat privado"
                         >
                           💬
                         </button>
-                        <button 
+                        <button
                           className="btn-social-mini btn-profile-mini"
                           onClick={() => setSelectedProfileUser(friend)}
                           title="Ver perfil"
@@ -750,9 +731,9 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               {socialTab === 'buscar' && (
                 <>
                   <div className="social-search-row">
-                    <input 
-                      type="text" 
-                      placeholder="Nombre de usuario..." 
+                    <input
+                      type="text"
+                      placeholder="Nombre de usuario..."
                       className="social-search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -761,34 +742,25 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       Buscar
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
+                  <div className="search-results-list">
                     {searchResults.length === 0 ? (
-                      <div style={{ color: '#6b7280', fontSize: '11px', textAlign: 'center', marginTop: '10px' }}>
+                      <div className="social-empty-state social-empty-state--small">
                         Introduce el nombre y dale a buscar.
                       </div>
                     ) : (
-                      searchResults.map(user => {
-                        const isFriend = friends.some(f => f.username === user.username);
-                        const isPending = requests.some(r => r.username === user.username);
-                        
-                        return (
-                          <div key={user.userId || user.user_id || user.id} className="user-search-item">
-                            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{user.username}</span>
-                            {isFriend ? (
-                              <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 'bold' }}>✓ Amigos</span>
-                            ) : isPending ? (
-                              <span style={{ fontSize: '11px', color: '#fbbf24', fontStyle: 'italic' }}>Pendiente</span>
-                            ) : (
-                              <button 
-                                className="btn-social-mini btn-add-friend-mini"
-                                onClick={() => handleSendFriendRequest(user)}
-                              >
-                                + Agregar
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })
+                      searchResults.map(user => (
+                        <div key={user.user_id} className="user-search-item">
+                          <span className="search-result-username">
+                            {user.username}
+                          </span>
+                          <button
+                            className="btn-social-mini btn-add-friend-mini"
+                            onClick={() => handleSendFriendRequest(user)}
+                          >
+                            + Agregar
+                          </button>
+                        </div>
+                      ))
                     )}
                   </div>
                 </>
@@ -797,39 +769,39 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               {/* TAB 3: PENDING REQUESTS */}
               {socialTab === 'requests' && (
                 requests.length === 0 ? (
-                  <div style={{ color: '#6b7280', fontSize: '11px', textAlign: 'center', marginTop: '30px', fontStyle: 'italic' }}>
+                  <div className="social-empty-state social-empty-state--large">
                     No tienes peticiones pendientes.
                   </div>
                 ) : (
                   requests.map(req => (
-                    <div key={req.friendshipId} className="friend-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{req.username}</span>
-                        <span style={{ fontSize: '10px', color: '#888', fontStyle: 'italic' }}>
+                    <div
+                      key={req.friendshipId}
+                      className="friend-item friend-item--request"
+                    >
+                      <div className="request-header">
+                        <span className="request-username">{req.username}</span>
+                        <span className="request-status">
                           {req.type === 'received' ? 'Te ha enviado solicitud' : 'Solicitud enviada'}
                         </span>
                       </div>
                       {req.type === 'received' ? (
-                        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                          <button 
-                            className="btn-action-request btn-accept-req"
-                            style={{ flex: 1, padding: '4px 8px', fontSize: '10px' }}
+                        <div className="request-actions">
+                          <button
+                            className="btn-action-request btn-accept-req request-btn"
                             onClick={() => handleAcceptRequest(req)}
                           >
                             Aceptar
                           </button>
-                          <button 
-                            className="btn-action-request btn-decline-req"
-                            style={{ flex: 1, padding: '4px 8px', fontSize: '10px' }}
+                          <button
+                            className="btn-action-request btn-decline-req request-btn"
                             onClick={() => handleDeclineRequest(req)}
                           >
                             Rechazar
                           </button>
                         </div>
                       ) : (
-                        <button 
-                          className="btn-action-request btn-decline-req"
-                          style={{ width: '100%', padding: '4px 8px', fontSize: '10px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+                        <button
+                          className="btn-action-request btn-decline-req request-btn-full request-btn-cancel"
                           onClick={() => handleDeclineRequest(req)}
                         >
                           Cancelar Solicitud
@@ -855,108 +827,108 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
         {/* COLUMN / VIEW: ONLINE TOURNAMENTS LIST */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', marginBottom: '35px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>🏆 Torneos Online de Mus</h2>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#888' }}>
-                  Inscríbete usando tus monedas, compite en eliminatorias directas y gana el gran premio.
-                </p>
-              </div>
-              <button 
-                onClick={fetchOnlineTournaments}
-                className="btn-action"
-                style={{ width: 'auto', padding: '10px 20px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                🔄 Actualizar Lista
-              </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>🏆 Torneos Online de Mus</h2>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#888' }}>
+                Inscríbete usando tus monedas, compite en eliminatorias directas y gana el gran premio.
+              </p>
             </div>
-
-            {loadingTournaments ? (
-              <div style={{ textAlign: 'center', padding: '50px 0' }}>
-                <div className="lobby-loader" style={{ margin: '0 auto 15px auto' }}></div>
-                <p style={{ color: '#888', fontSize: '0.9rem' }}>Cargando torneos online...</p>
-              </div>
-            ) : onlineTournaments.length === 0 ? (
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '50px', textAlign: 'center' }}>
-                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>🎫</span>
-                <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.1rem' }}>No hay torneos online programados</h3>
-                <p style={{ color: '#6b7280', fontSize: '0.85rem', maxWidth: '400px', margin: '0 auto' }}>
-                  Los administradores programan torneos en fechas especiales. Vuelve a consultar más tarde.
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                {onlineTournaments.map((tourney) => {
-                  const isPlaying = tourney.status === 'playing';
-                  const isFinished = tourney.status === 'finished';
-                  return (
-                    <div 
-                      key={tourney.id || tourney.tournamentId} 
-                      onClick={() => handleOpenTourneyDetail(tourney.id || tourney.tournamentId)}
-                      className="lobby-column"
-                      style={{ 
-                        padding: '20px', 
-                        cursor: 'pointer', 
-                        textAlign: 'left', 
-                        alignItems: 'stretch',
-                        background: 'rgba(0,0,0,0.25)',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        transition: 'transform 0.2s, border-color 0.2s',
-                        height: 'auto'
-                      }}
-                      onMouseOver={(e) => { e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                        <span style={{
-                          padding: '3px 8px',
-                          borderRadius: '20px',
-                          fontSize: '0.7rem',
-                          fontWeight: 'bold',
-                          backgroundColor: isPlaying ? 'rgba(245, 158, 11, 0.15)' : isFinished ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                          color: isPlaying ? '#fbbf24' : isFinished ? '#34d399' : '#60a5fa'
-                        }}>
-                          {isPlaying ? '⚡ En juego' : isFinished ? '🏆 Finalizado' : '📝 Abierto'}
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: '#888' }}>🌐 Online</span>
-                      </div>
-
-                      <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>
-                        {tourney.title || tourney.tournamentName}
-                      </h3>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#9ca3af', marginBottom: '15px' }}>
-                        <div>📍 <strong>Servidor:</strong> Enbido.eus Online</div>
-                        <div>🗓️ <strong>Fecha:</strong> {tourney.startDatetime ? tourney.startDatetime.replace('T', ' ').substring(0, 16) : 'Por determinar'}</div>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '15px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '15px', marginTop: 'auto' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <span style={{ fontSize: '0.65rem', color: '#888' }}>ENTRADA</span>
-                          <span style={{ color: '#fac715', fontWeight: 'bold', fontSize: '0.85rem' }}>💰 {tourney.coinsFee || 0} tx</span>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <span style={{ fontSize: '0.65rem', color: '#888' }}>PREMIO</span>
-                          <span style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '0.85rem' }}>🏆 {tourney.coinsReward || 0} tx</span>
-                        </div>
-                      </div>
-
-                      <button 
-                        className="btn-action"
-                        style={{ width: '100%', padding: '10px 0', fontSize: '0.75rem', marginTop: '5px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenTourneyDetail(tourney.id || tourney.tournamentId);
-                        }}
-                      >
-                        {isFinished ? 'Ver Campeón y Brackets' : 'Ver Brackets / Inscribirse'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <button
+              onClick={fetchOnlineTournaments}
+              className="btn-action"
+              style={{ width: 'auto', padding: '10px 20px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+            >
+              🔄 Actualizar Lista
+            </button>
           </div>
+
+          {loadingTournaments ? (
+            <div style={{ textAlign: 'center', padding: '50px 0' }}>
+              <div className="lobby-loader" style={{ margin: '0 auto 15px auto' }}></div>
+              <p style={{ color: '#888', fontSize: '0.9rem' }}>Cargando torneos online...</p>
+            </div>
+          ) : onlineTournaments.length === 0 ? (
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '50px', textAlign: 'center' }}>
+              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>🎫</span>
+              <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.1rem' }}>No hay torneos online programados</h3>
+              <p style={{ color: '#6b7280', fontSize: '0.85rem', maxWidth: '400px', margin: '0 auto' }}>
+                Los administradores programan torneos en fechas especiales. Vuelve a consultar más tarde.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+              {onlineTournaments.map((tourney) => {
+                const isPlaying = tourney.status === 'playing';
+                const isFinished = tourney.status === 'finished';
+                return (
+                  <div
+                    key={tourney.id || tourney.tournamentId}
+                    onClick={() => handleOpenTourneyDetail(tourney.id || tourney.tournamentId)}
+                    className="lobby-column"
+                    style={{
+                      padding: '20px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      alignItems: 'stretch',
+                      background: 'rgba(0,0,0,0.25)',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      transition: 'transform 0.2s, border-color 0.2s',
+                      height: 'auto'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                      <span style={{
+                        padding: '3px 8px',
+                        borderRadius: '20px',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        backgroundColor: isPlaying ? 'rgba(245, 158, 11, 0.15)' : isFinished ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                        color: isPlaying ? '#fbbf24' : isFinished ? '#34d399' : '#60a5fa'
+                      }}>
+                        {isPlaying ? '⚡ En juego' : isFinished ? '🏆 Finalizado' : '📝 Abierto'}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: '#888' }}>🌐 Online</span>
+                    </div>
+
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem', color: '#fff', fontWeight: 800 }}>
+                      {tourney.title || tourney.tournamentName}
+                    </h3>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#9ca3af', marginBottom: '15px' }}>
+                      <div>📍 <strong>Servidor:</strong> Enbido.eus Online</div>
+                      <div>🗓️ <strong>Fecha:</strong> {tourney.startDatetime ? tourney.startDatetime.replace('T', ' ').substring(0, 16) : 'Por determinar'}</div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '15px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '15px', marginTop: 'auto' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <span style={{ fontSize: '0.65rem', color: '#888' }}>ENTRADA</span>
+                        <span style={{ color: '#fac715', fontWeight: 'bold', fontSize: '0.85rem' }}>💰 {tourney.coinsFee || 0} tx</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <span style={{ fontSize: '0.65rem', color: '#888' }}>PREMIO</span>
+                        <span style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '0.85rem' }}>🏆 {tourney.coinsReward || 0} tx</span>
+                      </div>
+                    </div>
+
+                    <button
+                      className="btn-action"
+                      style={{ width: '100%', padding: '10px 0', fontSize: '0.75rem', marginTop: '5px' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenTourneyDetail(tourney.id || tourney.tournamentId);
+                      }}
+                    >
+                      {isFinished ? 'Ver Campeón y Brackets' : 'Ver Brackets / Inscribirse'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* STATS OVERVIEW SECTION */}
         {!loading && profile && (
@@ -998,8 +970,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               <div className="profile-detail-box">
                 <span className="profile-detail-lbl">Efectividad</span>
                 <span className="profile-detail-val">
-                  {selectedProfileUser.totalGamesPlayed > 0 
-                    ? Math.round((selectedProfileUser.totalGamesWon / selectedProfileUser.totalGamesPlayed) * 100) 
+                  {selectedProfileUser.totalGamesPlayed > 0
+                    ? Math.round((selectedProfileUser.totalGamesWon / selectedProfileUser.totalGamesPlayed) * 100)
                     : 0}%
                 </span>
               </div>
@@ -1013,7 +985,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               </div>
             </div>
 
-            <button 
+            <button
               className="profile-card-close-btn"
               onClick={() => setSelectedProfileUser(null)}
             >
@@ -1035,7 +1007,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               &times;
             </button>
           </header>
-          
+
           <div className="chat-window-messages" ref={chatEndRef}>
             {chatMessages.length === 0 ? (
               <div style={{ color: '#6b7280', fontSize: '10px', textAlign: 'center', marginTop: '40px', fontStyle: 'italic' }}>
@@ -1045,8 +1017,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               chatMessages.map((msg, index) => {
                 const isMe = msg.senderId === currentUserId;
                 return (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`chat-msg-row ${isMe ? 'chat-msg-row--sent' : 'chat-msg-row--received'}`}
                   >
                     <span style={{ display: 'block', fontWeight: 'bold', fontSize: '9px', marginBottom: '2px', color: isMe ? '#fac715' : '#4ade80' }}>
@@ -1060,8 +1032,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           </div>
 
           <form onSubmit={handleSendChatMessage} className="chat-window-input-form">
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="chat-window-input"
               placeholder="Escribe un mensaje..."
               value={chatInput}
@@ -1079,7 +1051,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       {showLeaderboard && (
         <div className="leaderboard-modal-overlay" onClick={() => setShowLeaderboard(false)}>
           <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()}>
-            
+
             {/* MODAL HEADER */}
             <header className="leaderboard-modal-header">
               <div className="leaderboard-title-group">
@@ -1185,7 +1157,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       if (idx === 0) rankBadge = '🥇';
                       else if (idx === 1) rankBadge = '🥈';
                       else if (idx === 2) rankBadge = '🥉';
-                      
+
                       return (
                         <tr key={player.userId} className={`${isMe ? 'row-highlight-me' : ''}`}>
                           <td className="col-rank">
@@ -1257,7 +1229,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span>🃏</span> Zer da Mus-a? / ¿Qué es el Mus?
                 </h3>
                 <p style={{ fontSize: '0.85rem', lineHeight: '1.5', margin: '0 0 8px 0', color: '#ddd' }}>
-                  El Mus es un juego de cartas tradicional de origen vasco, ampliamente jugado en toda España y partes de Hispanoamérica. 
+                  El Mus es un juego de cartas tradicional de origen vasco, ampliamente jugado en toda España y partes de Hispanoamérica.
                   Se juega por parejas (4 jugadores en total) utilizando la baraja española de 40 cartas. El objetivo es llegar antes que la pareja rival a un número determinado de puntos (usualmente 30 u 40 puntos).
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: '1.5', margin: '0', color: '#999', fontStyle: 'italic' }}>
@@ -1380,7 +1352,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             position: 'relative'
           }}>
             {/* Close button */}
-            <button 
+            <button
               onClick={() => { setSelectedTourneyId(null); setTourneyDetails(null); }}
               style={{
                 position: 'absolute',
@@ -1455,11 +1427,11 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         💰 Inscribirse por {tourneyDetails.tournament.coinsFee || 0} monedas (tx)
                       </button>
                     )}
-                    
+
                     {tourneyDetails.tournament.organizerId === currentUserId && (
-                      <button 
-                        className="btn-action" 
-                        onClick={handleStartOnlineTournament} 
+                      <button
+                        className="btn-action"
+                        onClick={handleStartOnlineTournament}
                         style={{ flex: 1, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}
                         disabled={tourneyDetails.participants.length < 2}
                       >
@@ -1491,9 +1463,9 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 {(tourneyDetails.tournament.status === 'playing' || tourneyDetails.tournament.status === 'finished') && (
                   <div>
                     <h3 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>Cuadro del Torneo / Brackets</h3>
-                    
+
                     <div style={{ display: 'flex', gap: '30px', overflowX: 'auto', paddingBottom: '15px', minHeight: '320px', alignItems: 'center' }}>
-                      
+
                       {/* ROUND 1: QUARTERFINALS */}
                       {tourneyDetails.matches.some((m: any) => m.roundNumber === 1) && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, minWidth: '180px' }}>
@@ -1603,12 +1575,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                     {reportingMatchId && (
                       <form onSubmit={handleReportOnlineWinnerSubmit} style={{ marginTop: '20px', background: 'rgba(250, 199, 21, 0.05)', border: '1px solid rgba(250, 199, 21, 0.25)', padding: '15px', borderRadius: '8px' }}>
                         <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#fac715', textTransform: 'uppercase', letterSpacing: '0.5px' }}>✎ Registrar Resultado de Partida</h4>
-                        
+
                         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                           <div style={{ flex: 1, minWidth: '150px' }}>
                             <label style={{ fontSize: '0.75rem', color: '#888', display: 'block', marginBottom: '4px' }}>SELECCIONAR GANADOR</label>
-                            <select 
-                              value={reportWinnerId || ''} 
+                            <select
+                              value={reportWinnerId || ''}
                               onChange={(e) => setReportWinnerId(Number(e.target.value))}
                               style={{ width: '100%', padding: '8px', background: '#000', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', fontSize: '0.85rem' }}
                             >
@@ -1628,10 +1600,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
                           <div style={{ width: '100px' }}>
                             <label style={{ fontSize: '0.75rem', color: '#888', display: 'block', marginBottom: '4px' }}>MARCADOR</label>
-                            <input 
-                              type="text" 
-                              value={reportScore} 
-                              onChange={(e) => setReportScore(e.target.value)} 
+                            <input
+                              type="text"
+                              value={reportScore}
+                              onChange={(e) => setReportScore(e.target.value)}
                               placeholder="3-0"
                               style={{ width: '100%', padding: '8px', background: '#000', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center' }}
                             />

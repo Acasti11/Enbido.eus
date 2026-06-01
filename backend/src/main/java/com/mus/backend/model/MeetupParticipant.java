@@ -10,6 +10,7 @@ public class MeetupParticipant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "meetup_participants_id")
     private Long id;
 
     @Column(name = "ad_id")

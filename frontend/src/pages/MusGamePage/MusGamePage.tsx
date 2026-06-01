@@ -124,14 +124,14 @@ const MusGamePage: React.FC = () => {
     description: 'Entra a jugar al Mus de forma gratuita en Enbido. Emparejamiento por ELO, salas privadas y juego contra bots avanzados.',
     keywords: 'jugar mus, mus online, emparejamiento mus, salas de mus, jugar mus online gratis',
     canonical: 'https://enbido.eus/jugar',
-    ogImage: 'https://enbido.eus/hero-mus.png',
+    ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'es',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'VideoGame',
       'name': 'Lobby de Mus - Enbido',
       'url': 'https://enbido.eus/jugar',
-      'image': 'https://enbido.eus/hero-mus.png',
+      'image': 'https://enbido.eus/home-image-mus.png',
       'description': 'Entra a jugar al Mus de forma gratuita en Enbido. Emparejamiento por ELO, salas privadas y juego contra bots avanzados.',
       'gamePlatform': 'Web Browser',
       'numberOfPlayers': {

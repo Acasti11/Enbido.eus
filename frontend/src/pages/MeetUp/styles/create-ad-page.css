@@ -13,7 +13,7 @@
   width: 100%;
   max-width: 600px;
   box-shadow: var(--shadow-premium);
-}
+} 
 
 .form-group {
   display: flex; 
@@ -160,6 +160,48 @@
 .btn-gps-locate:hover {
   background-color: var(--color-brand-light);
   color: #fff;
+}
+
+.create-location-group {
+  position: relative;
+}
+
+.create-location-row {
+  display: flex;
+  gap: 10px;
+}
+
+.create-location-input {
+  flex: 1;
+}
+
+.create-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.create-map-label {
+  margin: 0;
+}
+
+.create-form-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.create-form-column {
+  flex: 1;
+  min-width: 200px;
+}
+
+.create-establishment-select {
+  background: #121212;
+  color: var(--color-text-white);
+  border: 1px solid rgba(255,255,255,0.15);
+  height: 42px;
 }
 
 /* =========================================

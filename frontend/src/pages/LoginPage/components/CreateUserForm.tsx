@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../../../services/api';
 import type { User } from '../../../types/User';
 import '../styles/login-form.css';
-
+ 
 const UserIcon = () => (
   <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -212,7 +212,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       {/* Name - REQUIRED */}
       <div className="login-form__field">
         <label className="login-form__label">
-          Name <span style={{ color: '#dc3545' }}>*</span>
+          Name <span>*</span>
         </label>
         <div className={`login-form__input-wrapper ${getFieldError('name') ? 'login-form__input-wrapper--error' : ''}`}>
           <UserIcon />
@@ -247,7 +247,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       {/* Email - REQUIRED */}
       <div className="login-form__field">
         <label className="login-form__label">
-          Email <span style={{ color: '#dc3545' }}>*</span>
+          Email <span>*</span>
         </label>
         <div className={`login-form__input-wrapper ${getFieldError('email') ? 'login-form__input-wrapper--error' : ''}`}>
           <MailIcon />
@@ -268,7 +268,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       {/* Username - REQUIRED */}
       <div className="login-form__field">
         <label className="login-form__label">
-          Username <span style={{ color: '#dc3545' }}>*</span>
+          Username <span>*</span>
         </label>
         <div className={`login-form__input-wrapper ${getFieldError('username') ? 'login-form__input-wrapper--error' : ''}`}>
           <UserIcon />
@@ -288,7 +288,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       {/* Password - REQUIRED */}
       <div className="login-form__field">
         <label className="login-form__label">
-          Password <span style={{ color: '#dc3545' }}>*</span>
+          Password <span>*</span>
         </label>
         <div className={`login-form__input-wrapper ${getFieldError('password') ? 'login-form__input-wrapper--error' : ''}`}>
           <LockIcon />
@@ -309,7 +309,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
       {/* Birth Date - REQUIRED */}
       <div className="login-form__field">
         <label className="login-form__label">
-          Birth Date <span style={{ color: '#dc3545' }}>*</span>
+          Birth Date <span>*</span>
         </label>
         <div className={`login-form__input-wrapper ${getFieldError('birthDate') ? 'login-form__input-wrapper--error' : ''}`}>
           <CalendarIcon />

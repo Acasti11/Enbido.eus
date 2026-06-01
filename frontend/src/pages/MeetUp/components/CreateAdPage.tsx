@@ -32,8 +32,8 @@ interface CreateAdPageProps {
 
 const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): React.JSX.Element => {
   const [formData, setFormData] = useState<CreateAdFormState>({
-    location: '', 
-    missingPlayers: '1', 
+    location: '',
+    missingPlayers: '1',
     description: '',
     scheduledAt: '',
     establishmentType: 'BAR'
@@ -108,15 +108,15 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
     const lat = parseFloat(s.lat);
     const lng = parseFloat(s.lon);
     const shortName = s.display_name.split(',')[0] || s.display_name;
-    
+
     setFormData(prev => ({
       ...prev,
       location: shortName
     }));
-    
+
     setLatitude(lat);
     setLongitude(lng);
-    
+
     if (markerRef.current) {
       markerRef.current.setLatLng([lat, lng]);
     }
@@ -161,22 +161,21 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
     <div className="create-view">
       <div className="create-form-card">
         <form onSubmit={handleFormSubmit}>
-          
-          <div className="form-group" style={{ position: 'relative' }}>
+
+          <div className="form-group create-location-gorup">
             <label className="form-label">Ubicación (Bar, Local, Ciudad): *</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input 
-                type="text" 
-                name="location" 
-                required 
-                className="form-input" 
-                placeholder="Ej: Taberna El Botxo" 
+            <div className="create-location-row">
+              <input
+                type="text"
+                name="location"
+                required
+                className="form-input create-location-input"
+                placeholder="Ej: Taberna El Botxo"
                 value={formData.location}
-                onChange={handleUpdateInput} 
-                style={{ flex: 1 }}
+                onChange={handleUpdateInput}
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={searchLocationOnOSM}
                 className="btn-search-osm"
                 disabled={isSearchingLocation}
@@ -198,10 +197,10 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
           </div>
 
           <div className="form-group create-map-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <label className="form-label" style={{ margin: 0 }}>Ubica la partida en el mapa (Mueve el pin o haz clic):</label>
-              <button 
-                type="button" 
+            <div className="create-map-header">
+              <label className="form-label create-map-label">Ubica la partida en el mapa (Mueve el pin o haz clic):</label>
+              <button
+                type="button"
                 onClick={handleUseCurrentLocation}
                 className="btn-gps-locate"
               >
@@ -214,28 +213,27 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-            <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+          <div className="create-form-row">
+            <div className="form-group create-form-column">
               <label className="form-label">Fecha y Hora del encuentro: *</label>
-              <input 
-                type="datetime-local" 
-                name="scheduledAt" 
-                required 
-                className="form-input" 
+              <input
+                type="datetime-local"
+                name="scheduledAt"
+                required
+                className="form-input"
                 value={formData.scheduledAt}
-                onChange={handleUpdateInput} 
+                onChange={handleUpdateInput}
               />
             </div>
 
-            <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+            <div className="form-group create-form-column">
               <label className="form-label">Tipo de establecimiento: *</label>
-              <select 
-                name="establishmentType" 
-                required 
-                className="form-input" 
-                value={formData.establishmentType || 'BAR'} 
+              <select
+                name="establishmentType"
+                required
+                className="form-input create-establishment-select"
+                value={formData.establishmentType || 'BAR'}
                 onChange={handleUpdateInput}
-                style={{ background: '#121212', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', height: '42px' }}
               >
                 <option value="BAR">🍻 Taberna / Bar</option>
                 <option value="TXOKO">🍽️ Sociedad Gastronómica / Txoko</option>

@@ -8,7 +8,7 @@ const RulesPage: React.FC = (): React.JSX.Element => {
     description: 'Guía oficial del reglamento del Mus. Aprende las señas permitidas, los 4 lances (Grande, Chica, Pares, Juego) y diferencias entre 4 Reyes y 8 Reyes.',
     keywords: 'reglas del mus, como jugar al mus, senas del mus, variantes del mus, 8 reyes, 4 reyes, mus euskadi',
     canonical: 'https://enbido.eus/reglas',
-    ogImage: 'https://enbido.eus/hero-mus.png',
+    ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'es',
     jsonLd: {
       '@context': 'https://schema.org',

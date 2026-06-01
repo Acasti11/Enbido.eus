@@ -88,7 +88,7 @@
 
 .lance-num {
   background: var(--color-brand-light);
-  color: white;
+  color: var(--color-text-white);
   width: 24px;
   height: 24px;
   border-radius: 50%;

@@ -489,3 +489,6 @@
     gap: var(--spacing-md);
   }
 }
+.home-footer-link {
+  cursor: pointer;
+}
