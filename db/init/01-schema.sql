@@ -10,7 +10,10 @@ CREATE TABLE IF NOT EXISTS user_login (
     role ENUM('user', 'admin') DEFAULT 'user',
     is_banned BOOLEAN DEFAULT FALSE,
     birth_date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    two_factor_enabled TINYINT(1) DEFAULT 0,
+    two_factor_code VARCHAR(6) NULL,
+    two_factor_code_expires_at DATETIME NULL
 );
 
 CREATE TABLE IF NOT EXISTS categories (

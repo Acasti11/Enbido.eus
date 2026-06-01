@@ -428,7 +428,6 @@ public class GameSessionManager {
         } catch (Exception e) {
             System.err.println("Migration check warning (establishment_type): " + e.getMessage());
         }
-
         System.out.println(">>> [BD] Migraciones de base de datos finalizadas con éxito.");
     }
 }

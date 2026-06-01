@@ -5,6 +5,7 @@ import com.mus.backend.repository.UsuarioRepository;
 import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
 import com.mus.backend.dto.UserRegisterDto;
+import com.mus.backend.dto.LoginResponseDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -46,21 +47,36 @@ public class UserController {
     }
 
     // ============================================
-    // PÚBLICO: Login (sin token → devuelve token)
+    // PÚBLICO: Login (sin token → maneja Doble Factor)
     // ============================================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            String token = userService.authenticate(
+            LoginResponseDto response = userService.authenticate(
                 request.getUsername(), 
                 request.getPassword()
             );
-            return ResponseEntity.ok(Map.of(
-                "accessToken", token,
-                "tokenType", "Bearer",
-                "expiresIn", 86400
-            ));
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                Map.of("error", e.getMessage())
+            );
+        }
+    }
+
+    // ============================================
+    // PÚBLICO: Verificar código 2FA
+    // ============================================
+    @PostMapping("/login/verify-2fa")
+    public ResponseEntity<?> verify2Fa(@RequestBody Map<String, Object> body) {
+        try {
+            Long userId = Long.valueOf(body.get("userId").toString());
+            String code = (String) body.get("code");
+            
+            String token = userService.verify2Fa(userId, code);
+            
+            return ResponseEntity.ok(new LoginResponseDto(false, null, token));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 Map.of("error", e.getMessage())
             );
@@ -119,6 +135,31 @@ public class UserController {
         List<Usuario> usuarios = usuarioRepository.findAll();
         usuarios.forEach(u -> u.setPassword(null));
         return ResponseEntity.ok(usuarios);
+    }
+
+    // ============================================
+    // PROTEGIDO: Activar/Desactivar 2FA
+    // ============================================
+    @PostMapping("/me/2fa/toggle")
+    public ResponseEntity<?> toggle2Fa(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        try {
+            Long userId = getCurrentUserId(request);
+            Boolean enabled = (Boolean) body.get("enabled");
+            if (enabled == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El campo 'enabled' es obligatorio"));
+            }
+
+            boolean updatedStatus = userService.toggle2Fa(userId, enabled);
+
+            return ResponseEntity.ok(Map.of(
+                "message", "Doble Factor (2FA) actualizado con éxito",
+                "twoFactorEnabled", updatedStatus
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of("error", e.getMessage())
+            );
+        }
     }
 
     // ============================================

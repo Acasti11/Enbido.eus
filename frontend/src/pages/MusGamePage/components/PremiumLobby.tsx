@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../../../services/api';
 import '../styles/premium-lobby.css';
+import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
 
 interface PremiumLobbyProps {
   username: string;
@@ -58,6 +59,9 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const currentUserId = Number(localStorage.getItem('userId') || '1');
   const activeUsername = localStorage.getItem('username') || 'Usuario';
 
+  // WebSocket Chat Context Methods
+  const { registerDmCallback, unregisterDmCallback, sendDirectMessage } = useChatWebSocket();
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(true);
@@ -82,8 +86,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
 
-  const fetchOnlineTournaments = async (isBackground: boolean | any = false) => {
-    const bg = isBackground === true;
+  // Estados de Doble Factor (2FA)
+  const [show2FaModal, setShow2FaModal] = useState(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [updating2Fa, setUpdating2Fa] = useState(false);
+
+  const fetchOnlineTournaments = async () => {
     try {
       if (!bg) setLoadingTournaments(true);
       const res = await api.get('/tournaments');
@@ -269,22 +277,34 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     fetchProfileData();
     fetchFriends();
     fetchRequests();
-    fetchOnlineTournaments(false);
+    fetchOnlineTournaments();
 
-    // Poll lobby state every 6 seconds to keep friends, requests, and tournaments synced
-    const pollInterval = setInterval(() => {
-      fetchProfileData();
-      fetchFriends();
-      fetchRequests();
-      fetchOnlineTournaments(true); // background update
-    }, 6000);
-
-    return () => clearInterval(pollInterval);
+    // Cargar estado de 2FA
+    api.get('/usuarios/me')
+      .then(res => setTwoFactorEnabled(res.data.twoFactorEnabled || false))
+      .catch(err => console.error('Error fetching 2FA status in lobby:', err));
   }, [currentUserId]);
 
-  // Sincronizar chat con el usuario activo (con polling para usuarios reales en DB)
+  const handleToggle2Fa = async (enabled: boolean) => {
+    setUpdating2Fa(true);
+    try {
+      const res = await api.post('/usuarios/me/2fa/toggle', { enabled });
+      setTwoFactorEnabled(res.data.twoFactorEnabled);
+      alert(enabled ? '¡Autenticación de Doble Factor (2FA) activada con éxito!' : 'Autenticación de Doble Factor (2FA) desactivada.');
+    } catch (err: any) {
+      console.error('Error updating 2FA in lobby:', err);
+      alert(err.response?.data?.error || 'Error al cambiar la configuración de 2FA');
+    } finally {
+      setUpdating2Fa(false);
+    }
+  };
+
+  // Sincronizar chat con el usuario activo usando WebSockets reales en lugar de polling
   useEffect(() => {
-    if (!activeChatUser) return;
+    if (!activeChatUser) {
+      unregisterDmCallback();
+      return;
+    }
 
     const loadChat = async () => {
       if (activeChatUser.isBot) {
@@ -316,14 +336,35 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       }
     }, 100);
 
-    let intervalId: any;
     if (!activeChatUser.isBot) {
-      intervalId = setInterval(loadChat, 3000);
+      // Registrar id para excluir notificaciones
+      localStorage.setItem('enbido_active_chat_user_id', String(activeChatUser.id));
+
+      registerDmCallback((newMsg: any) => {
+        if (
+          (newMsg.senderId === currentUserId && newMsg.receiverId === activeChatUser.id) ||
+          (newMsg.senderId === activeChatUser.id && newMsg.receiverId === currentUserId)
+        ) {
+          setChatMessages(prev => {
+            const exists = prev.some(m => m.timestamp === new Date(newMsg.sentAt).getTime() && m.content === newMsg.content);
+            if (exists) return prev;
+
+            return [...prev, {
+              senderId: newMsg.senderId,
+              senderName: newMsg.sender?.username || (newMsg.senderId === currentUserId ? activeUsername : activeChatUser.username),
+              content: newMsg.content,
+              timestamp: new Date(newMsg.sentAt).getTime()
+            }];
+          });
+        }
+      });
     }
+
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      unregisterDmCallback();
+      localStorage.removeItem('enbido_active_chat_user_id');
     };
-  }, [activeChatUser, currentUserId, activeUsername]);
+  }, [activeChatUser, currentUserId, activeUsername, registerDmCallback, unregisterDmCallback]);
 
   // Auto-scroll al recibir mensajes
   useEffect(() => {
@@ -483,18 +524,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       }, 1500);
 
     } else {
-      try {
-        const res = await api.post(`/messages/${activeChatUser.id}`, { content: msgText });
-        const newMsg: ChatMessage = {
-          senderId: res.data.senderId,
-          senderName: activeUsername,
-          content: res.data.content,
-          timestamp: new Date(res.data.sentAt).getTime()
-        };
-        setChatMessages(prev => [...prev, newMsg]);
-      } catch (err) {
-        console.error('Error sending private message:', err);
-      }
+      sendDirectMessage(activeChatUser.id, msgText);
     }
   };
 
@@ -563,6 +593,25 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 <div className="badge-details">
                   <span className="badge-val">Reglas / Keinus</span>
                   <span className="badge-lbl">Guía de Juego</span>
+                </div>
+              </button>
+              
+              <button
+                className="lobby-badge security-2fa-badge-btn"
+                onClick={() => setShow2FaModal(true)}
+                title="Configuración de Seguridad (Doble Factor)"
+                style={{
+                  background: twoFactorEnabled ? 'rgba(46, 196, 182, 0.08)' : 'rgba(212, 175, 55, 0.05)',
+                  borderColor: twoFactorEnabled ? 'rgba(46, 196, 182, 0.3)' : 'rgba(212, 175, 55, 0.15)',
+                  cursor: 'pointer'
+                }}
+              >
+                <span className="badge-icon">🔑</span>
+                <div className="badge-details">
+                  <span className="badge-val" style={{ color: twoFactorEnabled ? '#2ec4b6' : '#fac715' }}>
+                    {twoFactorEnabled ? '2FA Activo' : 'Activar 2FA'}
+                  </span>
+                  <span className="badge-lbl">Seguridad</span>
                 </div>
               </button>
             </div>
@@ -1565,6 +1614,108 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               </>
             )}
 
+          </div>
+        </div>
+      )}
+
+      {/* ---------- MODAL CONFIGURACIÓN 2FA ---------- */}
+      {show2FaModal && (
+        <div className="leaderboard-modal-overlay" onClick={() => setShow2FaModal(false)}>
+          <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <header className="leaderboard-modal-header">
+              <div className="leaderboard-title-group">
+                <span style={{ fontSize: '28px' }}>🔑</span>
+                <div>
+                  <h2 className="leaderboard-modal-title">Seguridad de la Cuenta</h2>
+                  <span className="leaderboard-modal-subtitle">Configuración de acceso seguro</span>
+                </div>
+              </div>
+              <button className="leaderboard-close-x" onClick={() => setShow2FaModal(false)}>
+                &times;
+              </button>
+            </header>
+
+            <div style={{ padding: '25px', color: '#ccc', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div 
+                style={{
+                  background: 'rgba(212, 175, 55, 0.03)',
+                  border: '1px solid rgba(212, 175, 55, 0.15)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '15px',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: 'inset 0 0 12px rgba(212,175,55,0.03)'
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#fac715', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                    Doble Factor por Email (2FA)
+                  </h4>
+                  <p style={{ margin: 0, color: '#aaa', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                    Al iniciar sesión se enviará un código de verificación temporal a tu correo registrado.
+                  </p>
+                </div>
+
+                <div>
+                  <label 
+                    className="switch" 
+                    style={{
+                      position: 'relative',
+                      display: 'inline-block',
+                      width: '50px',
+                      height: '26px'
+                    }}
+                  >
+                    <input 
+                      type="checkbox" 
+                      checked={twoFactorEnabled}
+                      disabled={updating2Fa}
+                      onChange={(e) => handleToggle2Fa(e.target.checked)}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span 
+                      className="slider round" 
+                      style={{
+                        position: 'absolute',
+                        cursor: updating2Fa ? 'not-allowed' : 'pointer',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: twoFactorEnabled ? '#fac715' : 'rgba(255,255,255,0.1)',
+                        transition: '.4s',
+                        borderRadius: '34px',
+                        boxShadow: twoFactorEnabled ? '0 0 10px rgba(250,199,21,0.4)' : 'none'
+                      }}
+                    >
+                      <span 
+                        style={{
+                          position: 'absolute',
+                          height: '18px',
+                          width: '18px',
+                          left: '4px',
+                          bottom: '4px',
+                          backgroundColor: '#fff',
+                          transition: '.4s',
+                          borderRadius: '50%',
+                          transform: twoFactorEnabled ? 'translateX(24px)' : 'translateX(0)'
+                        }}
+                      />
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                <button 
+                  className="btn-action" 
+                  onClick={() => setShow2FaModal(false)}
+                  style={{ width: '100%', padding: '12px' }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

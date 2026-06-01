@@ -40,6 +40,7 @@ interface SettingsContextType {
   playSfx: (type: 'click' | 'deal' | 'message') => void;
   activeNotification: AppNotification | null;
   dismissNotification: () => void;
+  triggerNotification?: (title: string, message: string, type: 'message' | 'friend', meta?: any) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -75,7 +76,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [activeNotification, setActiveNotification] = useState<AppNotification | null>(null);
-  const [lastMessageId, setLastMessageId] = useState<number | null>(null);
   const [seenRequestIds, setSeenRequestIds] = useState<Set<number>>(new Set());
   const [isFirstRequestRun, setIsFirstRequestRun] = useState(true);
 
@@ -281,31 +281,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const pollNotifications = async () => {
       try {
-        // A. Poll Messages
-        const msgRes = await api.get('/messages/received');
-        const messages = msgRes.data;
-        if (messages && messages.length > 0) {
-          const latestMsg = messages[0];
-          const latestId = latestMsg.messageId;
-
-          if (lastMessageId !== null && latestId > lastMessageId) {
-            // Check if we are currently chatting with this user
-            const activeChatUserId = localStorage.getItem('enbido_active_chat_user_id');
-            if (activeChatUserId !== String(latestMsg.senderId) && settings.notificationsEnabled) {
-              const senderName = latestMsg.sender?.username || 'Un jugador';
-              triggerNotification(
-                `Mensaje de ${senderName}`,
-                latestMsg.content,
-                'message',
-                { friendId: latestMsg.senderId, username: senderName }
-              );
-            }
-          }
-          setLastMessageId(latestId);
-        } else if (lastMessageId === null) {
-          setLastMessageId(0);
-        }
-
         // B. Poll Friend Requests
         const reqRes = await api.get('/friendships/pending');
         const requests = reqRes.data;
@@ -340,7 +315,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const interval = setInterval(pollNotifications, 7000);
 
     return () => clearInterval(interval);
-  }, [lastMessageId, seenRequestIds, isFirstRequestRun, settings.notificationsEnabled]);
+  }, [seenRequestIds, isFirstRequestRun, settings.notificationsEnabled]);
 
   return (
     <SettingsContext.Provider
@@ -351,6 +326,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         playSfx,
         activeNotification,
         dismissNotification,
+        triggerNotification,
       }}
     >
       {children}
