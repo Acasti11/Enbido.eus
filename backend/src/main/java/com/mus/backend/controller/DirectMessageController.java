@@ -38,7 +38,7 @@ public class DirectMessageController {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario amigo no encontrado"));
         }
         
-        List<DirectMessage> history = directMessageRepository.findChatHistory(currentUserId, friendId);
+        List<DirectMessage> history = directMessageRepository.findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderBySentAtAsc(currentUserId, friendId, friendId, currentUserId);
         return ResponseEntity.ok(history);
     }
 
@@ -72,7 +72,7 @@ public class DirectMessageController {
     @GetMapping("/received")
     public ResponseEntity<?> getReceivedMessages(HttpServletRequest request) {
         Long currentUserId = getCurrentUserId(request);
-        List<DirectMessage> messages = directMessageRepository.findReceivedMessages(currentUserId);
+        List<DirectMessage> messages = directMessageRepository.findByReceiverIdOrderBySentAtDesc(currentUserId);
         return ResponseEntity.ok(messages);
     }
 

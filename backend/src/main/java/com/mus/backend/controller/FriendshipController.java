@@ -50,7 +50,7 @@ public class FriendshipController {
     @GetMapping
     public ResponseEntity<?> getFriends(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
-        List<Friendship> friendships = friendshipRepository.findAcceptedFriends(userId);
+        List<Friendship> friendships = friendshipRepository.findByUserId1AndStatusOrUserId2AndStatus(userId, "accepted", userId, "accepted");
         List<FriendResponse> response = new ArrayList<>();
 
         for (Friendship f : friendships) {
@@ -84,8 +84,8 @@ public class FriendshipController {
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingRequests(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
-        List<Friendship> received = friendshipRepository.findPendingRequestsReceived(userId);
-        List<Friendship> sent = friendshipRepository.findPendingRequestsSent(userId);
+        List<Friendship> received = friendshipRepository.findByUserId2AndStatus(userId, "pending");
+        List<Friendship> sent = friendshipRepository.findByUserId1AndStatus(userId, "pending");
         List<PendingRequestResponse> response = new ArrayList<>();
 
         for (Friendship f : received) {
@@ -123,7 +123,7 @@ public class FriendshipController {
             return ResponseEntity.badRequest().body(Map.of("error", "No puedes agregarte a ti mismo"));
         }
         
-        Optional<Friendship> existingOpt = friendshipRepository.findFriendshipBetween(currentUserId, targetUser.getUserId());
+        Optional<Friendship> existingOpt = friendshipRepository.findByUserId1AndUserId2OrUserId2AndUserId1(currentUserId, targetUser.getUserId(), currentUserId, targetUser.getUserId());
         if (existingOpt.isPresent()) {
             Friendship existing = existingOpt.get();
             if (existing.getStatus().equals("accepted")) {
