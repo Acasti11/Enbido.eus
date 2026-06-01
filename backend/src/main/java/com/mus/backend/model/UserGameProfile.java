@@ -2,6 +2,7 @@ package com.mus.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_game_profile")
@@ -14,7 +15,22 @@ public class UserGameProfile {
     private Long userId;
 
     @Column(name = "elo")
-    private Integer elo = 200;
+    private Integer elo = 1500; // Glicko-2 default starting rating
+
+    @Column(name = "rating_deviation")
+    private Double ratingDeviation = 350.0; // Glicko-2 default RD
+
+    @Column(name = "volatility")
+    private Double volatility = 0.06; // Glicko-2 default volatility
+
+    @Column(name = "matchmaking_ban_until")
+    private LocalDateTime matchmakingBanUntil;
+
+    @Column(name = "is_low_priority")
+    private Boolean isLowPriority = false;
+
+    @Column(name = "abandoned_games_count")
+    private Integer abandonedGamesCount = 0;
 
     @Column(name = "coins")
     private Integer coins = 0;
@@ -62,7 +78,11 @@ public class UserGameProfile {
 
     public UserGameProfile(Long userId) {
         this.userId = userId;
-        this.elo = 200;
+        this.elo = 1500;
+        this.ratingDeviation = 350.0;
+        this.volatility = 0.06;
+        this.isLowPriority = false;
+        this.abandonedGamesCount = 0;
         this.coins = 100; // Monedas iniciales de cortesía
         this.totalGamesPlayed = 0;
         this.totalGamesWon = 0;
@@ -73,5 +93,26 @@ public class UserGameProfile {
         this.viewMode = "2d";
         this.language = "es";
         this.notificationsEnabled = true;
+    }
+
+    // Safe getters to protect against legacy database records having nulls
+    public Integer getElo() {
+        return elo != null ? elo : 1500;
+    }
+
+    public Double getRatingDeviation() {
+        return ratingDeviation != null ? ratingDeviation : 350.0;
+    }
+
+    public Double getVolatility() {
+        return volatility != null ? volatility : 0.06;
+    }
+
+    public Boolean getIsLowPriority() {
+        return isLowPriority != null ? isLowPriority : false;
+    }
+
+    public Integer getAbandonedGamesCount() {
+        return abandonedGamesCount != null ? abandonedGamesCount : 0;
     }
 }

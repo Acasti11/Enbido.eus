@@ -82,15 +82,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
 
-  const fetchOnlineTournaments = async () => {
+  const fetchOnlineTournaments = async (isBackground: boolean | any = false) => {
+    const bg = isBackground === true;
     try {
-      setLoadingTournaments(true);
+      if (!bg) setLoadingTournaments(true);
       const res = await api.get('/tournaments');
       setOnlineTournaments(res.data);
     } catch (err) {
       console.error('Error fetching online tournaments:', err);
     } finally {
-      setLoadingTournaments(false);
+      if (!bg) setLoadingTournaments(false);
     }
   };
 
@@ -263,12 +264,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     }
   };
 
-  // ---------- INITIALIZE PROFILE & SOCIAL ----------
+  // ---------- INITIALIZE PROFILE & SOCIAL & POLLING ----------
   useEffect(() => {
     fetchProfileData();
     fetchFriends();
     fetchRequests();
-    fetchOnlineTournaments();
+    fetchOnlineTournaments(false);
+
+    // Poll lobby state every 6 seconds to keep friends, requests, and tournaments synced
+    const pollInterval = setInterval(() => {
+      fetchProfileData();
+      fetchFriends();
+      fetchRequests();
+      fetchOnlineTournaments(true); // background update
+    }, 6000);
+
+    return () => clearInterval(pollInterval);
   }, [currentUserId]);
 
   // Sincronizar chat con el usuario activo (con polling para usuarios reales en DB)

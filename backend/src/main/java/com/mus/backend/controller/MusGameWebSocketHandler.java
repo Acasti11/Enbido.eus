@@ -5,7 +5,10 @@ import com.mus.backend.engine.GameSession;
 import com.mus.backend.engine.GameSessionManager;
 import com.mus.backend.service.JwtService;
 import com.mus.backend.engine.GamePlayer;
+import com.mus.backend.model.UserGameProfile;
+import com.mus.backend.repository.UserGameProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -13,6 +16,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -27,11 +31,15 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private UserGameProfileRepository profileRepository;
+
     // Mapea id de sesión de WebSocket a su información de conexión activa
     private final Map<String, UserConnection> activeConnections = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService timerScheduler = Executors.newScheduledThreadPool(4);
     private final Map<String, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> leaverTimers = new ConcurrentHashMap<>();
 
     private static class UserConnection {
         WebSocketSession session;
@@ -112,32 +120,46 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             if (conn.roomId != null) {
                 GameSession room = sessionManager.getRoom(conn.roomId);
                 if (room != null) {
-                    room.removePlayer(conn.chair);
-                    broadcastRoomState(room);
-                    
-                    // Si la sala está vacía de jugadores reales, la eliminamos
-                    boolean hasRealPlayers = false;
-                    for (GamePlayer gp : room.getPlayers()) {
-                        if (gp != null && !gp.isBot()) {
-                            hasRealPlayers = true;
-                            break;
+                    if (room.isPlaying()) {
+                        // Iniciar temporizador de abandono de 30 segundos
+                        String timerKey = conn.roomId + "_" + conn.userId;
+                        ScheduledFuture<?> oldTimer = leaverTimers.remove(timerKey);
+                        if (oldTimer != null) {
+                            oldTimer.cancel(false);
                         }
-                    }
-                    if (!hasRealPlayers) {
-                        sessionManager.removeRoom(conn.roomId);
-                        System.out.println("Sala vacía eliminada: " + conn.roomId);
-                        ScheduledFuture<?> future = activeTimers.remove(conn.roomId);
-                        if (future != null) {
-                            future.cancel(false);
-                        }
+
+                        // Informar desconexión temporal a la mesa
+                        Map<String, Object> dcEvent = new HashMap<>();
+                        dcEvent.put("type", "PLAYER_DISCONNECTED");
+                        dcEvent.put("userId", conn.userId);
+                        dcEvent.put("username", conn.username);
+                        dcEvent.put("chair", conn.chair);
+                        dcEvent.put("timeout", 30);
+                        broadcastToRoom(room, dcEvent);
+
+                        ScheduledFuture<?> future = timerScheduler.schedule(() -> {
+                            handleAbandonment(conn.roomId, conn.userId, conn.username, conn.chair);
+                        }, 30, TimeUnit.SECONDS);
+                        leaverTimers.put(timerKey, future);
                     } else {
-                        if (!room.isPlaying()) {
+                        room.removePlayer(conn.chair);
+                        broadcastRoomState(room);
+                        
+                        // Si la sala está vacía de jugadores reales, la eliminamos
+                        boolean hasRealPlayers = false;
+                        for (GamePlayer gp : room.getPlayers()) {
+                            if (gp != null && !gp.isBot()) {
+                                hasRealPlayers = true;
+                                break;
+                            }
+                        }
+                        if (!hasRealPlayers) {
+                            sessionManager.removeRoom(conn.roomId);
+                            System.out.println("Sala vacía eliminada: " + conn.roomId);
                             ScheduledFuture<?> future = activeTimers.remove(conn.roomId);
                             if (future != null) {
                                 future.cancel(false);
                             }
-                        } else {
-                            startTurnTimer(room);
                         }
                     }
                 }
@@ -157,7 +179,6 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         }
         Long userId = jwtService.extractUserId(token);
         String username = jwtService.extractUsername(token);
-
 
         conn.userId = userId;
         conn.username = username;
@@ -186,6 +207,22 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         }
 
         conn.chair = seatedChair;
+        
+        // Cancelar temporizador de desconexión temporal si el jugador vuelve
+        String timerKey = roomId + "_" + userId;
+        ScheduledFuture<?> activeDcTimer = leaverTimers.remove(timerKey);
+        if (activeDcTimer != null) {
+            activeDcTimer.cancel(false);
+            
+            // Informar reconexión a la mesa
+            Map<String, Object> rcEvent = new HashMap<>();
+            rcEvent.put("type", "PLAYER_RECONNECTED");
+            rcEvent.put("userId", userId);
+            rcEvent.put("username", username);
+            rcEvent.put("chair", seatedChair);
+            broadcastToRoom(room, rcEvent);
+        }
+        
         broadcastRoomState(room);
     }
 
@@ -202,34 +239,15 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         conn.userId = userId;
         conn.username = username;
 
-        String matchedRoomId = sessionManager.addToMatchmaking(userId, username, reyesOption);
-        if (matchedRoomId != null) {
-            // Match encontrado! Informamos a los 4 jugadores
-            Map<String, Object> matchEvent = new HashMap<>();
-            matchEvent.put("type", "MATCHED");
-            matchEvent.put("roomId", matchedRoomId);
-            
-            // Enviamos el evento a todos los sockets de los jugadores
-            for (UserConnection otherConn : activeConnections.values()) {
-                if (otherConn.roomId == null && otherConn.userId != null) {
-                    GameSession room = sessionManager.getRoom(matchedRoomId);
-                    if (room != null) {
-                        for (GamePlayer gp : room.getPlayers()) {
-                            if (gp != null && gp.getUserId().equals(otherConn.userId)) {
-                                otherConn.roomId = matchedRoomId;
-                                otherConn.chair = room.getPlayers().indexOf(gp);
-                                sendJsonMessage(otherConn.session, matchEvent);
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
+        try {
+            sessionManager.addToMatchmaking(userId, username, reyesOption);
             // Confirmamos que está en cola
             Map<String, Object> queueEvent = new HashMap<>();
             queueEvent.put("type", "QUEUEING");
             queueEvent.put("queueSize", sessionManager.getMatchmakingQueueSize(reyesOption));
             sendJsonMessage(conn.session, queueEvent);
+        } catch (Exception e) {
+            sendErrorMessage(conn.session, e.getMessage());
         }
     }
 
@@ -561,4 +579,167 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             }
         }
     }
-}
+
+    // --- GESTIÓN DE ABANDONO Y SCHEDULER DE MATCHMAKING ---
+
+    private void broadcastToRoom(GameSession room, Map<String, Object> data) {
+        for (UserConnection conn : activeConnections.values()) {
+            if (room.getRoomId().equalsIgnoreCase(conn.roomId)) {
+                sendJsonMessage(conn.session, data);
+            }
+        }
+    }
+
+    private void handleAbandonment(String roomId, Long userId, String username, int chair) {
+        leaverTimers.remove(roomId + "_" + userId);
+        
+        // Verificar si el jugador ya se reconectó
+        boolean reconnected = false;
+        for (UserConnection activeConn : activeConnections.values()) {
+            if (userId.equals(activeConn.userId) && roomId.equalsIgnoreCase(activeConn.roomId) && activeConn.session.isOpen()) {
+                reconnected = true;
+                break;
+            }
+        }
+        
+        if (reconnected) {
+            return; // Ya se reconectó
+        }
+        
+        GameSession room = sessionManager.getRoom(roomId);
+        if (room != null && room.isPlaying()) {
+            room.appendLog("⚠️ " + username + " abandonó la partida.");
+            
+            // Declarar ganadores a los rivales (Parejas: 0 y 2 vs 1 y 3)
+            boolean isTeamA = (chair % 2 == 0);
+            if (isTeamA) {
+                room.setScoreThem(30);
+                room.setScoreUs(Math.min(room.getScoreUs(), 29));
+            } else {
+                room.setScoreUs(30);
+                room.setScoreThem(Math.min(room.getScoreThem(), 29));
+            }
+            
+            // Aplicar penalización por abandono en base de datos
+            try {
+                UserGameProfile profile = profileRepository.findById(userId).orElse(null);
+                if (profile != null) {
+                    profile.setTotalGamesPlayed(profile.getTotalGamesPlayed() + 1);
+                    profile.setAbandonedGamesCount(profile.getAbandonedGamesCount() + 1);
+                    profile.setIsLowPriority(true);
+                    profile.setMatchmakingBanUntil(LocalDateTime.now().plusMinutes(5));
+                    
+                    // Calcular pérdida de ELO duplicada (Derrota Glicko-2 * 2)
+                    double ratingA0 = 1500.0; double rdA0 = 350.0;
+                    GamePlayer gp0 = room.getPlayers().get(0);
+                    if (gp0 != null && !gp0.isBot()) {
+                        UserGameProfile prof = profileRepository.findById(gp0.getUserId()).orElse(null);
+                        if (prof != null) { ratingA0 = prof.getElo().doubleValue(); rdA0 = prof.getRatingDeviation(); }
+                    }
+                    double ratingA2 = 1500.0; double rdA2 = 350.0;
+                    GamePlayer gp2 = room.getPlayers().get(2);
+                    if (gp2 != null && !gp2.isBot()) {
+                        UserGameProfile prof = profileRepository.findById(gp2.getUserId()).orElse(null);
+                        if (prof != null) { ratingA2 = prof.getElo().doubleValue(); rdA2 = prof.getRatingDeviation(); }
+                    }
+                    double ratingB1 = 1500.0; double rdB1 = 350.0;
+                    GamePlayer gp1 = room.getPlayers().get(1);
+                    if (gp1 != null && !gp1.isBot()) {
+                        UserGameProfile prof = profileRepository.findById(gp1.getUserId()).orElse(null);
+                        if (prof != null) { ratingB1 = prof.getElo().doubleValue(); rdB1 = prof.getRatingDeviation(); }
+                    }
+                    double ratingB3 = 1500.0; double rdB3 = 350.0;
+                    GamePlayer gp3 = room.getPlayers().get(3);
+                    if (gp3 != null && !gp3.isBot()) {
+                        UserGameProfile prof = profileRepository.findById(gp3.getUserId()).orElse(null);
+                        if (prof != null) { ratingB3 = prof.getElo().doubleValue(); rdB3 = prof.getRatingDeviation(); }
+                    }
+                    
+                    double oppTeamRating = isTeamA ? (ratingB1 + ratingB3) / 2.0 : (ratingA0 + ratingA2) / 2.0;
+                    double oppTeamRd = isTeamA ? (rdB1 + rdB3) / 2.0 : (rdA0 + rdA2) / 2.0;
+                    
+                    com.mus.backend.engine.Glicko2Calculator.GlickoResult res = com.mus.backend.engine.Glicko2Calculator.update(
+                        profile.getElo().doubleValue(),
+                        profile.getRatingDeviation(),
+                        profile.getVolatility(),
+                        oppTeamRating,
+                        oppTeamRd,
+                        0.0 // Derrota
+                    );
+                    
+                    int oldElo = profile.getElo();
+                    int expectedLoss = (int) Math.round(profile.getElo() - res.rating);
+                    if (expectedLoss <= 0) expectedLoss = 15;
+                    int penalization = expectedLoss * 2;
+                    
+                    profile.setElo((int) Math.max(0, oldElo - penalization));
+                    profile.setRatingDeviation(res.ratingDeviation);
+                    profile.setVolatility(res.volatility);
+                    
+                    profileRepository.save(profile);
+                    room.appendLog("[BD] Desertor " + username + " penalizado: ELO " + oldElo + " -> " + profile.getElo() + " (-" + penalization + " ELO)");
+                   }
+               } catch (Exception e) {
+                   System.err.println("Error penalizando abandono: " + e.getMessage());
+               }
+               
+               // Persistir puntuación final
+               sessionManager.updateGameScoresInDb(room);
+               
+               // Notificar
+               Map<String, Object> abEvent = new HashMap<>();
+               abEvent.put("type", "GAME_OVER_ABANDON");
+               abEvent.put("leaverUserId", userId);
+               abEvent.put("leaverUsername", username);
+               broadcastToRoom(room, abEvent);
+               
+               // Limpiar la sala con retardo
+               timerScheduler.schedule(() -> {
+                   sessionManager.removeRoom(roomId);
+               }, 3, TimeUnit.SECONDS);
+           }
+       }
+
+       @Scheduled(fixedDelay = 3000)
+       public void processMatchmakingQueue() {
+           List<Map<String, Object>> matches = sessionManager.runMatchmakingStep();
+           if (matches == null || matches.isEmpty()) {
+               return;
+           }
+           
+           for (Map<String, Object> match : matches) {
+               String roomId = (String) match.get("roomId");
+               List<Long> playerIds = (List<Long>) match.get("playerIds");
+               
+               GameSession room = sessionManager.getRoom(roomId);
+               if (room == null) continue;
+               
+               for (UserConnection otherConn : activeConnections.values()) {
+                   if (otherConn.roomId == null && otherConn.userId != null) {
+                       if (playerIds.contains(otherConn.userId)) {
+                           int chair = -1;
+                           for (int i = 0; i < 4; i++) {
+                               GamePlayer gp = room.getPlayers().get(i);
+                               if (gp != null && gp.getUserId().equals(otherConn.userId)) {
+                                   chair = i;
+                                   break;
+                               }
+                           }
+                           
+                           if (chair != -1) {
+                               otherConn.roomId = roomId;
+                               otherConn.chair = chair;
+                               
+                               Map<String, Object> matchEvent = new HashMap<>();
+                               matchEvent.put("type", "MATCHED");
+                               matchEvent.put("roomId", roomId);
+                               matchEvent.put("chair", chair);
+                               
+                               sendJsonMessage(otherConn.session, matchEvent);
+                           }
+                       }
+                   }
+               }
+           }
+       }
+   }
