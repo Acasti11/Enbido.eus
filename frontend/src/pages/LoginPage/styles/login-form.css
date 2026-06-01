@@ -120,3 +120,76 @@
   text-align: center;
   font-weight: 600;
 }
+
+.login-form__2fa-container {
+  text-align: center;
+}
+
+.login-form__2fa-title {
+  color: var(--color-accent-yellow);
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.login-form__2fa-description {
+  color: #ccc;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+
+.login-form__2fa-input-wrapper {
+  justify-content: center;
+}
+
+.login-form__2fa-input {
+  text-align: center;
+  letter-spacing: 0.8rem;
+  font-size: 22px;
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--color-accent-yellow);
+  border: 1px solid var(--color-accent-yellow);
+  border-radius: var(--radius-md);
+  background: rgba(21, 35, 25, 0.7);
+  padding: 12px;
+  width: 80%;
+  max-width: 240px;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+}
+
+.login-form__2fa-timer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.login-form__2fa-timer--expired {
+  color: var(--color-accent-red);
+}
+
+.login-form__2fa-highlight {
+  color: var(--color-accent-yellow);
+}
+
+.login-form__error-center {
+  text-align: center;
+}
+
+.login-form__2fa-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.login-form__2fa-back {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  border: 1px solid #555;
+}
+
+.login-form__submit--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

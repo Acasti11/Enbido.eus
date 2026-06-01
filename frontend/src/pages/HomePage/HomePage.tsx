@@ -236,7 +236,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
   const [gamesToday, setGamesToday] = useState(3841);
 
   useSeo({
-    title: t('home.seoTitle'),
+    title: t('Enbido'),
     description: t('home.seoDescription'),
     keywords: t('home.seoKeywords'),
     canonical: 'https://enbido.eus/',

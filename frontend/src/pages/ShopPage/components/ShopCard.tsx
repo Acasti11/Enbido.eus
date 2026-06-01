@@ -82,39 +82,35 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
 
     return (
         <article className={`shop-card shop-card--${item.accent}`}>
-        <div className="shop-card__media">
-            <span className="shop-card__category">{t(categoryLabelKey)}</span>
-            {renderPreview()}
-        </div>
-
-        <div className="shop-card__body">
-            <div className="shop-card__title-row">
-            <h2>{item.name}</h2>
-            {!item.owned && (
-                <span className="shop-card__price">
-                <CoinIcon />
-                {item.price.toLocaleString('es-ES')} {t('shop.coinUnit')}
-                </span>
-            )}
+            <div className="shop-card__media">
+                <span className="shop-card__category">{t(categoryLabelKey)}</span>
+                {renderPreview()}
             </div>
-            <p>{item.description}</p>
 
-            <div className="shop-card__footer">
-            <span className="shop-card__state">{stateLabel}</span>
-            <button
-                className="shop-card__button"
-                type="button"
-                onClick={handleClick}
-                style={{
-                backgroundColor: item.equipped ? 'rgba(212, 175, 55, 0.2)' : undefined,
-                color: item.equipped ? '#f1cd4f' : undefined,
-                border: item.equipped ? '1px solid #f1cd4f' : undefined,
-                }}
-            >
-                {buttonLabel}
-            </button>
+            <div className="shop-card__body">
+                <div className="shop-card__title-row">
+                    <h2>{item.name}</h2>
+                    {!item.owned && (
+                        <span className="shop-card__price">
+                            <CoinIcon />
+                            {item.price.toLocaleString('es-ES')} {t('shop.coinUnit')}
+                        </span>
+                    )}
+                </div>
+                <p>{item.description}</p>
+
+                <div className="shop-card__footer">
+                    <span className="shop-card__state">{stateLabel}</span>
+                    <button
+                        className={`shop-card__button ${item.equipped ? 'shop-card__button--equipped' : ''
+                            }`}
+                        type="button"
+                        onClick={handleClick}
+                    >
+                        {buttonLabel}
+                    </button>
+                </div>
             </div>
-        </div>
         </article>
     );
 };

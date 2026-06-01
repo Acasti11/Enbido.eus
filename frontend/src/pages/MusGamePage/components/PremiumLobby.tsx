@@ -595,21 +595,23 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span className="badge-lbl">Guía de Juego</span>
                 </div>
               </button>
-              
+
               <button
-                className="lobby-badge security-2fa-badge-btn"
+                className={`lobby-badge security-2fa-badge-btn ${twoFactorEnabled
+                  ? 'security-2fa-badge-btn--enabled'
+                  : 'security-2fa-badge-btn--disabled'
+                  }`}
                 onClick={() => setShow2FaModal(true)}
                 title="Configuración de Seguridad (Doble Factor)"
-                style={{
-                  background: twoFactorEnabled ? 'rgba(46, 196, 182, 0.08)' : 'rgba(212, 175, 55, 0.05)',
-                  borderColor: twoFactorEnabled ? 'rgba(46, 196, 182, 0.3)' : 'rgba(212, 175, 55, 0.15)',
-                  cursor: 'pointer'
-                }}
               >
                 <span className="badge-icon">🔑</span>
                 <div className="badge-details">
-                  <span className="badge-val" style={{ color: twoFactorEnabled ? '#2ec4b6' : '#fac715' }}>
-                    {twoFactorEnabled ? '2FA Activo' : 'Activar 2FA'}
+                  <span
+                    className={`badge-val ${twoFactorEnabled
+                        ? 'security-2fa-badge-value--enabled'
+                        : 'security-2fa-badge-value--disabled'
+                      }`}
+                  >                    {twoFactorEnabled ? '2FA Activo' : 'Activar 2FA'}
                   </span>
                   <span className="badge-lbl">Seguridad</span>
                 </div>
@@ -1392,13 +1394,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   </div>
                   <div className="tourney-metric-card">
                     <span className="tourney-metric-label">ESTADO</span>
-                    <span className={`tourney-metric-value--status ${
-                      tourneyDetails.tournament.status === 'finished'
-                        ? 'tourney-metric-value--status-finished'
-                        : tourneyDetails.tournament.status === 'playing'
+                    <span className={`tourney-metric-value--status ${tourneyDetails.tournament.status === 'finished'
+                      ? 'tourney-metric-value--status-finished'
+                      : tourneyDetails.tournament.status === 'playing'
                         ? 'tourney-metric-value--status-playing'
                         : 'tourney-metric-value--status-open'
-                    }`}>
+                      }`}>
                       {tourneyDetails.tournament.status === 'open' ? 'Abierto' : tourneyDetails.tournament.status === 'playing' ? 'En juego' : 'Finalizado'}
                     </span>
                   </div>
@@ -1502,7 +1503,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                               <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
                                 <span>{getTourneyUsernameById(match.player1Id)}</span>
-                                  {isWinner1 && <span>✔</span>}
+                                {isWinner1 && <span>✔</span>}
                               </div>
                               <div className="bracket-divider" />
                               <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
@@ -1621,10 +1622,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       {/* ---------- MODAL CONFIGURACIÓN 2FA ---------- */}
       {show2FaModal && (
         <div className="leaderboard-modal-overlay" onClick={() => setShow2FaModal(false)}>
-          <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="leaderboard-modal leaderboard-modal--2fa" onClick={(e) => e.stopPropagation()} >
             <header className="leaderboard-modal-header">
               <div className="leaderboard-title-group">
-                <span style={{ fontSize: '28px' }}>🔑</span>
+                <span className="security-modal-icon">🔑</span>
                 <div>
                   <h2 className="leaderboard-modal-title">Seguridad de la Cuenta</h2>
                   <span className="leaderboard-modal-subtitle">Configuración de acceso seguro</span>
@@ -1635,82 +1636,45 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               </button>
             </header>
 
-            <div style={{ padding: '25px', color: '#ccc', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div 
-                style={{
-                  background: 'rgba(212, 175, 55, 0.03)',
-                  border: '1px solid rgba(212, 175, 55, 0.15)',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '15px',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: 'inset 0 0 12px rgba(212,175,55,0.03)'
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ margin: '0 0 6px 0', color: '#fac715', fontSize: '0.95rem', fontWeight: 'bold' }}>
+            <div className="security-modal-body">
+              <div className="security-card">
+                <div className="security-card-content">
+                  <h4 className="security-card-title">
                     Doble Factor por Email (2FA)
                   </h4>
-                  <p style={{ margin: 0, color: '#aaa', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                  <p className="security-card-description">
                     Al iniciar sesión se enviará un código de verificación temporal a tu correo registrado.
                   </p>
                 </div>
 
-                <div>
-                  <label 
-                    className="switch" 
-                    style={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      width: '50px',
-                      height: '26px'
-                    }}
-                  >
-                    <input 
-                      type="checkbox" 
+                <div className="security-switch-container">
+                  <label className="switch">
+
+                    <input
+                      type="checkbox"
                       checked={twoFactorEnabled}
                       disabled={updating2Fa}
                       onChange={(e) => handleToggle2Fa(e.target.checked)}
-                      style={{ opacity: 0, width: 0, height: 0 }}
+                      className="switch-input"
                     />
-                    <span 
-                      className="slider round" 
-                      style={{
-                        position: 'absolute',
-                        cursor: updating2Fa ? 'not-allowed' : 'pointer',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: twoFactorEnabled ? '#fac715' : 'rgba(255,255,255,0.1)',
-                        transition: '.4s',
-                        borderRadius: '34px',
-                        boxShadow: twoFactorEnabled ? '0 0 10px rgba(250,199,21,0.4)' : 'none'
-                      }}
+                    <span
+                      className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
+                        } ${updating2Fa ? 'slider--disabled' : ''
+                        }`}
                     >
-                      <span 
-                        style={{
-                          position: 'absolute',
-                          height: '18px',
-                          width: '18px',
-                          left: '4px',
-                          bottom: '4px',
-                          backgroundColor: '#fff',
-                          transition: '.4s',
-                          borderRadius: '50%',
-                          transform: twoFactorEnabled ? 'translateX(24px)' : 'translateX(0)'
-                        }}
+                      <span
+                        className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
+                          }`}
                       />
                     </span>
                   </label>
                 </div>
               </div>
 
-              <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                <button 
-                  className="btn-action" 
+              <div className="security-modal-actions">
+                <button
+                  className="btn-action security-modal-close-btn"
                   onClick={() => setShow2FaModal(false)}
-                  style={{ width: '100%', padding: '12px' }}
                 >
                   Cerrar
                 </button>

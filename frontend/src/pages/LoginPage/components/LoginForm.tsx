@@ -42,7 +42,7 @@ interface UsernameFieldProps {
 
 const UsernameField: React.FC<UsernameFieldProps> = ({ value, onChange }): React.JSX.Element => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="login-form__field">
       <label className="login-form__label">{t('login.usernameOrEmail')}</label>
@@ -71,7 +71,7 @@ interface PasswordFieldProps {
 
 const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPassword, onToggleShow }): React.JSX.Element => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="login-form__field">
       <div className="login-form__label-row">
@@ -147,11 +147,11 @@ const LoginForm: React.FC = () => {
       localStorage.setItem('userId', payload.sub);
       localStorage.setItem('username', payload.username);
       localStorage.setItem('role', payload.role);
-      
+
       console.log('Login directo exitoso. UserId:', payload.sub);
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');
-    
+
     } catch (err: any) {
       const msg = err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : null) || 'Error al iniciar sesión';
       setError(msg);
@@ -200,33 +200,18 @@ const LoginForm: React.FC = () => {
   if (twoFactorRequired) {
     return (
       <form className="login-form" onSubmit={handleVerify2Fa}>
-        <div className="login-form__field" style={{ textAlign: 'center' }}>
-          <h2 style={{ color: '#d4af37', marginBottom: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+        <div className="login-form__field login-form__2fa-container">
+          <h2 className="login-form__2fa-title">
             🔑 {t('login.twoFactorTitle')}
           </h2>
-          <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
+          <p className="login-form__2fa-description">
             {t('login.twoFactorDescription')}
           </p>
-          
-          <div className="login-form__input-wrapper" style={{ justifyContent: 'center' }}>
+
+          <div className="login-form__input-wrapper login-form__2fa-input-wrapper">
             <input
               type="text"
-              className="login-form__input"
-              style={{
-                textAlign: 'center',
-                letterSpacing: '0.8rem',
-                fontSize: '22px',
-                fontFamily: 'monospace',
-                fontWeight: 'bold',
-                color: '#d4af37',
-                border: '1px solid #d4af37',
-                borderRadius: '8px',
-                background: 'rgba(21, 35, 25, 0.7)',
-                padding: '12px',
-                width: '80%',
-                maxWidth: '240px',
-                boxShadow: '0 0 10px rgba(212,175,55,0.1)'
-              }}
+              className="login-form__input login-form__2fa-input"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').substring(0, 6))}
               placeholder="000000"
@@ -235,22 +220,24 @@ const LoginForm: React.FC = () => {
             />
           </div>
 
-          <div style={{ marginTop: '16px', fontSize: '12px', color: countdown > 0 ? '#aaa' : '#e06c75' }}>
+          <div
+            className={`login-form__2fa-timer ${countdown <= 0 ? 'login-form__2fa-timer--expired' : ''
+              }`}
+          >
             {countdown > 0 ? (
-              <span>{t('login.codeExpiresIn')}: <strong style={{ color: '#d4af37' }}>{formatTime(countdown)}</strong></span>
+              <span>{t('login.codeExpiresIn')}: <strong className="login-form__2fa-highlight">{formatTime(countdown)}</strong></span>
             ) : (
               <strong>⚠️ {t('login.codeExpired')}</strong>
             )}
           </div>
         </div>
 
-        {error && <p className="login-form__error" style={{ textAlign: 'center' }}>{error}</p>}
+        {error && <p className="login-form__error login-form__error-center">{error}</p>}
 
-        <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-          <button 
-            type="button" 
-            className="login-form__submit" 
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#ccc', border: '1px solid #555' }}
+        <div className="login-form__2fa-actions">
+          <button
+            type="button"
+            className="login-form__submit login-form__2fa-back"
             onClick={() => {
               setTwoFactorRequired(false);
               setVerificationCode('');
@@ -259,13 +246,11 @@ const LoginForm: React.FC = () => {
           >
             {t('common.back')}
           </button>
-          
-          <button 
-            type="submit" 
-            className="login-form__submit"
-            disabled={countdown <= 0}
-            style={countdown <= 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-          >
+
+          <button
+            type="submit"
+            className={`login-form__submit ${countdown <= 0 ? 'login-form__submit--disabled' : ''
+              }`}>
             {t('login.verifyAndEnter')}
           </button>
         </div>
