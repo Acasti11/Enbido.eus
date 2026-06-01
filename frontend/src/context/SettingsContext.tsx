@@ -1,19 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-
-// API Instance matching the existing project pattern
-const api = axios.create({
-  baseURL: '/api',
-});
-
-// Interceptor to attach token automatically
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import api from '../services/api';
 
 export interface Settings {
   musicEnabled: boolean;
