@@ -29,6 +29,9 @@ public class MailService {
     @Value("${spring.mail.properties.mail.smtp.starttls.enable:false}")
     private String starttlsEnable;
 
+    @Value("${spring.mail.from:}")
+    private String mailFrom;
+
     @Async
     public void sendTwoFactorCode(String toEmail, String userNickname, String code) {
         System.out.println("\n");
@@ -67,7 +70,10 @@ public class MailService {
                 }
 
                 Message message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(username.isEmpty() ? "noreply@enbido.eus" : username));
+                String fromAddress = mailFrom != null && !mailFrom.isEmpty() 
+                    ? mailFrom 
+                    : (username != null && !username.isEmpty() ? username : "noreply@enbido.eus");
+                message.setFrom(new InternetAddress(fromAddress));
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
                 message.setSubject("Enbido.eus - Código de seguridad de Doble Factor");
 
