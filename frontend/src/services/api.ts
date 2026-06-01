@@ -19,7 +19,7 @@ export const api = axios.create({
   },
 });
 
-// ========== INTERCEPTOR REQUEST: Añade token JWT ==========
+// ========== REQUEST INTERCEPTOR: Add JWT token ==========
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -31,11 +31,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor para manejo de errores
+// Response interceptor for error handling
 api.interceptors.response.use(
   response => response,
   error => {
-    console.error('Error API:', error);
+    console.error('API Error:', error);
     return Promise.reject(error);
   }
 );

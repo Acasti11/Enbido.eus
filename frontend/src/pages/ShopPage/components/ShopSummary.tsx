@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CategoryTotal } from '../../../types/shop';
 
 interface ShopSummaryProps {
@@ -6,8 +7,9 @@ interface ShopSummaryProps {
 }
 
 const ShopSummary: React.FC<ShopSummaryProps> = ({ totals }): React.JSX.Element => {
+    const { t } = useTranslation();
     return (
-        <section className="shop-summary" aria-label="Resumen de coleccion">
+        <section className="shop-summary" aria-label={t('shop.summaryAriaLabel')}>
         {totals.map((category) => (
             <div key={category.category} className="shop-summary__item">
             <span>{category.label}</span>

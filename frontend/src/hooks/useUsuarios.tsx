@@ -19,7 +19,7 @@ export const useUsuarios = (): UseUsuariosReturn => {
         const response = await api.get('/usuarios');
         setUsuarios(response.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }

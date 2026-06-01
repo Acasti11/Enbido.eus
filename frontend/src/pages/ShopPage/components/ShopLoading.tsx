@@ -1,6 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-const ShopLoading: React.FC = (): React.JSX.Element => (
+const ShopLoading: React.FC = (): React.JSX.Element => {
+    const { t } = useTranslation();
+    return (
     <div className="shop-page" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
         <div className="shop-loading" style={{ textAlign: 'center', color: '#f1cd4f' }}>
         <div
@@ -21,9 +24,10 @@ const ShopLoading: React.FC = (): React.JSX.Element => (
             100% { transform: rotate(360deg); }
             }
         `}</style>
-        <h2>Kargatzen / Cargando Tienda...</h2>
+        <h2>{t('shop.loading')}</h2>
         </div>
     </div>
-);
+    );
+};
 
 export default ShopLoading;

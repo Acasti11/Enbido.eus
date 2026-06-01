@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import ShopCard from './ShopCard';
 import type { ShopItem, ShopCategory } from '../../../types/shop';
 
@@ -11,8 +12,9 @@ interface ShopGridProps {
 }
 
 const ShopGrid: React.FC<ShopGridProps> = ({ items, initials, onBuy, onEquip, onUnequip }): React.JSX.Element => {
+    const { t } = useTranslation();
     return (
-        <section className="shop-grid" aria-label="Objetos de tienda">
+        <section className="shop-grid" aria-label={t('shop.gridAriaLabel')}>
         {items.map((item) => (
             <ShopCard
             key={item.id}

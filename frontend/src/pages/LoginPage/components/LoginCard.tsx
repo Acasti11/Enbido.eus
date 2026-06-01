@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import CardLogo from './CardLogo';
 import LoginForm from './LoginForm';
 import SocialDivider from './SocialDivider';
@@ -9,14 +10,16 @@ interface LoginCardProps {
 }
 
 const LoginCard: React.FC<LoginCardProps> = ({ onSwitchToRegister }): React.JSX.Element => {
+  const { t } = useTranslation();
+
   return (
     <div className="login-card">
       <div className="login-card__header">
         <CardLogo />
         <h1 className="login-card__title">ENBIDO</h1>
-        <p className="login-card__subtitle">Conectando con la mesa... / Mahaira konektatzen...</p>
+        <p className="login-card__subtitle">{t('login.subtitle')}</p>
       </div>
-      <LoginForm/>
+      <LoginForm />
       <SocialDivider onSwitchToRegister={onSwitchToRegister} />
     </div>
   );

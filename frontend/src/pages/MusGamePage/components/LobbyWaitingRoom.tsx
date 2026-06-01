@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import '../styles/lobby-waiting-room.css';
 
 interface SeatInfo {
@@ -20,6 +21,19 @@ interface LobbyWaitingRoomProps {
   onUpdateConfig: (reyes: '4' | '8', rounds: number) => void;
 }
 
+const getSeatPositionClass = (chair: number) => {
+  if (chair === 0) return 'seat-south';
+  if (chair === 1) return 'seat-west';
+  if (chair === 2) return 'seat-north';
+  return 'seat-east';
+};
+
+const getBestOfCount = (maxRounds: number): number => {
+  if (maxRounds === 1) return 1;
+  if (maxRounds === 2) return 3;
+  return 5;
+};
+
 const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
   roomId,
   seats,
@@ -31,103 +45,92 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
   maxRounds,
   onUpdateConfig,
 }) => {
-  // El host es el primer jugador real (normalmente en la silla 0)
+  const { t } = useTranslation();
+
   const hostPlayer = seats.find(s => s.userId !== null && !s.isBot);
   const isHost = hostPlayer && hostPlayer.userId === currentUserId;
 
-  const totalPlayersCount = seats.filter(s => s.username !== 'Vacío').length;
+  const totalPlayersCount = seats.filter(s => s.username !== 'Vacio').length;
   const isTableFull = totalPlayersCount === 4;
-
-  // Asignamos una posición de mesa para renderizar en círculo
-  // 0 = Abajo (Tú), 1 = Izquierda (Oeste), 2 = Arriba (Norte), 3 = Derecha (Este)
-  const getSeatPositionClass = (chair: number) => {
-    if (chair === 0) return 'seat-south';
-    if (chair === 1) return 'seat-west';
-    if (chair === 2) return 'seat-north';
-    return 'seat-east';
-  };
+  const bestOf = getBestOfCount(maxRounds);
 
   return (
     <div className="waiting-room-overlay">
       <div className="waiting-room-card">
-        
-        {/* ROOM CODE TITLE */}
+
         <header className="room-header">
           <button className="leave-room-btn" onClick={onLeaveRoom}>
-            🚪 Abandonar
+            {t('lobby.leave')}
           </button>
           <div className="room-title-area">
-            <span className="room-tag font-bold">MESA DE MUS</span>
+            <span className="room-tag font-bold">{t('lobby.musTable')}</span>
             <h2 className="room-code">{roomId}</h2>
           </div>
           <div className="room-count-badge">
-            {totalPlayersCount}/4 Sentados
+            {t('lobby.seated', { count: totalPlayersCount })}
           </div>
         </header>
 
-        {/* SETTINGS CARD SECTION */}
         <div className="room-settings-bar">
           {isHost ? (
             <>
               <div className="setting-item">
-                <span className="setting-label">REGLA REYES:</span>
-                <select 
-                  value={reyesOption} 
+                <span className="setting-label">{t('lobby.kingsRule')}</span>
+                <select
+                  value={reyesOption}
                   onChange={(e) => onUpdateConfig(e.target.value as '4' | '8', maxRounds)}
                   className="setting-select"
                 >
-                  <option value="8">👑 8 Reyes (Español)</option>
-                  <option value="4">⚔️ 4 Reyes (Vasco)</option>
+                  <option value="8">{t('lobby.kings8')}</option>
+                  <option value="4">{t('lobby.kings4')}</option>
                 </select>
               </div>
 
               <div className="setting-item">
-                <span className="setting-label">CHICOS A GANAR:</span>
-                <select 
-                  value={maxRounds} 
+                <span className="setting-label">{t('lobby.roundsToWin')}</span>
+                <select
+                  value={maxRounds}
                   onChange={(e) => onUpdateConfig(reyesOption, parseInt(e.target.value))}
                   className="setting-select"
                 >
-                  <option value="1">1 Chico (Partida rápida)</option>
-                  <option value="2">2 Chicos (Al mejor de 3)</option>
-                  <option value="3">3 Chicos (Al mejor de 5)</option>
+                  <option value="1">{t('lobby.round1')}</option>
+                  <option value="2">{t('lobby.round2')}</option>
+                  <option value="3">{t('lobby.round3')}</option>
                 </select>
               </div>
-            </> 
+            </>
           ) : (
             <div className="guest-rules-info">
-              <span>REGLAS: <strong className="guest-rule-highlight"></strong>{reyesOption} REYES</span>
-              <span>OBJETIVO: <strong className="guest-rule-highlight">GANAR {maxRounds} {maxRounds === 1 ? 'CHICO' : 'CHICOS'} (MEJOR DE {maxRounds === 1 ? 1 : maxRounds === 2 ? 3 : 5})</strong></span>
+              <span>{t('lobby.rules')} <strong className="guest-rule-highlight"></strong>{reyesOption} REYES</span>
+              <span>{t('lobby.objective')} <strong className="guest-rule-highlight">{t('lobby.win')} {maxRounds} {maxRounds === 1 ? t('lobby.round') : t('lobby.rounds')} ({t('lobby.bestOf')} {bestOf})</strong></span>
             </div>
           )}
         </div>
 
-        {/* GREEN MESA PREVIEW */}
         <div className="mesa-felt-preview">
           <div className="mesa-center-logo">
             <h3 className="felt-logo-text">ENBIDO</h3>
-            <span className="felt-sub-text">Sala de Espera</span>
+            <span className="felt-sub-text">{t('lobby.waitingRoom')}</span>
           </div>
 
-          {/* THE 4 CHAIRS */}
           {seats.map((seat) => {
-            const isEmpty = seat.username === 'Vacío';
+            const isEmpty = seat.username === 'Vacio';
             const isSelf = seat.userId === currentUserId;
-            
+
             return (
-              <div 
-                key={seat.chair} 
+              <div
+                key={seat.chair}
                 className={`mesa-chair-node ${getSeatPositionClass(seat.chair)} ${isEmpty ? 'chair-empty' : 'chair-occupied'} ${isSelf ? 'chair-self' : ''}`}
               >
                 {isEmpty ? (
                   <div className="empty-chair-inner">
-                    <span className="chair-lbl">Vacío</span>
+                    <span className="chair-lbl">{t('lobby.empty')}</span>
                     {isHost && (
-                      <button 
+                      <button
                         className="add-bot-btn"
                         onClick={() => onAddBot(seat.chair)}
                       >
-                        🤖 Añadir Bot
+                        {t('lobby.addBot')}
                       </button>
                     )}
                   </div>
@@ -137,10 +140,10 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
                       {seat.isBot ? '🤖' : '👤'}
                     </div>
                     <span className="player-name">
-                      {seat.username} {isSelf && '(Tú)'}
+                      {seat.username} {isSelf && t('lobby.youParenthesis')}
                     </span>
                     <span className="player-role">
-                      {seat.isBot ? 'BOT COMPUTADOR' : 'JUGADOR ACTIVO'}
+                      {seat.isBot ? t('lobby.botComputer') : t('lobby.activePlayer')}
                     </span>
                   </div>
                 )}
@@ -149,28 +152,27 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
           })}
         </div>
 
-        {/* BOTTOM CONTROLS */}
         <div className="waiting-footer-actions">
           {isHost ? (
             <div className="host-panel">
               <p className="status-tip">
-                {isTableFull 
-                  ? '¡La mesa está completa! Todo listo para jugar.' 
-                  : 'Rellena los asientos vacíos con Bots o espera a que entren jugadores reales.'}
+                {isTableFull
+                  ? t('lobby.tableFull')
+                  : t('lobby.fillSeats')}
               </p>
-              <button 
+              <button
                 className="start-game-trigger"
                 onClick={onStartGame}
                 disabled={!isTableFull}
               >
-                🎮 Comenzar Partida de Mus
+                {t('lobby.startGame')}
               </button>
             </div>
           ) : (
             <div className="guest-panel">
               <div className="waiting-pulse-loader"></div>
               <p className="guest-waiting-lbl">
-                Esperando a que el anfitrión comience la partida...
+                {t('lobby.waitingForHost')}
               </p>
             </div>
           )}

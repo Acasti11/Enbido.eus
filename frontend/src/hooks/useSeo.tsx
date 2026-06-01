@@ -26,10 +26,10 @@ export const useSeo = ({
   const jsonLdString = jsonLd ? JSON.stringify(jsonLd) : '';
 
   useEffect(() => {
-    // 1. Actualizar título del documento
+    // 1. Update document title
     document.title = title;
 
-    // 2. Actualizar meta descripción
+    // 2. Update meta description
     let metaDescription = document.querySelector('meta[name="description"]');
     if (!metaDescription) {
       metaDescription = document.createElement('meta');
@@ -38,7 +38,7 @@ export const useSeo = ({
     }
     metaDescription.setAttribute('content', description);
 
-    // 3. Actualizar meta keywords (si se proveen)
+    // 3. Update meta keywords (if provided)
     if (keywords) {
       let metaKeywords = document.querySelector('meta[name="keywords"]');
       if (!metaKeywords) {
@@ -49,7 +49,7 @@ export const useSeo = ({
       metaKeywords.setAttribute('content', keywords);
     }
 
-    // 4. Actualizar Open Graph Title
+    // 4. Update Open Graph Title
     const titleVal = ogTitle || title;
     let metaOgTitle = document.querySelector('meta[property="og:title"]');
     if (!metaOgTitle) {
@@ -59,7 +59,7 @@ export const useSeo = ({
     }
     metaOgTitle.setAttribute('content', titleVal);
 
-    // 5. Actualizar Open Graph Description
+    // 5. Update Open Graph Description
     const descVal = ogDescription || description;
     let metaOgDesc = document.querySelector('meta[property="og:description"]');
     if (!metaOgDesc) {
@@ -69,7 +69,7 @@ export const useSeo = ({
     }
     metaOgDesc.setAttribute('content', descVal);
 
-    // 6. Actualizar Open Graph Image
+    // 6. Update Open Graph Image
     if (ogImage) {
       let metaOgImage = document.querySelector('meta[property="og:image"]');
       if (!metaOgImage) {
@@ -88,7 +88,7 @@ export const useSeo = ({
       metaTwitterImage.setAttribute('content', ogImage);
     }
 
-    // 7. Actualizar Canonical Link
+    // 7. Update Canonical Link
     let linkCanonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
       if (!linkCanonical) {
@@ -99,13 +99,13 @@ export const useSeo = ({
       linkCanonical.setAttribute('href', canonical);
     }
 
-    // 8. Actualizar idioma del documento (lang)
+    // 8. Update document language (lang)
     const oldLang = document.documentElement.lang;
     if (lang) {
       document.documentElement.lang = lang;
     }
 
-    // 9. Inyectar Datos Estructurados (JSON-LD)
+    // 9. Inject Structured Data (JSON-LD)
     let jsonLdScript: HTMLScriptElement | null = null;
     if (jsonLdString) {
       jsonLdScript = document.createElement('script');
@@ -115,7 +115,7 @@ export const useSeo = ({
       document.head.appendChild(jsonLdScript);
     }
 
-    // Cleanup: restaurar idioma e inyección al desmontar el componente
+    // Cleanup: restore language and injection on component unmount
     return () => {
       if (lang) {
         document.documentElement.lang = oldLang;

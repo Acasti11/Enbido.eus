@@ -1,21 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import CoinIcon from './Coinicon';
 import type { ShopItem, ShopCategory } from '../../../types/shop';
-
-/*const ITEM_METADATA: Record<number, { description: string; accent: 'gold' | 'red' | 'green' }> = {
-    1: { description: 'Marco dorado y ficha premium para partidas ganadas.', accent: 'gold' },
-    2: { description: 'Avatar sobrio con textura de pared verde.', accent: 'green' },
-    3: { description: 'Cartas crema con palos marcados en rojo y verde.', accent: 'red' },
-    4: { description: 'Reverso oscuro con detalles dorados para mesas nocturnas.', accent: 'gold' },
-    5: { description: 'Alias visible bajo tu nombre en el perfil de jugador.', accent: 'green' },
-    6: { description: 'Título para quien sabe cuándo apretar la apuesta.', accent: 'red' },
-};*/
-
-const CATEGORY_LABELS: Record<ShopCategory, string> = {
-    profiles: 'Profilak / Perfiles',
-    decks: 'Kartak / Cartas',
-    aliases: 'Ezizenak / Alias',
-};
 
 interface ShopCardProps {
     item: ShopItem;
@@ -25,7 +11,27 @@ interface ShopCardProps {
     onUnequip: (category: ShopCategory, name: string) => void;
 }
 
+const getCategoryLabelKey = (category: ShopCategory): string => {
+    if (category === 'profiles') return 'shop.categoryProfiles';
+    if (category === 'decks') return 'shop.categoryDecks';
+    return 'shop.categoryAliases';
+};
+
+const getStateLabel = (t: (key: string) => string, equipped: boolean, owned: boolean): string => {
+    if (equipped) return t('shop.activeNow');
+    if (owned) return t('shop.owned');
+    return t('shop.available');
+};
+
+const getButtonLabel = (t: (key: string) => string, equipped: boolean, owned: boolean): string => {
+    if (equipped) return t('shop.equipped');
+    if (owned) return t('shop.equip');
+    return t('shop.buy');
+};
+
 const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onUnequip }): React.JSX.Element => {
+    const { t } = useTranslation();
+
     const handleClick = () => {
         if (item.equipped) {
         onUnequip(item.category, item.name);
@@ -70,10 +76,14 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
         );
     };
 
+    const categoryLabelKey = getCategoryLabelKey(item.category);
+    const stateLabel = getStateLabel(t, item.equipped, item.owned);
+    const buttonLabel = getButtonLabel(t, item.equipped, item.owned);
+
     return (
         <article className={`shop-card shop-card--${item.accent}`}>
         <div className="shop-card__media">
-            <span className="shop-card__category">{CATEGORY_LABELS[item.category]}</span>
+            <span className="shop-card__category">{t(categoryLabelKey)}</span>
             {renderPreview()}
         </div>
 
@@ -83,16 +93,14 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
             {!item.owned && (
                 <span className="shop-card__price">
                 <CoinIcon />
-                {item.price.toLocaleString('es-ES')} tx
+                {item.price.toLocaleString('es-ES')} {t('shop.coinUnit')}
                 </span>
             )}
             </div>
             <p>{item.description}</p>
 
             <div className="shop-card__footer">
-            <span className="shop-card__state">
-                {item.equipped ? 'Activo ahora' : item.owned ? 'Ya comprado' : 'Disponible'}
-            </span>
+            <span className="shop-card__state">{stateLabel}</span>
             <button
                 className="shop-card__button"
                 type="button"
@@ -103,7 +111,7 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
                 border: item.equipped ? '1px solid #f1cd4f' : undefined,
                 }}
             >
-                {item.equipped ? 'Equipado' : item.owned ? 'Equipar' : 'Comprar'}
+                {buttonLabel}
             </button>
             </div>
         </div>

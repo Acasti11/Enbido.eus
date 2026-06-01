@@ -1,10 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ShopCategory } from'../../../types/shop';
 
-const CATEGORY_LABELS: Record<ShopCategory, string> = {
-    profiles: 'Profilak / Perfiles',
-    decks: 'Kartak / Cartas',
-    aliases: 'Ezizenak / Alias',
+const getCategoryKey = (category: ShopCategory): string => {
+    if (category === 'profiles') return 'shop.categoryProfiles';
+    if (category === 'decks') return 'shop.categoryDecks';
+    return 'shop.categoryAliases';
 };
 
 interface ShopToolbarProps {
@@ -20,23 +21,27 @@ const ShopToolbar: React.FC<ShopToolbarProps> = ({
     onTabChange,
     onToggleSort,
 }): React.JSX.Element => {
+    const { t } = useTranslation();
+
     const sortLabel = sortByPrice === 'none'
-        ? 'Sin ordenar'
+        ? t('shop.sortNone')
         : sortByPrice === 'asc'
-        ? 'Precio: Bajo a Alto'
-        : 'Precio: Alto a Bajo';
+        ? t('shop.sortAsc')
+        : t('shop.sortDesc');
+
+    const categories: ShopCategory[] = ['profiles', 'decks', 'aliases'];
 
     return (
-            <section className="shop-toolbar" aria-label="Filtros de tienda">
-            <div className="shop-toolbar__tabs" role="tablist" aria-label="Categorias">
-                {(Object.entries(CATEGORY_LABELS) as [ShopCategory, string][]).map(([category, label]) => (
+            <section className="shop-toolbar" aria-label={t('shop.gridAriaLabel')}>
+            <div className="shop-toolbar__tabs" role="tablist" aria-label={t('shop.gridAriaLabel')}>
+                {categories.map((category) => (
                 <button
                     key={category}
                     className={activeTab === category ? 'shop-toolbar__tab shop-toolbar__tab--active' : 'shop-toolbar__tab'}
                     type="button"
                     onClick={() => onTabChange(category)}
                 >
-                    {label}
+                    {t(getCategoryKey(category))}
                 </button>
                 ))}
             </div>
@@ -45,7 +50,7 @@ const ShopToolbar: React.FC<ShopToolbarProps> = ({
                 type="button"
                 onClick={onToggleSort}
             >
-                {sortByPrice === 'none' ? '↕️ Ordenar por Precio' : `↕️ ${sortLabel}`}
+                {sortByPrice === 'none' ? t('shop.sortPrice') : `↕️ ${sortLabel}`}
             </button>
             </section>
         );

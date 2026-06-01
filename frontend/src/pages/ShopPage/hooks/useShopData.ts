@@ -51,7 +51,7 @@ export const useShopData = () => {
         }
         try {
             const res = await api.post(`/usuarios/me/buy/${itemId}`);
-            showToast(`¡Has comprado "${name}" con éxito!`, 'success');
+            showToast(`Has comprado "${name}" con exito!`, 'success');
             setCoins(res.data.newCoins ?? coins - price);
             setInventory((prev) => [...prev, itemId]);
         } catch (err: any) {
@@ -62,7 +62,7 @@ export const useShopData = () => {
     const handleEquip = useCallback(async (itemId: number, category: ShopCategory, name: string) => {
         try {
             await api.post(`/usuarios/me/equip/${itemId}`);
-            showToast(`¡Has equipado "${name}"!`, 'success');
+            showToast(`Has equipado "${name}"!`, 'success');
             if (category === 'profiles') setEquippedAvatarItemId(itemId);
             else if (category === 'decks') setEquippedDeckItemId(itemId);
             else if (category === 'aliases') setEquippedTitleItemId(itemId);
@@ -74,7 +74,7 @@ export const useShopData = () => {
     const handleUnequip = useCallback(async (category: ShopCategory, name: string) => {
         try {
             await api.post(`/usuarios/me/unequip/${category}`);
-            showToast(`¡Has desequipado "${name}"!`, 'success');
+            showToast(`Has desequipado "${name}"!`, 'success');
             if (category === 'profiles') setEquippedAvatarItemId(null);
             else if (category === 'decks') setEquippedDeckItemId(null);
             else if (category === 'aliases') setEquippedTitleItemId(null);
@@ -83,8 +83,8 @@ export const useShopData = () => {
         }
     }, [showToast]);
 
-    // ✅ USAR useMemo para calcular categoryTotals
-        const categoryTotals = useMemo<CategoryTotal[]>(() => {
+    // Use useMemo to calculate categoryTotals
+    const categoryTotals = useMemo<CategoryTotal[]>(() => {
         const categories: Array<{ category: ShopCategory; label: string }> = [
             { category: 'profiles', label: 'Profilak / Perfiles' },
             { category: 'decks', label: 'Kartak / Cartas' },
@@ -93,24 +93,25 @@ export const useShopData = () => {
 
         return categories.map((cat) => {
             const catItems = items.filter((item: any) => {
-                const itemCategory = typeof item.category === 'string' 
-                    ? item.category 
+                const itemCategory = typeof item.category === 'string'
+                    ? item.category
                     : item.category?.name;
                 return itemCategory === cat.category;
             });
 
-            const owned = catItems.filter((item: any) => 
+            const owned = catItems.filter((item: any) =>
                 inventory.includes(Number(item.itemId || item.id))
             ).length;
 
             return {
-                category: cat.category,  // ← Asegura que sea ShopCategory
+                category: cat.category,
                 label: cat.label,
                 owned,
                 total: catItems.length,
             };
         });
     }, [items, inventory]);
+
     return {
         coins,
         inventory,

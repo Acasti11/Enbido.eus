@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ImageModalProps {
   imageUrl: string | null;
@@ -6,8 +7,9 @@ interface ImageModalProps {
 }
 
 const ImageModal = ({ imageUrl, onCloseModal }: ImageModalProps): React.JSX.Element | null => {
+  const { t } = useTranslation();
   const hasImage = Boolean(imageUrl);
-  
+
   if (!hasImage) return null;
 
   const handleStopPropagation = (event: React.MouseEvent) => {
@@ -18,7 +20,7 @@ const ImageModal = ({ imageUrl, onCloseModal }: ImageModalProps): React.JSX.Elem
     <div className="modal-overlay" onClick={onCloseModal}>
       <div className="modal-img-container" onClick={handleStopPropagation}>
         <button className="btn-close-modal" onClick={onCloseModal}>X</button>
-        <img src={imageUrl!} alt="Poster en grande" className="modal-poster-img" />
+        <img src={imageUrl!} alt={t('common.posterLarge')} className="modal-poster-img" />
       </div>
     </div>
   );

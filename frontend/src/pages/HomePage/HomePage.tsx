@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './homepage.css';
+import { useSeo } from '../../hooks/useSeo';
 
-// ========== SVGS COMO COMPONENTES DE ICONOS ==========
+// ========== SVG ICON COMPONENTS ==========
 
 const PlayIcon: React.FC = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -42,25 +44,211 @@ const CardsIcon: React.FC = () => (
   </svg>
 );
 
-import { useSeo } from '../../hooks/useSeo';
+// ========== SUB-COMPONENTS ==========
 
-const HomePage: React.FC = (): React.JSX.Element => {
+interface StatsBarProps {
+  onlinePlayers: number;
+  gamesToday: number;
+}
+
+const StatsBar: React.FC<StatsBarProps> = ({ onlinePlayers, gamesToday }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="home-stats-bar" aria-label={t('home.liveStatsAriaLabel')}>
+      <div className="home-stat-item">
+        <span className="home-stat-number">
+          <span className="home-stat-pulse" />
+          {onlinePlayers.toLocaleString()}
+        </span>
+        <span className="home-stat-label">{t('home.onlinePlayers')}</span>
+      </div>
+      <div className="home-stat-item">
+        <span className="home-stat-number">{gamesToday.toLocaleString()}</span>
+        <span className="home-stat-label">{t('home.gamesToday')}</span>
+      </div>
+    </div>
+  );
+};
+
+interface HeroCtaPaneProps {
+  onlinePlayers: number;
+  gamesToday: number;
+}
+
+const HeroCtaPane: React.FC<HeroCtaPaneProps> = ({ onlinePlayers, gamesToday }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
+  return (
+    <div className="home-cta-pane">
+      <h1 className="home-title">
+        {t('home.title')}
+        <span>{t('home.titleSub')}</span>
+      </h1>
+      <p className="home-subtitle">{t('home.subtitle')}</p>
+      <StatsBar onlinePlayers={onlinePlayers} gamesToday={gamesToday} />
+      <div className="home-buttons-box">
+        <button
+          className="btn-play-primary"
+          onClick={() => navigate('/jugar')}
+          title={t('home.playNowTitle')}
+        >
+          <PlayIcon />
+          {t('home.playNow')}
+        </button>
+        <button
+          className="btn-tournaments-secondary"
+          onClick={() => navigate('/torneos')}
+          title={t('home.joinTournamentsTitle')}
+        >
+          <TrophyIcon />
+          {t('home.joinTournaments')}
+        </button>
+        <button
+          className="btn-meetups-outline"
+          onClick={() => navigate('/quedadas')}
+          title={t('home.findMeetupsTitle')}
+        >
+          <MapPinIcon />
+          {t('home.findMeetups')}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const HeroVisualPane: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="home-visual-pane">
+      <img
+        src="/home-image-mus.png"
+        alt={t('home.heroImageAlt')}
+        className="home-hero-img"
+      />
+      <div className="home-visual-overlay">
+        <div className="home-visual-tagline">{t('home.tagline')}</div>
+      </div>
+    </div>
+  );
+};
+
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  titleKey: string;
+  descKey: string;
+  onClick: () => void;
+}
+
+const FeatureCard: React.FC<FeatureCardProps> = ({ icon, titleKey, descKey, onClick }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="home-feature-card" onClick={onClick}>
+      <div className="home-feature-icon">{icon}</div>
+      <h2 className="home-feature-title">{t(titleKey)}</h2>
+      <p className="home-feature-desc">{t(descKey)}</p>
+    </div>
+  );
+};
+
+const FeaturesSection: React.FC = () => {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  return (
+    <section className="home-features-section" aria-label={t('home.featuresSectionAriaLabel')}>
+      <FeatureCard
+        icon={<CardsIcon />}
+        titleKey="home.featurePlay"
+        descKey="home.featurePlayDesc"
+        onClick={() => navigate('/jugar')}
+      />
+      <FeatureCard
+        icon={<TrophyIcon />}
+        titleKey="home.featureTournaments"
+        descKey="home.featureTournamentsDesc"
+        onClick={() => navigate('/torneos')}
+      />
+      <FeatureCard
+        icon={<MapPinIcon />}
+        titleKey="home.featureMeetups"
+        descKey="home.featureMeetupsDesc"
+        onClick={() => navigate('/quedadas')}
+      />
+    </section>
+  );
+};
+
+const ShopBanner: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  return (
+    <section className="home-shop-banner">
+      <div className="home-shop-text">
+        <span className="home-shop-badge">{t('home.shopBadge')}</span>
+        <h2 className="home-shop-title">{t('home.shopTitle')}</h2>
+        <p className="home-shop-desc">{t('home.shopDesc')}</p>
+      </div>
+      <div className="home-shop-action">
+        <button
+          className="btn-shop-accent"
+          onClick={() => navigate('/tienda')}
+          title={t('home.goToShopTitle')}
+        >
+          <ShopBagIcon />
+          {t('home.goToShop')}
+        </button>
+      </div>
+    </section>
+  );
+};
+
+const HomeFooter: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer className="home-footer">
+      <p>&copy; {currentYear} Enbido.eus. {t('home.footerRights')}</p>
+      <div className="home-footer-links">
+        <span className="home-footer-link" onClick={() => navigate('/jugar')}>
+          {t('home.footerRules')}
+        </span>
+        <span className="home-footer-link" onClick={() => navigate('/torneos')}>
+          {t('home.footerTournaments')}
+        </span>
+        <span className="home-footer-link" onClick={() => navigate('/quedadas')}>
+          {t('home.footerMaps')}
+        </span>
+      </div>
+    </footer>
+  );
+};
+
+// ========== MAIN COMPONENT ==========
+
+const HomePage: React.FC = (): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  const [onlinePlayers, setOnlinePlayers] = useState(1482);
+  const [gamesToday, setGamesToday] = useState(3841);
+
   useSeo({
-    title: 'Enbido - Juego de Mus Online Gratis | Mus Jokoa',
-    description: 'Juega al Mus online gratis en Enbido. Disfruta de partidas rápidas, torneos, ligas de ELO y la mejor comunidad de muslaris. ¡Entra y echa un enbido!',
-    keywords: 'mus online, jugar mus online, enbido, envido, juego de cartas, mus jokoa, euskadi, torneos de mus, mus euskadi, jugar mus, mus jugar',
+    title: t('home.seoTitle'),
+    description: t('home.seoDescription'),
+    keywords: t('home.seoKeywords'),
     canonical: 'https://enbido.eus/',
     ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'eu',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'VideoGame',
-      'name': 'Enbido - Juego de Mus Online',
+      'name': t('home.seoJsonLdName'),
       'url': 'https://enbido.eus/',
       'image': 'https://enbido.eus/home-image-mus.png',
-      'description': 'Juega al Mus online gratis en Enbido. Disfruta de partidas rápidas, torneos, ligas de ELO y la mejor comunidad de muslaris. ¡Entra y echa un enbido!',
+      'description': t('home.seoDescription'),
       'genre': 'Card Game',
       'gamePlatform': 'Web Browser',
       'author': {
@@ -70,174 +258,26 @@ const HomePage: React.FC = (): React.JSX.Element => {
     }
   });
 
-  // Estadísticas dinámicas del juego para simular un servidor activo (estilo chess.com)
-  const [onlinePlayers, setOnlinePlayers] = useState(1482);
-  const [gamesToday, setGamesToday] = useState(3841);
-
   useEffect(() => {
-    // Variación pequeña de jugadores en línea cada 4 segundos
     const interval = setInterval(() => {
       setOnlinePlayers((prev) => {
-        const change = Math.floor(Math.random() * 11) - 5; // -5 a +5
+        const change = Math.floor(Math.random() * 11) - 5;
         return Math.max(1400, prev + change);
       });
       setGamesToday((prev) => prev + Math.floor(Math.random() * 2));
     }, 4000);
-
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="home-container">
-      {/* SECCIÓN HERO - DISEÑO DIVIDIDO */}
       <section className="home-hero-section">
-        {/* Columna Izquierda: Visualización premium de una mesa de Mus */}
-        <div className="home-visual-pane">
-          <img
-            src="/home-image-mus.png"
-            alt="Mesa de juego de Mus premium de Enbido.eus con tapete verde y baraja española"
-            className="home-hero-img"
-          />
-          <div className="home-visual-overlay">
-            <div className="home-visual-tagline">
-              🏆 ENBIDO MAISUAREN ETXEA 🏆
-            </div>
-          </div>
-        </div>
-
-        {/* Columna Derecha: Panel de Acción Estilo Chess.com */}
-        <div className="home-cta-pane">
-          <h1 className="home-title">
-            Jokatu Musean Online
-            <span>Juega al Mus en la Mayor Comunidad</span>
-          </h1>
-
-          <p className="home-subtitle">
-            Euskal Herriko muslaririk onenen aurka jokatu edo lagunekin mahaia sortu.
-            Compite contra los mejores jugadores o crea una mesa privada para tus amigos.
-          </p>
-
-          {/* Estadísticas de Actividad En Vivo */}
-          <div className="home-stats-bar" aria-label="Estadísticas de juego en vivo">
-            <div className="home-stat-item">
-              <span className="home-stat-number">
-                <span className="home-stat-pulse" />
-                {onlinePlayers.toLocaleString()}
-              </span>
-              <span className="home-stat-label">Linean / En línea</span>
-            </div>
-            <div className="home-stat-item">
-              <span className="home-stat-number">
-                {gamesToday.toLocaleString()}
-              </span>
-              <span className="home-stat-label">Partidak gaur / Partidas hoy</span>
-            </div>
-          </div>
-
-          {/* Botones de Navegación Directa */}
-          <div className="home-buttons-box">
-            <button
-              className="btn-play-primary"
-              onClick={() => navigate('/jugar')}
-              title="Entrar al tapete de juego en línea"
-            >
-              <PlayIcon />
-              Jokatu Orain / Jugar Ahora
-            </button>
-
-            <button
-              className="btn-tournaments-secondary"
-              onClick={() => navigate('/torneos')}
-              title="Ver el tablón de torneos"
-            >
-              <TrophyIcon />
-              Torneotara Bat Egin / Unirse a Torneos
-            </button>
-
-            <button
-              className="btn-meetups-outline"
-              onClick={() => navigate('/quedadas')}
-              title="Ver mapa interactivo de quedadas"
-            >
-              <MapPinIcon />
-              Quedadak Aurkitu / Buscar Quedadas
-            </button>
-          </div>
-        </div>
+        <HeroVisualPane />
+        <HeroCtaPane onlinePlayers={onlinePlayers} gamesToday={gamesToday} />
       </section>
-
-      {/* SECCIÓN GRID DE CARACTERÍSTICAS */}
-      <section className="home-features-section" aria-label="Características de Enbido">
-
-        {/* Tarjeta de Jugar */}
-        <div className="home-feature-card" onClick={() => navigate('/jugar')}>
-          <div className="home-feature-icon">
-            <CardsIcon />
-          </div>
-          <h2 className="home-feature-title">Jolastu / Jugar</h2>
-          <p className="home-feature-desc">
-            Sartu lobby publikoetan, jokatu lagunen aurka gela pribatuetan edo entrenatu adimen artifizialeko bot-en kontra.
-            Entra en salas públicas, juega contra amigos o practica contra nuestros bots inteligentes.
-          </p>
-        </div>
-
-        {/* Tarjeta de Torneos */}
-        <div className="home-feature-card" onClick={() => navigate('/torneos')}>
-          <div className="home-feature-icon">
-            <TrophyIcon />
-          </div>
-          <h2 className="home-feature-title">Torneoak / Torneos</h2>
-          <p className="home-feature-desc">
-            Lehiatu txapelketa ofizial zein herrikoietan. Irabazi txapela eta igo rankingeko sailkapenean muslaririk handiena izateko.
-            Compite en torneos presenciales u online. Gana la txapela y sube en el ranking para demostrar quién es el mejor.
-          </p>
-        </div>
-
-        {/* Tarjeta de Quedadas */}
-        <div className="home-feature-card" onClick={() => navigate('/quedadas')}>
-          <div className="home-feature-icon">
-            <MapPinIcon />
-          </div>
-          <h2 className="home-feature-title">Quedadak / Quedadas</h2>
-          <p className="home-feature-desc">
-            Bilatu zure herri edo hiritik hurbil dauden joko-mahai fisikoak gure mapa interaktiboan eta osatu laukotea.
-            Encuentra mesas físicas cerca de ti en nuestro mapa interactivo y completa la partida con otros jugadores locales.
-          </p>
-        </div>
-
-      </section>
-
-      {/* SECCIÓN ANUNCIO TIENDA */}
-      <section className="home-shop-banner">
-        <div className="home-shop-text">
-          <span className="home-shop-badge">Pertsonalizazioa / Personalización</span>
-          <h2 className="home-shop-title">Zure estiloa mahaian erakutsi / Muestra tu estilo en la mesa</h2>
-          <p className="home-shop-desc">
-            Erosi txanponekin tapete pertsonalizatuak, kartetako atzealde bereziak, avatar bikainak eta titulu ospetsuak (Adib. "ENBIDO MAISU").
-            Consigue tapetes personalizados, reversos de cartas temáticos, avatares exclusivos y títulos prestigiosos para destacar en la mesa.
-          </p>
-        </div>
-        <div className="home-shop-action">
-          <button
-            className="btn-shop-accent"
-            onClick={() => navigate('/tienda')}
-            title="Ir a la tienda de Enbido"
-          >
-            <ShopBagIcon />
-            Tiendara Joan / Ir a la Tienda
-          </button>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="home-footer">
-        <p>&copy; {new Date().getFullYear()} Enbido.eus. Eskubide guztiak erreserbatuta / Todos los derechos reservados.</p>
-        <div className="home-footer-links">
-          <span className="home-footer-link" onClick={() => navigate('/jugar')}>Mus Arauak / Reglas</span>
-          <span className="home-footer-link" onClick={() => navigate('/torneos')}>Txapelketak / Campeonatos</span>
-          <span className="home-footer-link" onClick={() => navigate('/quedadas')}>Mapak / Mapas</span>
-        </div>
-      </footer>
+      <FeaturesSection />
+      <ShopBanner />
+      <HomeFooter />
     </div>
   );
 };

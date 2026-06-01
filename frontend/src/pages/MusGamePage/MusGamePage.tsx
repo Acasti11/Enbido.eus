@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import GameScoreBoard from './components/GameScoreBoard';
 import GameConsoleLogs from './components/GameConsoleLogs';
 import ActionPanel from './components/ActionPanel';
@@ -22,50 +23,63 @@ const getSignEmojiOnly = (signKey: string): string => {
   return mapping[signKey] || signKey;
 };
 
+const setupOscillator = (audioCtx: AudioContext, type: OscillatorType, freq: number) => {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  return { osc, gain };
+};
+
+const playClickSound = (audioCtx: AudioContext) => {
+  const { osc, gain } = setupOscillator(audioCtx, 'sine', 600);
+  gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.05);
+};
+
+const playCardSound = (audioCtx: AudioContext) => {
+  const { osc, gain } = setupOscillator(audioCtx, 'triangle', 180);
+  osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.12);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.12);
+};
+
+const playTimerSound = (audioCtx: AudioContext) => {
+  const { osc, gain } = setupOscillator(audioCtx, 'sine', 750);
+  gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.08);
+};
+
+const playWinSound = (audioCtx: AudioContext) => {
+  const { osc, gain } = setupOscillator(audioCtx, 'sine', 523.25);
+  osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+  osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+  osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.5);
+};
+
 const playSound = (type: 'card' | 'click' | 'timer' | 'win', isMuted: boolean) => {
   if (isMuted) return;
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const audioCtx = new AudioContextClass();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
 
-    if (type === 'click') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.05);
-    } else if (type === 'card') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.12);
-    } else if (type === 'timer') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(750, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.08);
-    } else if (type === 'win') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-      osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-      osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
-    }
+    if (type === 'click') playClickSound(audioCtx);
+    else if (type === 'card') playCardSound(audioCtx);
+    else if (type === 'timer') playTimerSound(audioCtx);
+    else if (type === 'win') playWinSound(audioCtx);
   } catch (err) {
     console.warn('AudioContext failed:', err);
   }
@@ -79,12 +93,9 @@ const TimerCircle: React.FC<{ timeLeft: number; isActive: boolean }> = ({ timeLe
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (Math.min(timeLeft, maxTime) / maxTime) * circumference;
 
-  let strokeColor = '#10b981'; // Green
-  if (timeLeft <= 3) {
-    strokeColor = '#ef4444'; // Red
-  } else if (timeLeft <= 6) {
-    strokeColor = '#f59e0b'; // Amber
-  }
+  let strokeColor = '#10b981';
+  if (timeLeft <= 3) strokeColor = '#ef4444';
+  else if (timeLeft <= 6) strokeColor = '#f59e0b';
 
   return (
     <svg className="timer-svg" width="64" height="64" viewBox="0 0 64 64" style={{ position: 'absolute', top: '-6px', left: '-6px', pointerEvents: 'none', zIndex: 10 }}>
@@ -118,22 +129,120 @@ const MiniDeckToken: React.FC<{ size?: number; className?: string }> = ({ size =
   );
 };
 
+const PlayerPosition: React.FC<{
+  position: 'north' | 'west' | 'east' | 'south';
+  index: number;
+  timeLeft: number;
+  activeTurnIdx: number;
+  seats: any[];
+  botHands: any[][];
+  isPlaying: boolean;
+  phase: string;
+  dealerIdx: number;
+  speechBubbles: { [key: number]: string | null };
+  activeSigns: { [key: number]: string | null };
+  profile: any;
+  playerHand?: any[];
+  selectedCards?: string[];
+  toggleCardSelection?: (cardId: string) => void;
+  getSignEmojiOnly: (key: string) => string;
+  t: (key: string) => string;
+}> = ({
+  position, index, timeLeft, activeTurnIdx, seats, botHands, isPlaying,
+  phase, dealerIdx, speechBubbles, activeSigns, profile, playerHand,
+  selectedCards, toggleCardSelection, getSignEmojiOnly, t
+}) => {
+  const isBot = position !== 'south';
+  const hand = isBot ? botHands[position === 'north' ? 0 : position === 'west' ? 2 : 1] : playerHand || [];
+
+  const getBotName = (): string => {
+    if (position === 'north') return t('musGame.botNorth');
+    if (position === 'west') return t('musGame.botWest');
+    return t('musGame.botEast');
+  };
+
+  const username = seats[index]?.username || getBotName();
+  const isSelf = position === 'south';
+  const displayName = isSelf ? `${username} (${t('musGame.you')})` : username;
+  const avatarClass = isSelf
+    ? `player-theme ${activeSigns[index] ? 'has-active-sign' : ''} ${profile?.equippedAvatarItemId === 1 ? 'avatar-premium-gold' : profile?.equippedAvatarItemId === 2 ? 'avatar-premium-green' : ''}`
+    : position === 'north'
+    ? `partner-theme ${activeSigns[index] ? 'has-active-sign' : ''}`
+    : `rival-theme ${activeSigns[index] ? 'has-active-sign' : ''}`;
+
+  return (
+    <div className={`player-position position-${position} ${activeTurnIdx === index ? 'active-zone' : ''}`}>
+      <div className="player-avatar-card">
+        <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+          <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === index} />
+          <div className={`player-avatar-circle ${avatarClass}`}>
+            {username.slice(0, 2).toUpperCase()}
+          </div>
+          {activeTurnIdx === index && timeLeft > 0 && (
+            <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
+              {timeLeft}s
+            </div>
+          )}
+        </div>
+        <div className="player-avatar-details">
+          <span className="player-name-label">{displayName}</span>
+          {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
+          {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
+        </div>
+      </div>
+
+      <div className="player-hand-wrapper">
+        <div className="player-cards-slot-bg">
+          <div className="slot-outline-card"></div>
+          <div className="slot-outline-card"></div>
+          <div className="slot-outline-card"></div>
+          <div className="slot-outline-card"></div>
+        </div>
+        <PlayerHand
+          hand={isPlaying ? hand : []}
+          isBot={isBot && phase !== 'round-over'}
+          isSelectable={isSelf && phase === 'discarding'}
+          selectedCards={selectedCards}
+          onCardClick={toggleCardSelection}
+          equippedDeckItemId={profile?.equippedDeckItemId}
+        />
+      </div>
+      {dealerIdx === index && (
+        <div className="dealer-baraja-token" title={t('musGame.dealerTooltip')}>
+          <MiniDeckToken />
+        </div>
+      )}
+      {speechBubbles[index] && <div className="speech-bubble show">{speechBubbles[index]}</div>}
+      {activeSigns[index] && (
+        <div className="mus-sign-badge pop-in">
+          <div className="mus-sign-badge-glow"></div>
+          <span className="mus-sign-badge-text">
+            {getSignEmojiOnly(activeSigns[index])}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const MusGamePage: React.FC = () => {
+  const { t } = useTranslation();
+
   useSeo({
-    title: 'Jugar Mus Online - Partidas y Matchmaking | Enbido',
-    description: 'Entra a jugar al Mus de forma gratuita en Enbido. Emparejamiento por ELO, salas privadas y juego contra bots avanzados.',
-    keywords: 'jugar mus, mus online, emparejamiento mus, salas de mus, jugar mus online gratis',
+    title: t('seo.gameTitle'),
+    description: t('seo.gameDescription'),
+    keywords: t('seo.gameKeywords'),
     canonical: 'https://enbido.eus/jugar',
     ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'es',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'VideoGame',
-      'name': 'Lobby de Mus - Enbido',
+      'name': t('seo.gameOgTitle'),
       'url': 'https://enbido.eus/jugar',
       'image': 'https://enbido.eus/home-image-mus.png',
-      'description': 'Entra a jugar al Mus de forma gratuita en Enbido. Emparejamiento por ELO, salas privadas y juego contra bots avanzados.',
-      'gamePlatform': 'Web Browser',
+      'description': t('seo.gameDescription'),
+      'gamePlatform': t('seo.gamePlatform'),
       'numberOfPlayers': {
         '@type': 'QuantitativeValue',
         'value': 4
@@ -141,10 +250,7 @@ const MusGamePage: React.FC = () => {
     }
   });
 
-  // Extraemos el ID del usuario del localStorage, o usamos el 1 por defecto
   const currentUserId = Number(localStorage.getItem('userId') || '1');
-
-  // Cargar perfil para obtener equipamiento dinámico
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -153,11 +259,11 @@ const MusGamePage: React.FC = () => {
         const res = await api.get('/usuarios/me/profile');
         setProfile(res.data);
       } catch (err) {
-        console.error('Error fetching player profile for game felt:', err);
+        console.error(t('musGame.errorProfile'), err);
       }
     };
     fetchProfile();
-  }, []);
+  }, [t]);
 
   const {
     isPlaying, phase, stage, score, logs, chatMessages, selectedCards, speechBubbles, playerHand, botHands,
@@ -174,7 +280,7 @@ const MusGamePage: React.FC = () => {
 
   const [isMuted, setIsMuted] = useState(() => localStorage.getItem('gameMuted') === 'true');
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [isSeñasOpen, setIsSeñasOpen] = useState(false);
+  const [isSignsOpen, setIsSignsOpen] = useState(false);
 
   const toggleMute = () => {
     setIsMuted(prev => {
@@ -191,12 +297,8 @@ const MusGamePage: React.FC = () => {
 
   useEffect(() => {
     if (!isPlaying) return;
-    if (isMyTurn && !prevIsMyTurn.current) {
-      playSound('click', isMuted);
-    }
-    if (phase !== prevPhase.current) {
-      playSound('card', isMuted);
-    }
+    if (isMyTurn && !prevIsMyTurn.current) playSound('click', isMuted);
+    if (phase !== prevPhase.current) playSound('card', isMuted);
     prevIsMyTurn.current = isMyTurn;
     prevPhase.current = phase;
   }, [isMyTurn, phase, isPlaying, isMuted]);
@@ -219,48 +321,37 @@ const MusGamePage: React.FC = () => {
       const now = Date.now();
       const diff = Math.max(0, Math.ceil((turnDeadline - now) / 1000));
       setTimeLeft(diff);
-      if (isMyTurn && diff > 0 && diff <= 3) {
-        playSound('timer', isMuted);
-      }
+      if (isMyTurn && diff > 0 && diff <= 3) playSound('timer', isMuted);
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, [turnDeadline, isMyTurn, isMuted]);
 
-  // Estados para el Drawer y Diseño Responsivo en Móvil
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 992);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth <= 992);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
     if (chatMessages.length > lastMessageCount) {
-      if (!isSidebarOpen || activeTab !== 'chat') {
-        setHasNewNotifications(true);
-      }
+      if (!isSidebarOpen || activeTab !== 'chat') setHasNewNotifications(true);
       setLastMessageCount(chatMessages.length);
     }
   }, [chatMessages, isSidebarOpen, activeTab, lastMessageCount]);
 
   useEffect(() => {
-    if (isSidebarOpen) {
-      setHasNewNotifications(false);
-    }
+    if (isSidebarOpen) setHasNewNotifications(false);
   }, [isSidebarOpen]);
 
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
-    }
+    if (chatEndRef.current) chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
   }, [chatMessages, activeTab]);
 
   const handleSendChat = (e: React.FormEvent) => {
@@ -271,63 +362,50 @@ const MusGamePage: React.FC = () => {
   };
 
   const handleActionPanelStart = () => {
-    if (phase === 'round-over') {
-      startNewHand();
-    } else {
-      handleStartMatch();
-    }
+    if (phase === 'round-over') startNewHand();
+    else handleStartMatch();
   };
 
-  const executeDiscardsLocal = () => {
-    handleExecuteDiscards(selectedCards);
-  };
+  const executeDiscardsLocal = () => handleExecuteDiscards(selectedCards);
 
   const handleBetLocal = (action: 'Paso' | 'Envido' | 'Ordago' | 'Quiero' | 'No Quiero') => {
     handleBetAction(action);
   };
 
-  // --- VISTA 1: LOBBY DE SELECCIÓN DE SALAS / APUESTAS ---
   if (roomId === '') {
     return (
-      <>
-        <PremiumLobby
-          username={username}
-          isSearching={isSearching}
-          queueSize={queueSize}
-          onJoinRoom={onJoinRoom}
-          onCreateRoom={onCreateRoom}
-          onStartMatchmaking={onStartMatchmaking}
-          onCancelMatchmaking={onCancelMatchmaking}
-        />
-      </>
+      <PremiumLobby
+        username={username}
+        isSearching={isSearching}
+        queueSize={queueSize}
+        onJoinRoom={onJoinRoom}
+        onCreateRoom={onCreateRoom}
+        onStartMatchmaking={onStartMatchmaking}
+        onCancelMatchmaking={onCancelMatchmaking}
+      />
     );
   }
 
-  // --- VISTA 2: SALA DE ESPERA / PRE-SEATS MESA ---
   if (!isPlaying) {
     return (
-      <>
-        <LobbyWaitingRoom
-          roomId={roomId}
-          seats={seats}
-          currentUserId={currentUserId}
-          onAddBot={onAddBot}
-          onStartGame={handleStartMatch}
-          onLeaveRoom={onLeaveRoom}
-          reyesOption={reyesOption}
-          maxRounds={maxRounds}
-          onUpdateConfig={updateRoomConfig}
-        />
-      </>
+      <LobbyWaitingRoom
+        roomId={roomId}
+        seats={seats}
+        currentUserId={currentUserId}
+        onAddBot={onAddBot}
+        onStartGame={handleStartMatch}
+        onLeaveRoom={onLeaveRoom}
+        reyesOption={reyesOption}
+        maxRounds={maxRounds}
+        onUpdateConfig={updateRoomConfig}
+      />
     );
   }
 
-  // --- VISTA 3: EL TAPETE VERDE DE JUEGO MULTIJUGADOR ---
   return (
     <>
       <div className="mus-view-container">
 
-        {/* OVERLAY DEL DRAWER EN MÓVIL */}
         {isMobile && (
           <div
             className={`drawer-overlay ${isSidebarOpen ? 'is-open' : ''}`}
@@ -335,28 +413,24 @@ const MusGamePage: React.FC = () => {
           />
         )}
 
-        {/* PANEL IZQUIERDO: LA MESA VERDE */}
         <div className="felt-layout-pane">
 
-          {/* MARCADOR FLOTANTE PARA MÓVIL */}
           {isMobile && (
             <div className="mobile-score-container" onClick={() => setIsSidebarOpen(true)}>
               <div className="mobile-score-row">
-                <span className="mobile-score-tag">TÚ: {score.roundsUs || 0} ({score.us})</span>
+                <span className="mobile-score-tag">{t('musGame.scoreUs')}: {score.roundsUs || 0} ({score.us})</span>
                 <span className="mobile-score-vs">VS</span>
-                <span className="mobile-score-tag">RIVAL: {score.roundsThem || 0} ({score.them})</span>
+                <span className="mobile-score-tag">{t('musGame.scoreThem')}: {score.roundsThem || 0} ({score.them})</span>
               </div>
             </div>
           )}
 
-          {/* BOTÓN FLOTANTE PARA ABRIR EL DRAWER */}
           {isMobile && (
             <button
               className="mobile-drawer-toggle-btn"
               onClick={() => setIsSidebarOpen(true)}
             >
-
-              Chat y Logs
+              {t('musGame.chatLogs')}
               {hasNewNotifications && <span className="notification-dot"></span>}
             </button>
           )}
@@ -365,7 +439,7 @@ const MusGamePage: React.FC = () => {
 
             <div className="felt-center-emblem">
               <h1 className="felt-logo">ENBIDO</h1>
-              <span className="felt-sub">Mesa de Mus</span>
+              <span className="felt-sub">{t('musGame.musTable')}</span>
               {!isMobile && (
                 <button
                   className="leave-felt-btn"
@@ -386,233 +460,70 @@ const MusGamePage: React.FC = () => {
                   onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
                   onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.85)')}
                 >
-                  🚪 Abandonar Mesa
+                  {t('musGame.leaveTableShort')}
                 </button>
               )}
             </div>
 
-            {/* JUGADOR NORTE (Mapeado dinámicamente) */}
-            <div className={`player-position position-north ${activeTurnIdx === 2 ? 'active-zone' : ''}`}>
-              <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
-                  <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 2} />
-                  <div className={`player-avatar-circle partner-theme ${activeSigns[2] ? 'has-active-sign' : ''}`}>
-                    {(seats[2]?.username || 'Bot Norte').slice(0, 2).toUpperCase()}
-                  </div>
-                  {activeTurnIdx === 2 && timeLeft > 0 && (
-                    <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
-                      {timeLeft}s
-                    </div>
-                  )}
-                </div>
-                <div className="player-avatar-details">
-                  <span className="player-name-label">{seats[2]?.username || 'Bot Norte'}</span>
-                </div>
-              </div>
-              <div className="player-hand-wrapper">
-                <div className="player-cards-slot-bg">
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                </div>
-                <PlayerHand hand={isPlaying ? botHands[0] : []} isBot={phase !== 'round-over'} equippedDeckItemId={profile?.equippedDeckItemId} />
-              </div>
-              {dealerIdx === 2 && (
-                <div className="dealer-baraja-token" title="Dador (Tiene la baraja)">
-                  <MiniDeckToken />
-                </div>
-              )}
-              {speechBubbles[2] && <div className="speech-bubble show">{speechBubbles[2]}</div>}
-              {activeSigns[2] && (
-                <div className="mus-sign-badge pop-in">
-                  <div className="mus-sign-badge-glow"></div>
-                  <span className="mus-sign-badge-text">
-                    {getSignEmojiOnly(activeSigns[2])}
-                  </span>
-                </div>
-              )}
-            </div>
+            <PlayerPosition position="north" index={2} timeLeft={timeLeft} activeTurnIdx={activeTurnIdx}
+              seats={seats} botHands={botHands} isPlaying={isPlaying} phase={phase} dealerIdx={dealerIdx}
+              speechBubbles={speechBubbles} activeSigns={activeSigns} profile={profile}
+              getSignEmojiOnly={getSignEmojiOnly} t={t} />
 
-            {/* JUGADOR OESTE (Silla relative 3 - Rival 2) */}
-            <div className={`player-position position-west ${activeTurnIdx === 3 ? 'active-zone' : ''}`}>
-              <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
-                  <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 3} />
-                  <div className={`player-avatar-circle rival-theme ${activeSigns[3] ? 'has-active-sign' : ''}`}>
-                    {(seats[3]?.username || 'Bot Oeste').slice(0, 2).toUpperCase()}
-                  </div>
-                  {activeTurnIdx === 3 && timeLeft > 0 && (
-                    <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
-                      {timeLeft}s
-                    </div>
-                  )}
-                </div>
-                <div className="player-avatar-details">
-                  <span className="player-name-label">{seats[3]?.username || 'Bot Oeste'}</span>
-                </div>
-              </div>
-              <div className="player-hand-wrapper">
-                <div className="player-cards-slot-bg">
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                </div>
-                <PlayerHand hand={isPlaying ? botHands[2] : []} isBot={phase !== 'round-over'} equippedDeckItemId={profile?.equippedDeckItemId} />
-              </div>
-              {dealerIdx === 3 && (
-                <div className="dealer-baraja-token" title="Dador (Tiene la baraja)">
-                  <MiniDeckToken />
-                </div>
-              )}
-              {speechBubbles[3] && <div className="speech-bubble show">{speechBubbles[3]}</div>}
-              {activeSigns[3] && (
-                <div className="mus-sign-badge pop-in">
-                  <div className="mus-sign-badge-glow"></div>
-                  <span className="mus-sign-badge-text">
-                    {getSignEmojiOnly(activeSigns[3])}
-                  </span>
-                </div>
-              )}
-            </div>
+            <PlayerPosition position="west" index={3} timeLeft={timeLeft} activeTurnIdx={activeTurnIdx}
+              seats={seats} botHands={botHands} isPlaying={isPlaying} phase={phase} dealerIdx={dealerIdx}
+              speechBubbles={speechBubbles} activeSigns={activeSigns} profile={profile}
+              getSignEmojiOnly={getSignEmojiOnly} t={t} />
 
-            {/* JUGADOR ESTE (Silla relative 1 - Rival 1) */}
-            <div className={`player-position position-east ${activeTurnIdx === 1 ? 'active-zone' : ''}`}>
-              <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
-                  <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 1} />
-                  <div className={`player-avatar-circle rival-theme ${activeSigns[1] ? 'has-active-sign' : ''}`}>
-                    {(seats[1]?.username || 'Bot Este').slice(0, 2).toUpperCase()}
-                  </div>
-                  {activeTurnIdx === 1 && timeLeft > 0 && (
-                    <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
-                      {timeLeft}s
-                    </div>
-                  )}
-                </div>
-                <div className="player-avatar-details">
-                  <span className="player-name-label">{seats[1]?.username || 'Bot Este'}</span>
-                </div>
-              </div>
-              <div className="player-hand-wrapper">
-                <div className="player-cards-slot-bg">
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                </div>
-                <PlayerHand hand={isPlaying ? botHands[1] : []} isBot={phase !== 'round-over'} equippedDeckItemId={profile?.equippedDeckItemId} />
-              </div>
-              {dealerIdx === 1 && (
-                <div className="dealer-baraja-token" title="Dador (Tiene la baraja)">
-                  <MiniDeckToken />
-                </div>
-              )}
-              {speechBubbles[1] && <div className="speech-bubble show">{speechBubbles[1]}</div>}
-              {activeSigns[1] && (
-                <div className="mus-sign-badge pop-in">
-                  <div className="mus-sign-badge-glow"></div>
-                  <span className="mus-sign-badge-text">
-                    {getSignEmojiOnly(activeSigns[1])}
-                  </span>
-                </div>
-              )}
-            </div>
+            <PlayerPosition position="east" index={1} timeLeft={timeLeft} activeTurnIdx={activeTurnIdx}
+              seats={seats} botHands={botHands} isPlaying={isPlaying} phase={phase} dealerIdx={dealerIdx}
+              speechBubbles={speechBubbles} activeSigns={activeSigns} profile={profile}
+              getSignEmojiOnly={getSignEmojiOnly} t={t} />
 
-            {/* TÚ (JUGADOR SUR - Silla relative 0) */}
-            <div className={`player-position position-south ${activeTurnIdx === 0 ? 'active-zone' : ''}`}>
-              <div className="player-avatar-card">
-                <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
-                  <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === 0} />
-                  <div className={`player-avatar-circle player-theme ${activeSigns[0] ? 'has-active-sign' : ''} ${profile?.equippedAvatarItemId === 1 ? 'avatar-premium-gold' : profile?.equippedAvatarItemId === 2 ? 'avatar-premium-green' : ''}`}>
-                    {(seats[0]?.username || 'Tú').slice(0, 2).toUpperCase()}
-                  </div>
-                  {activeTurnIdx === 0 && timeLeft > 0 && (
-                    <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
-                      {timeLeft}s
-                    </div>
-                  )}
-                </div>
-                <div className="player-avatar-details">
-                  <span className="player-name-label">{seats[0]?.username || 'Tú'} (Tú)</span>
-                  {profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
-                  {profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
-                </div>
-              </div>
-              
-              <div className="player-hand-wrapper">
-                <div className="player-cards-slot-bg">
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                  <div className="slot-outline-card"></div>
-                </div>
-                <PlayerHand
-                  hand={isPlaying ? playerHand : []}
-                  isBot={false}
-                  isSelectable={phase === 'discarding'}
-                  selectedCards={selectedCards}
-                  onCardClick={toggleCardSelection}
-                  equippedDeckItemId={profile?.equippedDeckItemId}
-                />
-              </div>
-              {dealerIdx === 0 && (
-                <div className="dealer-baraja-token" title="Dador (Tiene la baraja)">
-                  <MiniDeckToken />
-                </div>
-              )}
-              {speechBubbles[0] && <div className="speech-bubble show">{speechBubbles[0]}</div>}
-              {activeSigns[0] && (
-                <div className="mus-sign-badge pop-in">
-                  <div className="mus-sign-badge-glow"></div>
-                  <span className="mus-sign-badge-text">
-                    {getSignEmojiOnly(activeSigns[0])}
-                  </span>
-                </div>
-              )}
-            </div>
+            <PlayerPosition position="south" index={0} timeLeft={timeLeft} activeTurnIdx={activeTurnIdx}
+              seats={seats} botHands={botHands} isPlaying={isPlaying} phase={phase} dealerIdx={dealerIdx}
+              speechBubbles={speechBubbles} activeSigns={activeSigns} profile={profile}
+              playerHand={playerHand} selectedCards={selectedCards} toggleCardSelection={toggleCardSelection}
+              getSignEmojiOnly={getSignEmojiOnly} t={t} />
 
           </div>
 
-          {/* SEÑAS PANEL DROPDOWN (Completamente fuera de la mesa para no tapar nada) */}
           {isPlaying && (
-            <div className="señas-dropdown-container">
+            <div className="senas-dropdown-container">
               <button
                 type="button"
-                className="btn-señas-toggle"
-                onClick={() => setIsSeñasOpen(!isSeñasOpen)}
-                title="Abrir menú de señas"
+                className="btn-senas-toggle"
+                onClick={() => setIsSignsOpen(!isSignsOpen)}
+                title={t('musGame.openSignsMenu')}
               >
-                🤫 Señas
+                {t('musGame.signs')}
               </button>
-              {isSeñasOpen && (
-                <div className="señas-popup-menu">
-                  <span className="señas-menu-title">Haz una seña:</span>
-                  <button type="button" className="btn-señas-menu-item" onClick={() => { sendSign('dos_reyes'); setIsSeñasOpen(false); }}>
-                    🤨 Reyes (Cejas)
+              {isSignsOpen && (
+                <div className="senas-popup-menu">
+                  <span className="senas-menu-title">{t('musGame.makeSign')}</span>
+                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('dos_reyes'); setIsSignsOpen(false); }}>
+                    {t('musGame.signReyes')}
                   </button>
-                  <button type="button" className="btn-señas-menu-item" onClick={() => { sendSign('dos_ases'); setIsSeñasOpen(false); }}>
-                    😉 Ases (Guiño)
+                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('dos_ases'); setIsSignsOpen(false); }}>
+                    {t('musGame.signAses')}
                   </button>
-                  <button type="button" className="btn-señas-menu-item" onClick={() => { sendSign('medias'); setIsSeñasOpen(false); }}>
-                    👅 Medias (Lengua)
+                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('medias'); setIsSignsOpen(false); }}>
+                    {t('musGame.signMedias')}
                   </button>
-                  <button type="button" className="btn-señas-menu-item" onClick={() => { sendSign('duples'); setIsSeñasOpen(false); }}>
-                    🤐 Duples (Morder)
+                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('duples'); setIsSignsOpen(false); }}>
+                    {t('musGame.signDuples')}
                   </button>
-                  <button type="button" className="btn-señas-menu-item" onClick={() => { sendSign('31'); setIsSeñasOpen(false); }}>
-                    😜 31 (Guiño+Lengua)
+                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('31'); setIsSignsOpen(false); }}>
+                    {t('musGame.sign31')}
                   </button>
-                  <button type="button" className="btn-señas-menu-item" onClick={() => { sendSign('30'); setIsSeñasOpen(false); }}>
-                    😔 30 (Ojos)
+                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('30'); setIsSignsOpen(false); }}>
+                    {t('musGame.sign30')}
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* PANEL DE ACCIONES CONTEXTUAL PARA MÓVIL */}
           {isMobile && (
             <div className="mobile-action-panel-container">
               <ActionPanel
@@ -631,13 +542,12 @@ const MusGamePage: React.FC = () => {
 
         </div>
 
-        {/* PANEL DERECHO / DRAWER FLOTANTE: CONTROLES Y MARCADOR */}
         <aside className={`sidebar-panel ${isMobile ? 'mobile-drawer' : ''} ${isSidebarOpen ? 'is-open' : ''}`}>
 
           {isMobile && (
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '10px' }}>
               <button className="drawer-close-btn" onClick={() => setIsSidebarOpen(false)}>
-                ✕ Cerrar Panel
+                {t('musGame.closePanel')}
               </button>
               <button
                 className="leave-felt-btn"
@@ -655,7 +565,7 @@ const MusGamePage: React.FC = () => {
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
                 }}
               >
-                🚪 Abandonar
+                {t('musGame.leaveShort')}
               </button>
             </div>
           )}
@@ -663,7 +573,7 @@ const MusGamePage: React.FC = () => {
           <GameScoreBoard score={score} maxRounds={maxRounds} />
 
           <div className="sound-toggle-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0', padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Sonidos de Juego</span>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{t('musGame.gameSounds')}</span>
             <button
               onClick={toggleMute}
               style={{
@@ -678,7 +588,7 @@ const MusGamePage: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              {isMuted ? '🔇 Silenciado' : '🔊 Activado'}
+              {isMuted ? t('musGame.soundOff') : t('musGame.soundOn')}
             </button>
           </div>
 
@@ -700,7 +610,7 @@ const MusGamePage: React.FC = () => {
                   borderRadius: '4px 4px 0 0'
                 }}
               >
-                📋 Historial
+                {t('musGame.history')}
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
@@ -718,7 +628,7 @@ const MusGamePage: React.FC = () => {
                   borderRadius: '4px 4px 0 0'
                 }}
               >
-                💬 Chat Mesa
+                {t('musGame.tableChat')}
               </button>
             </div>
 
@@ -745,10 +655,10 @@ const MusGamePage: React.FC = () => {
                 >
                   {chatMessages.length === 0 ? (
                     <div style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: '30px', fontStyle: 'italic' }}>
-                      No hay mensajes aún. ¡Di hola!
+                      {t('musGame.noMessages')}
                     </div>
                   ) : (
-                    chatMessages.map((msg, idx) => {
+                    chatMessages.map((msg: string, idx: number) => {
                       const parts = msg.split(': ');
                       const sender = parts[0];
                       const content = parts.slice(1).join(': ');
@@ -788,7 +698,7 @@ const MusGamePage: React.FC = () => {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Escribe en la mesa..."
+                    placeholder={t('musGame.writeInTable')}
                     style={{
                       flex: 1,
                       background: 'rgba(0, 0, 0, 0.4)',
@@ -815,7 +725,7 @@ const MusGamePage: React.FC = () => {
                       transition: 'background-color 0.2s'
                     }}
                   >
-                    Enviar
+                    {t('musGame.send')}
                   </button>
                 </form>
               </div>

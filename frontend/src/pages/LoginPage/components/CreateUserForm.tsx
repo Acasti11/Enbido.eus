@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { AxiosError } from 'axios';
 import api from '../../../services/api';
 import type { User } from '../../../types/User';
 import '../styles/login-form.css';
- 
+
 const UserIcon = () => (
   <svg className="login-form__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -50,7 +52,6 @@ interface CreateUserFormProps {
   onSwitchToLogin: () => void;
 }
 
-// ========== TIPOS CORREGIDOS ==========
 type FormField = 'name' | 'surname' | 'email' | 'username' | 'password' | 'phone_number' | 'postal_code' | 'birthDate';
 
 interface FormErrors extends Partial<Record<FormField, string>> {
@@ -59,13 +60,197 @@ interface FormErrors extends Partial<Record<FormField, string>> {
 
 type FormTouched = Partial<Record<FormField, boolean>>;
 
-// ========== REQUIRED_FIELDS CORREGIDO ==========
-// Antes: (keyof User)[] incluía 'user_id' que no existe en UserFormData
 const REQUIRED_FIELDS: FormField[] = ['name', 'email', 'password', 'username', 'birthDate'];
 
 type UserFormData = Omit<User, 'user_id' | 'role' | 'is_banned' | 'created_at'>;
 
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+const createHandleChange = (
+  setFormData: React.Dispatch<React.SetStateAction<UserFormData>>,
+  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>
+) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value } as UserFormData));
+  setErrors(prev => {
+    if (!prev[name as FormField]) return prev;
+    const next = { ...prev };
+    delete next[name as FormField];
+    return next;
+  });
+};
+
+const createHandleBlur = (
+  setTouched: React.Dispatch<React.SetStateAction<FormTouched>>,
+  formData: UserFormData,
+  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>,
+  t: TranslateFn
+) => (e: React.FocusEvent<HTMLInputElement>) => {
+  const { name } = e.target;
+  setTouched(prev => ({ ...prev, [name]: true }));
+  validateUserField(name as FormField, formData[name as FormField], setErrors, t);
+};
+
+const validateUserField = (
+  fieldName: FormField,
+  value: string | undefined,
+  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>,
+  t: TranslateFn
+): boolean => {
+  if (REQUIRED_FIELDS.includes(fieldName) && (!value || !value.trim())) {
+    setErrors(prev => ({ ...prev, [fieldName]: t('login.requiredField') }));
+    return false;
+  }
+  if (fieldName === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    setErrors(prev => ({ ...prev, [fieldName]: t('login.invalidEmail') }));
+    return false;
+  }
+  if (fieldName === 'birthDate' && value) {
+    const birthDate = new Date(value);
+    const today = new Date();
+    if (birthDate >= today) {
+      setErrors(prev => ({ ...prev, [fieldName]: t('login.invalidBirthDate') }));
+      return false;
+    }
+  }
+  return true;
+};
+
+const validateAllFields = (
+  formData: UserFormData,
+  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>,
+  setTouched: React.Dispatch<React.SetStateAction<FormTouched>>,
+  t: TranslateFn
+): boolean => {
+  let isValid = true;
+  const nextErrors: FormErrors = {};
+  REQUIRED_FIELDS.forEach(field => {
+    const val = formData[field];
+    if (!val || !val.trim()) {
+      nextErrors[field] = t('login.requiredField');
+      isValid = false;
+    }
+  });
+  if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    nextErrors.email = t('login.invalidEmail');
+    isValid = false;
+  }
+  setErrors(nextErrors);
+  setTouched(REQUIRED_FIELDS.reduce((acc, field) => ({ ...acc, [field]: true }), {} as Record<FormField, boolean>));
+  return isValid;
+};
+
+const submitCreateUserForm = async (
+  formData: UserFormData,
+  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>,
+  setTouched: React.Dispatch<React.SetStateAction<FormTouched>>,
+  setSuccess: React.Dispatch<React.SetStateAction<string>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  onSwitchToLogin: () => void,
+  t: TranslateFn
+) => {
+  setSuccess('');
+  if (!validateAllFields(formData, setErrors, setTouched, t)) return;
+  setLoading(true);
+  try {
+    const payload = {
+      name: formData.name,
+      surname: formData.surname?.trim() || null,
+      email: formData.email,
+      password: formData.password,
+      phoneNumber: formData.phone_number?.trim() || null,
+      postalCode: formData.postal_code?.trim() || null,
+      birthDate: formData.birthDate,
+      username: formData.username
+    };
+    await api.post('/usuarios', payload);
+    setSuccess(t('login.successCreateAccount'));
+    setTimeout(() => onSwitchToLogin(), 2000);
+  } catch (err) {
+    const axiosError = err as AxiosError;
+    const errorMsg = axiosError.response?.data || t('login.errorCreateAccount');
+    setErrors({ general: typeof errorMsg === 'string' ? errorMsg : t('login.errorCreateAccount') });
+  } finally {
+    setLoading(false);
+  }
+};
+
+interface FormInputProps {
+  name: string;
+  type?: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  icon: React.ReactNode;
+  error?: string;
+  required?: boolean;
+}
+
+const FormInput: React.FC<FormInputProps> = ({
+  name,
+  type = 'text',
+  label,
+  placeholder,
+  value,
+  onChange,
+  onBlur,
+  icon,
+  error,
+  required
+}): React.JSX.Element => (
+  <div className="login-form__field">
+    <label className="login-form__label">
+      {label}
+      {required && <span> *</span>}
+    </label>
+    <div className={`login-form__input-wrapper ${error ? 'login-form__input-wrapper--error' : ''}`}>
+      {icon}
+      <input
+        name={name}
+        type={type}
+        className="login-form__input"
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        required={required}
+      />
+    </div>
+    {error && <span className="login-form__field-error">{error}</span>}
+  </div>
+);
+
+const getFieldError = (
+  fieldName: FormField,
+  touched: FormTouched,
+  errors: FormErrors
+): string | undefined => touched[fieldName] ? errors[fieldName] : undefined;
+
+interface CreateUserFieldsProps {
+  formData: UserFormData;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+  fieldError: (field: FormField) => string | undefined;
+  t: TranslateFn;
+}
+
+const CreateUserFields: React.FC<CreateUserFieldsProps> = ({ formData, handleChange, handleBlur, fieldError, t }): React.JSX.Element => (
+  <>
+    <FormInput name="name" label={t('login.name')} placeholder={t('login.placeholderName')} value={formData.name} onChange={handleChange} onBlur={handleBlur} icon={<UserIcon />} error={fieldError('name')} required />
+    <FormInput name="surname" label={t('login.surname')} placeholder={t('login.placeholderSurname')} value={formData.surname} onChange={handleChange} icon={<UserIcon />} />
+    <FormInput name="email" type="email" label={t('login.email')} placeholder={t('login.placeholderEmail')} value={formData.email} onChange={handleChange} onBlur={handleBlur} icon={<MailIcon />} error={fieldError('email')} required />
+    <FormInput name="username" label={t('login.username')} placeholder={t('login.placeholderUsername')} value={formData.username} onChange={handleChange} onBlur={handleBlur} icon={<UserIcon />} error={fieldError('username')} required />
+    <FormInput name="password" type="password" label={t('login.password')} placeholder={t('login.placeholderPassword')} value={formData.password} onChange={handleChange} onBlur={handleBlur} icon={<LockIcon />} error={fieldError('password')} required />
+    <FormInput name="birthDate" type="date" label={t('login.birthDate')} placeholder="" value={formData.birthDate} onChange={handleChange} onBlur={handleBlur} icon={<CalendarIcon />} error={fieldError('birthDate')} required />
+    <FormInput name="phone_number" label={t('login.phone')} placeholder={t('login.placeholderPhone')} value={formData.phone_number} onChange={handleChange} icon={<PhoneIcon />} />
+    <FormInput name="postal_code" label={t('login.postalCode')} placeholder={t('login.placeholderPostalCode')} value={formData.postal_code} onChange={handleChange} icon={<MapPinIcon />} />
+  </>
+);
+
 const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): React.JSX.Element => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     surname: '',
@@ -74,308 +259,31 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
     password: '',
     phone_number: '',
     postal_code: '',
-    birthDate: ''  
+    birthDate: ''
   });
-  
-  // ========== ESTADOS CORREGIDOS ==========
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<FormTouched>({});
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    if (errors[name as FormField]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name as FormField];
-        return newErrors;
-      });
-    }
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name } = e.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
-    validateField(name as FormField, formData[name as FormField]);
-  };
-
-  const validateField = (fieldName: FormField, value: string | undefined): boolean => {
-    if (REQUIRED_FIELDS.includes(fieldName) && (!value || !value.trim())) {
-      setErrors(prev => ({
-        ...prev,
-        [fieldName]: 'This field is required'
-      }));
-      return false;
-    }
-    
-    if (fieldName === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setErrors(prev => ({
-        ...prev,
-        [fieldName]: 'Invalid email format'
-      }));
-      return false;
-    }
-    
-    if (fieldName === 'birthDate' && value) {
-      const birthDate = new Date(value);
-      const today = new Date();
-      if (birthDate >= today) {
-        setErrors(prev => ({
-          ...prev,
-          [fieldName]: 'Birth date must be in the past'
-        }));
-        return false;
-      }
-    }
-    
-    return true;
-  };
-
-  const validateAll = (): boolean => {
-    let isValid = true;
-    const newErrors: FormErrors = {};
-    
-    REQUIRED_FIELDS.forEach(field => {
-      const value = formData[field];
-      if (!value || !value.trim()) {
-        newErrors[field] = 'This field is required';
-        isValid = false;
-      }
-    });
-    
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-      isValid = false;
-    }
-    
-    setErrors(newErrors);
-    setTouched(
-      REQUIRED_FIELDS.reduce((acc, field) => ({ ...acc, [field]: true }), {} as Record<FormField, boolean>)
-    );
-    
-    return isValid;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = createHandleChange(setFormData, setErrors);
+  const handleBlur = createHandleBlur(setTouched, formData, setErrors, t);
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccess('');
-    
-    if (!validateAll()) {
-      return;
-    }
-    
-    setLoading(true);
-
-    try {
-      const payload = {
-        name: formData.name,
-        surname: formData.surname?.trim() || null,
-        email: formData.email,
-        password: formData.password,
-        phoneNumber: formData.phone_number?.trim() || null,  // ← camelCase
-        postalCode: formData.postal_code?.trim() || null,     // ← camelCase
-        birthDate: formData.birthDate,
-        username: formData.username
+    submitCreateUserForm(formData, setErrors, setTouched, setSuccess, setLoading, onSwitchToLogin, t);
   };
-      
-      console.log('Sending JSON:', JSON.stringify(payload, null, 2));
-      
-      await api.post('/usuarios', payload); 
-      
-      setSuccess('Account created! Redirecting to login...');
-      
-      setTimeout(() => {
-        onSwitchToLogin();
-      }, 2000);
-      
-    } catch (err: any) {
-      const errorMsg = err.response?.data || 'Error creating account';
-      setErrors({ general: errorMsg });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getFieldError = (fieldName: FormField): string | undefined => {
-    return touched[fieldName] ? errors[fieldName] : undefined;
-  };
-
+  const fieldError = (field: FormField) => getFieldError(field, touched, errors);
   return (
-    <form className="login-form" onSubmit={handleSubmit} noValidate>
-      {/* Name - REQUIRED */}
-      <div className="login-form__field">
-        <label className="login-form__label">
-          Name <span>*</span>
-        </label>
-        <div className={`login-form__input-wrapper ${getFieldError('name') ? 'login-form__input-wrapper--error' : ''}`}>
-          <UserIcon />
-          <input
-            name="name"
-            className="login-form__input"
-            value={formData.name}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="Your name"
-            required
-          />
-        </div>
-        {getFieldError('name') && <span className="login-form__field-error">{errors.name}</span>}
-      </div>
-
-      {/* Surname - OPTIONAL */}
-      <div className="login-form__field">
-        <label className="login-form__label">Surname</label>
-        <div className="login-form__input-wrapper">
-          <UserIcon />
-          <input
-            name="surname"
-            className="login-form__input"
-            value={formData.surname}
-            onChange={handleChange}
-            placeholder="Your surname"
-          />
-        </div>
-      </div>
-
-      {/* Email - REQUIRED */}
-      <div className="login-form__field">
-        <label className="login-form__label">
-          Email <span>*</span>
-        </label>
-        <div className={`login-form__input-wrapper ${getFieldError('email') ? 'login-form__input-wrapper--error' : ''}`}>
-          <MailIcon />
-          <input
-            name="email"
-            type="email"
-            className="login-form__input"
-            value={formData.email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="your@email.com"
-            required
-          />
-        </div>
-        {getFieldError('email') && <span className="login-form__field-error">{errors.email}</span>}
-      </div>
-
-      {/* Username - REQUIRED */}
-      <div className="login-form__field">
-        <label className="login-form__label">
-          Username <span>*</span>
-        </label>
-        <div className={`login-form__input-wrapper ${getFieldError('username') ? 'login-form__input-wrapper--error' : ''}`}>
-          <UserIcon />
-          <input
-            name="username"
-            className="login-form__input"
-            value={formData.username}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="Choose a username"
-            required
-          />
-        </div>
-        {getFieldError('username') && <span className="login-form__field-error">{errors.username}</span>}
-      </div>
-
-      {/* Password - REQUIRED */}
-      <div className="login-form__field">
-        <label className="login-form__label">
-          Password <span>*</span>
-        </label>
-        <div className={`login-form__input-wrapper ${getFieldError('password') ? 'login-form__input-wrapper--error' : ''}`}>
-          <LockIcon />
-          <input
-            name="password"
-            type="password"
-            className="login-form__input"
-            value={formData.password}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder="Choose a password"
-            required
-          />
-        </div>
-        {getFieldError('password') && <span className="login-form__field-error">{errors.password}</span>}
-      </div>
-
-      {/* Birth Date - REQUIRED */}
-      <div className="login-form__field">
-        <label className="login-form__label">
-          Birth Date <span>*</span>
-        </label>
-        <div className={`login-form__input-wrapper ${getFieldError('birthDate') ? 'login-form__input-wrapper--error' : ''}`}>
-          <CalendarIcon />
-          <input
-            name="birthDate"
-            type="date"
-            className="login-form__input"
-            value={formData.birthDate}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-          />
-        </div>
-        {getFieldError('birthDate') && <span className="login-form__field-error">{errors.birthDate}</span>}
-      </div>
-
-      {/* Phone - OPTIONAL */}
-      <div className="login-form__field">
-        <label className="login-form__label">Phone</label>
-        <div className="login-form__input-wrapper">
-          <PhoneIcon />
-          <input
-            name="phone_number"
-            className="login-form__input"
-            value={formData.phone_number}
-            onChange={handleChange}
-            placeholder="+34 600 123 456"
-          />
-        </div>
-      </div>
-
-      {/* Postal Code - OPTIONAL */}
-      <div className="login-form__field">
-        <label className="login-form__label">Postal Code</label>
-        <div className="login-form__input-wrapper">
-          <MapPinIcon />
-          <input
-            name="postal_code"
-            className="login-form__input"
-            value={formData.postal_code}
-            onChange={handleChange}
-            placeholder="28001"
-          />
-        </div>
-      </div>
-
+    <form className="login-form" onSubmit={onSubmit} noValidate>
+      <CreateUserFields formData={formData} handleChange={handleChange} handleBlur={handleBlur} fieldError={fieldError} t={t} />
       {errors.general && <p className="login-form__error">{errors.general}</p>}
       {success && <p className="login-form__success">{success}</p>}
-
-      <button 
-        type="submit" 
-        className="login-form__submit"
-        disabled={loading}
-      >
-        {loading ? 'Creating...' : 'Create Account'}
+      <button type="submit" className="login-form__submit" disabled={loading}>
+        {loading ? t('login.creating') : t('login.createAccount')}
       </button>
-
       <p className="login-form__switch">
-        Already have an account?{' '}
-        <button 
-          type="button" 
-          className="login-form__link-button"
-          onClick={onSwitchToLogin}
-          disabled={loading}
-        >
-          Sign In
+        {t('login.alreadyHaveAccount')}{' '}
+        <button type="button" className="login-form__link-button" onClick={onSwitchToLogin} disabled={loading}>
+          {t('login.signIn')}
         </button>
       </p>
     </form>

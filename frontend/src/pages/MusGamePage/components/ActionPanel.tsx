@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { GamePhase, BettingStage } from '../../../types/MusGame';
 import '../styles/mus-game.css';
 
@@ -17,6 +18,18 @@ interface ActionPanelProps {
 const ActionPanel: React.FC<ActionPanelProps> = ({
   phase, stage, selectedCount, isMyTurn, betState, onStart, onDecision, onDiscard, onBet
 }) => {
+  const { t } = useTranslation();
+
+  const getDiscardLabel = (count: number): string => {
+    const suffix = count > 1 ? 's' : '';
+    return t('musGame.discard', { count, suffix });
+  };
+
+  const getBetLabel = (): string => {
+    if (betState === 2) return t('musGame.betOnTable', { bet: 'ORDAGO' });
+    if (betState === 1) return t('musGame.betOnTable', { bet: 'ENVIDO' });
+    return '';
+  };
 
   const renderContent = () => {
     if (phase === 'init') {
@@ -25,17 +38,16 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           className="btn-primary-action animate-pulse action-panel-full"
           onClick={onStart}
         >
-          Comenzar Partida
+          {t('musGame.startMatch')}
         </button>
       );
     }
 
-    // Block interaction if it is not the current user's turn
     if (phase !== 'round-over' && !isMyTurn) {
       return (
         <div className="waiting-mode">
           <p className="waiting-text">
-            <span>⏳</span> Esperando el turno del rival...
+            <span>⏳</span> {t('musGame.waitingTurn')}
           </p>
         </div>
       );
@@ -44,8 +56,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     if (phase === 'mus-check') {
       return (
         <>
-          <button className="btn-primary-action btn-action-accept action-panel-flex" onClick={() => onDecision(true)}>Pedir Mus</button>
-          <button className="btn-primary-action btn-action-decline action-panel-flex" onClick={() => onDecision(false)}>Cortar Mus</button>
+          <button className="btn-primary-action btn-action-accept action-panel-flex" onClick={() => onDecision(true)}>{t('musGame.askMus')}</button>
+          <button className="btn-primary-action btn-action-decline action-panel-flex" onClick={() => onDecision(false)}>{t('musGame.cutMus')}</button>
         </>
       );
     }
@@ -53,7 +65,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     if (phase === 'discarding') {
       return (
         <button className="btn-primary-action btn-action-bet" disabled={selectedCount === 0} onClick={onDiscard}>
-          Descartar ({selectedCount} carta{selectedCount > 1 ? 's' : ''})
+          {getDiscardLabel(selectedCount)}
         </button>
       );
     }
@@ -62,25 +74,25 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
       return (
         <div className="action-panel-betting">
           <p className="action-panel-phase">
-            Fase: <strong className="action-panel-stage">{stage.toUpperCase()}</strong> {betState > 0 ? `| ¡Apuesta de ${betState === 2 ? 'ÓRDAGO' : 'ENVIDO'} en mesa!` : ''}
+            {t('musGame.phase')} <strong className="action-panel-stage">{stage.toUpperCase()}</strong> {getBetLabel()}
           </p>
           <div className="action-panel-betting-buttons">
             {betState > 0 ? (
               <>
-                <button className="btn-primary-action btn-action-accept action-panel-half" onClick={() => onBet('Quiero')}>Quiero</button>
+                <button className="btn-primary-action btn-action-accept action-panel-half" onClick={() => onBet('Quiero')}>{t('musGame.quiero')}</button>
                 {betState === 1 && (
                   <>
-                    <button className="btn-primary-action btn-action-bet action-panel-half" onClick={() => onBet('Envido')}>Re-envidar (+2)</button>
-                    <button className="btn-primary-action btn-action-critical action-panel-wide" onClick={() => onBet('Ordago')}>ÓRDAGO</button>
+                    <button className="btn-primary-action btn-action-bet action-panel-half" onClick={() => onBet('Envido')}>{t('musGame.reEnvido')}</button>
+                    <button className="btn-primary-action btn-action-critical action-panel-wide" onClick={() => onBet('Ordago')}>{t('musGame.ordago')}</button>
                   </>
                 )}
-                <button className="btn-primary-action btn-action-decline action-panel-half" onClick={() => onBet('No Quiero')}>No Quiero</button>
+                <button className="btn-primary-action btn-action-decline action-panel-half" onClick={() => onBet('No Quiero')}>{t('musGame.noQuiero')}</button>
               </>
             ) : (
               <>
-                <button className="btn-primary-action btn-action-bet action-panel-third" onClick={() => onBet('Envido')}>Envido</button>
-                <button className="btn-primary-action btn-action-critical action-panel-third" onClick={() => onBet('Ordago')}>ÓRDAGO</button>
-                <button className="btn-primary-action btn-action-neutral action-panel-full-row" onClick={() => onBet('Paso')}>Paso</button>
+                <button className="btn-primary-action btn-action-bet action-panel-third" onClick={() => onBet('Envido')}>{t('musGame.envido')}</button>
+                <button className="btn-primary-action btn-action-critical action-panel-third" onClick={() => onBet('Ordago')}>{t('musGame.ordago')}</button>
+                <button className="btn-primary-action btn-action-neutral action-panel-full-row" onClick={() => onBet('Paso')}>{t('musGame.paso')}</button>
               </>
             )}
           </div>
@@ -94,7 +106,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           className="btn-primary-action action-panel-full"
           onClick={onStart}
         >
-          Siguiente Mano
+          {t('musGame.nextHand')}
         </button>
       );
     }

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShopData } from './hooks/useShopData';
 import ShopToast from './components/ShopToast';
 import ShopHero from './components/ShopHero';
@@ -9,16 +10,26 @@ import ShopLoading from './components/ShopLoading';
 import type { ShopCategory, ShopItem } from '../../types/shop';
 import './shop-page.css';
 
-const ITEM_METADATA: Record<number, { description: string; accent: 'gold' | 'red' | 'green' }> = {
-  1: { description: 'Marco dorado y ficha premium para partidas ganadas.', accent: 'gold' },
-  2: { description: 'Avatar sobrio con textura de pared verde.', accent: 'green' },
-  3: { description: 'Cartas crema con palos marcados en rojo y verde.', accent: 'red' },
-  4: { description: 'Reverso oscuro con detalles dorados para mesas nocturnas.', accent: 'gold' },
-  5: { description: 'Alias visible bajo tu nombre en el perfil de jugador.', accent: 'green' },
-  6: { description: 'Título para quien sabe cuándo apretar la apuesta.', accent: 'red' },
+const getItemDescription = (t: (key: string) => string, itemId: number): string => {
+  switch (itemId) {
+    case 1: return t('shop.itemDesc1');
+    case 2: return t('shop.itemDesc2');
+    case 3: return t('shop.itemDesc3');
+    case 4: return t('shop.itemDesc4');
+    case 5: return t('shop.itemDesc5');
+    case 6: return t('shop.itemDesc6');
+    default: return t('shop.itemDescDefault');
+  }
+};
+
+const getItemAccent = (category: ShopCategory): 'gold' | 'red' | 'green' => {
+  if (category === 'profiles') return 'gold';
+  if (category === 'decks') return 'red';
+  return 'green';
 };
 
 const ShopPage: React.FC = (): React.JSX.Element => {
+  const { t } = useTranslation();
   const {
     coins,
     inventory,
@@ -37,20 +48,15 @@ const ShopPage: React.FC = (): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<ShopCategory>('profiles');
   const [sortByPrice, setSortByPrice] = useState<'none' | 'asc' | 'desc'>('none');
 
-  // Info del usuario desde localStorage (ahora guardamos token, no objeto completo)
-  const username = localStorage.getItem('username') || 'Usuario';
+  const username = localStorage.getItem('username') || t('shop.defaultUsername');
   const initials = username.slice(0, 2).toUpperCase();
 
-  // Mapear items con metadatos visuales y estado de inventario
   const mappedItems: ShopItem[] = useMemo(() => {
     return items.map((item: any) => {
       const itemId = Number(item.itemId);
       const category = (item.category || 'profiles') as ShopCategory;
-      const metadata = ITEM_METADATA[itemId] || {
-        description: 'Objeto de personalización exclusiva.',
-        accent: category === 'profiles' ? 'gold' : category === 'decks' ? 'red' : 'green',
-      };
-
+      const description = getItemDescription(t, itemId);
+      const accent = getItemAccent(category);
       const isOwned = inventory.includes(itemId);
 
       let isEquipped = false;
@@ -63,15 +69,14 @@ const ShopPage: React.FC = (): React.JSX.Element => {
         category,
         name: item.name,
         price: Number(item.price),
-        description: metadata.description,
-        accent: metadata.accent,
+        description,
+        accent,
         owned: isOwned,
         equipped: isEquipped,
       };
     });
-  }, [items, inventory, equippedAvatarItemId, equippedDeckItemId, equippedTitleItemId]);
+  }, [items, inventory, equippedAvatarItemId, equippedDeckItemId, equippedTitleItemId, t]);
 
-  // Filtrar y ordenar
   const filteredItems = mappedItems.filter((item) => item.category === activeTab);
   const sortedItems = useMemo(() => {
     const sorted = [...filteredItems];
