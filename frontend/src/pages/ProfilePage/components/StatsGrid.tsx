@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import '../styles/stats-grid.css';
 
 interface Stat {
@@ -11,33 +12,21 @@ interface StatsGridProps {
   stats?: Stat[];
 }
 
-const DEFAULT_STATS: Stat[] = [
-  {
-    label: 'Partidas Jugadas',
-    value: 42,
-    icon: '🎴',
-  },
-  {
-    label: 'Partidas Ganadas',
-    value: 28,
-    icon: '🏆',
-  },
-  {
-    label: 'ELO',
-    value: 1850,
-    icon: '📊',
-  },
-  {
-    label: 'Monedas',
-    value: 5240,
-    icon: '💰',
-  },
-];
+const StatsGrid: React.FC<StatsGridProps> = ({ stats }): React.JSX.Element => {
+  const { t } = useTranslation();
 
-const StatsGrid: React.FC<StatsGridProps> = ({ stats = DEFAULT_STATS }): React.JSX.Element => {
+  const defaultStats: Stat[] = [
+    { label: t('profile.gamesPlayed'), value: 42, icon: '🎴' },
+    { label: t('profile.gamesWon'), value: 28, icon: '🏆' },
+    { label: t('profile.elo'), value: 1850, icon: '📊' },
+    { label: t('profile.coins'), value: 5240, icon: '💰' },
+  ];
+
+  const displayStats = stats ?? defaultStats;
+
   return (
     <div className="stats-grid">
-      {stats.map((stat, index) => (
+      {displayStats.map((stat, index) => (
         <div key={index} className="stats-grid__item">
           <div className="stats-grid__icon">{stat.icon}</div>
           <p className="stats-grid__label">{stat.label}</p>

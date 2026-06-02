@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../../../services/api';
 import '../styles/premium-lobby.css';
+import { useTranslation } from 'react-i18next';
 import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
 
 interface ParticipantInfo {
@@ -99,7 +100,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   onCancelMatchmaking,
 }) => {
   const currentUserId = Number(localStorage.getItem('userId') || '1');
-  const activeUsername = localStorage.getItem('username') || 'Usuario';
+  const { t } = useTranslation();
+  const activeUsername = localStorage.getItem('username') || t('shop.defaultUsername');
 
   // WebSocket Chat Context Methods
   const { registerDmCallback, unregisterDmCallback, sendDirectMessage } = useChatWebSocket();
@@ -128,7 +130,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
 
-  // Estados de Doble Factor (2FA)
+  // Two-Factor Authentication (2FA) states
   const [show2FaModal, setShow2FaModal] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [updating2Fa, setUpdating2Fa] = useState(false);
@@ -162,20 +164,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     if (!selectedTourneyId) return;
     try {
       await api.post(`/tournaments/${selectedTourneyId}/join`);
-      alert('¡Inscripción al torneo online realizada con éxito!');
+      alert(t('premiumLobby.tournamentJoinSuccess'));
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
       fetchProfileData();
     } catch (err) {
       console.error('Error joining online tournament:', err);
-      let errMsg = 'Error al inscribirse. Comprueba tus monedas.';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: string } };
-        if (axiosErr.response?.data) {
-          errMsg = axiosErr.response.data;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data || t('premiumLobby.tournamentJoinError'));
     }
   };
 
@@ -183,19 +178,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     if (!selectedTourneyId) return;
     try {
       await api.post(`/tournaments/${selectedTourneyId}/start`);
-      alert('¡Torneo online iniciado y brackets de eliminatorias generados!');
+      alert(t('premiumLobby.tournamentStartSuccess'));
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
     } catch (err) {
       console.error('Error starting online tournament:', err);
-      let errMsg = 'Error al iniciar.';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: string } };
-        if (axiosErr.response?.data) {
-          errMsg = axiosErr.response.data;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data || t('premiumLobby.tournamentStartError'));
     }
   };
 
@@ -209,28 +197,21 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           score: reportScore
         }
       });
-      alert('Marcador de partida reportado con éxito.');
+      alert(t('premiumLobby.reportSuccess'));
       setReportingMatchId(null);
       setReportWinnerId(null);
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
     } catch (err) {
       console.error('Error reporting match score:', err);
-      let errMsg = 'Error al reportar.';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: string } };
-        if (axiosErr.response?.data) {
-          errMsg = axiosErr.response.data;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data || t('premiumLobby.reportError'));
     }
   };
 
   const getTourneyUsernameById = (id: number | null): string => {
-    if (!id || !tourneyDetails) return 'Esperando...';
-    const match = tourneyDetails.participants.find((p) => p.userId === id);
-    return match ? match.username : `Jugador-${id}`;
+    if (!id || !tourneyDetails) return t('premiumLobby.waitingEllipsis');
+    const match = tourneyDetails.participants.find((p: any) => p.userId === id);
+    return match ? match.username : t('premiumLobby.playerId', { id });
   };
 
   const handleSort = (field: 'elo' | 'winRate' | 'totalGamesPlayed' | 'totalGamesWon') => {
@@ -254,14 +235,14 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const getSortedValueString = (player: UserLeaderboardDto) => {
     switch (sortField) {
       case 'winRate':
-        return `${player.winRate}% Win Rate`;
+        return t('premiumLobby.winRateValue', { value: player.winRate });
       case 'totalGamesPlayed':
-        return `${player.totalGamesPlayed} Partidas`;
+        return t('premiumLobby.gamesPlayedValue', { value: player.totalGamesPlayed });
       case 'totalGamesWon':
-        return `${player.totalGamesWon} Ganadas`;
+        return t('premiumLobby.gamesWonValue', { value: player.totalGamesWon });
       case 'elo':
       default:
-        return `${player.elo} ELO`;
+        return t('premiumLobby.eloValue', { value: player.elo });
     }
   };
 
@@ -278,7 +259,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     elo?: number;
   }
 
-  const [socialTab, setSocialTab] = useState<'amigos' | 'buscar' | 'requests'>('amigos');
+  interface SearchUserDto {
+    user_id: number;
+    username: string;
+    elo?: number;
+  }
+  const [socialTab, setSocialTab] = useState<'friends' | 'search' | 'requests'>('friends');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUserDto[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -349,7 +335,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     fetchRequests();
     fetchOnlineTournaments();
 
-    // Cargar estado de 2FA
+    // Load 2FA status
     api.get('/usuarios/me')
       .then(res => setTwoFactorEnabled(res.data.twoFactorEnabled || false))
       .catch(err => console.error('Error fetching 2FA status in lobby:', err));
@@ -360,23 +346,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     try {
       const res = await api.post('/usuarios/me/2fa/toggle', { enabled });
       setTwoFactorEnabled(res.data.twoFactorEnabled);
-      alert(enabled ? '¡Autenticación de Doble Factor (2FA) activada con éxito!' : 'Autenticación de Doble Factor (2FA) desactivada.');
-    } catch (err) {
+      alert(enabled ? t('premiumLobby.twoFaEnabledSuccess') : t('premiumLobby.twoFaDisabledSuccess'));
+    } catch (err: any) {
       console.error('Error updating 2FA in lobby:', err);
-      let errMsg = 'Error al cambiar la configuración de 2FA';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: { error?: string } } };
-        if (axiosErr.response?.data?.error) {
-          errMsg = axiosErr.response.data.error;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data?.error || t('premiumLobby.twoFaUpdateError'));
     } finally {
       setUpdating2Fa(false);
     }
   };
 
-  // Sincronizar chat con el usuario activo usando WebSockets reales en lugar de polling
+  // Sync chat with active user using real WebSockets instead of polling
   useEffect(() => {
     if (!activeChatUser) {
       unregisterDmCallback();
@@ -406,7 +385,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
     loadChat();
 
-    // Auto-scroll al final del chat
+    // Auto-scroll to end of chat
     setTimeout(() => {
       if (chatEndRef.current) {
         chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
@@ -414,7 +393,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     }, 100);
 
     if (!activeChatUser.isBot) {
-      // Registrar id para excluir notificaciones
+      // Register id to exclude notifications
       localStorage.setItem('enbido_active_chat_user_id', String(activeChatUser.id));
 
       registerDmCallback((newMsg: { senderId: number; receiverId: number; content: string; sentAt: string; sender?: { username: string } }) => {
@@ -443,14 +422,14 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     };
   }, [activeChatUser, currentUserId, activeUsername, registerDmCallback, unregisterDmCallback]);
 
-  // Auto-scroll al recibir mensajes
+  // Auto-scroll on new messages
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
     }
   }, [chatMessages]);
 
-  // Listener para cuando se abre chat de quedadas desde fuera (localStorage trigger)
+  // Listener for when meetup chat is opened from outside (localStorage trigger)
   useEffect(() => {
     const checkExternalChat = () => {
       const targetUser = localStorage.getItem('enbido_open_dm_target');
@@ -462,7 +441,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         if (exists) {
           setActiveChatUser(exists);
         } else {
-          // Agregar al amigo enviando solicitud en backend
+          // Add friend by sending request in backend
           api.post(`/friendships/request/${parsed.username}`)
             .then(() => {
               fetchFriends();
@@ -506,62 +485,41 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const handleSendFriendRequest = async (targetUser: { username: string }) => {
     const isAlreadyFriend = friends.some(f => f.username === targetUser.username);
     if (isAlreadyFriend) {
-      alert('Ya tienes agregado o pendiente a este jugador.');
+      alert(t('premiumLobby.alreadyFriend'));
       return;
     }
 
     try {
       const res = await api.post(`/friendships/request/${targetUser.username}`);
-      alert(res.data.message || 'Solicitud de amistad enviada.');
+      alert(res.data.message || t('premiumLobby.friendRequestSent'));
       fetchRequests();
       fetchFriends();
     } catch (err) {
       console.error('Error sending friend request:', err);
-      let errMsg = 'Error al enviar solicitud';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: { error?: string } } };
-        if (axiosErr.response?.data?.error) {
-          errMsg = axiosErr.response.data.error;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data?.error || t('premiumLobby.errorSendRequest'));
     }
   };
 
   const handleAcceptRequest = async (req: PendingRequest) => {
     try {
       await api.post(`/friendships/accept/${req.friendshipId}`);
-      alert('Solicitud de amistad aceptada.');
+      alert(t('premiumLobby.friendRequestAccepted'));
       fetchFriends();
       fetchRequests();
     } catch (err) {
       console.error('Error accepting friend request:', err);
-      let errMsg = 'Error al aceptar solicitud';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: { error?: string } } };
-        if (axiosErr.response?.data?.error) {
-          errMsg = axiosErr.response.data.error;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data?.error || t('premiumLobby.errorAcceptRequest'));
     }
   };
 
   const handleDeclineRequest = async (req: PendingRequest) => {
     try {
       await api.post(`/friendships/decline/${req.friendshipId}`);
-      alert('Solicitud rechazada/cancelada.');
+      alert(t('premiumLobby.requestDeclined'));
       fetchRequests();
     } catch (err) {
       console.error('Error declining request:', err);
-      let errMsg = 'Error al rechazar solicitud';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: { error?: string } } };
-        if (axiosErr.response?.data?.error) {
-          errMsg = axiosErr.response.data.error;
-        }
-      }
-      alert(errMsg);
+      alert(err.response?.data?.error || t('premiumLobby.errorDeclineRequest'));
     }
   };
 
@@ -591,22 +549,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         let botResponseContent = '';
         if (activeChatUser.id === -1) {
           const replies = [
-            '¡Hola! ¿Echamos unas manos a 8 Reyes? Abre una sala y pásame el código. ⚔️',
-            'Recuerda: morder el labio inferior es tener dos Reyes. ¡Usa las señas! 🤫',
-            '¡Envido a pares! ¿Qué me dices?',
-            'Hoy tengo duples seguro. No me busques las cosquillas...'
+            t('premiumLobby.botReply1_1'),
+            t('premiumLobby.botReply1_2'),
+            t('premiumLobby.botReply1_3'),
+            t('premiumLobby.botReply1_4')
           ];
           botResponseContent = replies[Math.floor(Math.random() * replies.length)];
         } else if (activeChatUser.id === -2) {
           const replies = [
-            'Kaixo! Zabaldu mahaia eta sartuko naiz! 🚪',
-            'Gran partida la de ayer. ¿Has visto las señas en el menú de Reglas?',
-            'Aupa mutil! Jokatuko dugu gero?',
-            'Tengo una mano buenísima. ¿Hacemos órdago?'
+            t('premiumLobby.botReply2_1'),
+            t('premiumLobby.botReply2_2'),
+            t('premiumLobby.botReply2_3'),
+            t('premiumLobby.botReply2_4')
           ];
           botResponseContent = replies[Math.floor(Math.random() * replies.length)];
         } else if (activeChatUser.id === -3) {
-          botResponseContent = 'Hola, hoy estoy offline, pero avísame mañana para jugar el torneo presencial en Bilbao. ¡Txapela buruan! 🏆';
+          botResponseContent = t('premiumLobby.botReply3_1');
         }
 
         const botMsg: ChatMessage = {
@@ -650,8 +608,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         {/* LOBBY HEADER */}
         <header className="lobby-header">
           <div className="welcome-section">
-            <span className="welcome-tag">JUGADOR REGISTRADO</span>
-            <h1 className="welcome-title">¡Hola, {username}!</h1>
+            <span className="welcome-tag">{t('premiumLobby.registeredPlayer')}</span>
+            <h1 className="welcome-title">{t('premiumLobby.hello', { username })}</h1>
           </div>
 
           {/* USER STATS BADGES */}
@@ -661,55 +619,56 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 <span className="badge-icon">📊</span>
                 <div className="badge-details">
                   <span className="badge-val">{profile.elo} ELO</span>
-                  <span className="badge-lbl">Puntos de Rango</span>
+                  <span className="badge-lbl">{t('premiumLobby.rankPoints')}</span>
                 </div>
               </div>
               <div className="lobby-badge coins-badge">
                 <span className="badge-icon">💰</span>
                 <div className="badge-details">
                   <span className="badge-val">{profile.coins}</span>
-                  <span className="badge-lbl">Monedas de Oro</span>
+                  <span className="badge-lbl">{t('premiumLobby.goldCoins')}</span>
                 </div>
               </div>
               <button
                 className="lobby-badge leaderboard-trigger-btn"
                 onClick={handleOpenLeaderboard}
-                title="Ver clasificación general"
+                title={t("premiumLobby.viewRanking")}
               >
                 <span className="badge-icon">🏆</span>
                 <div className="badge-details">
-                  <span className="badge-val">Ver Ranking</span>
-                  <span className="badge-lbl">Clasificación</span>
+                  <span className="badge-val">{t('premiumLobby.viewRanking')}</span>
+                  <span className="badge-lbl">{t('premiumLobby.ranking')}</span>
                 </div>
               </button>
               <button
                 className="lobby-badge rules-trigger-btn"
                 onClick={() => setShowRulesModal(true)}
-                title="Aprender a jugar al Mus"
+                title={t("premiumLobby.gameGuide")}
               >
                 <span className="badge-icon">🃏</span>
                 <div className="badge-details">
-                  <span className="badge-val">Reglas / Keinus</span>
-                  <span className="badge-lbl">Guía de Juego</span>
+                  <span className="badge-val">{t('premiumLobby.rulesKeinus')}</span>
+                  <span className="badge-lbl">{t('premiumLobby.gameGuide')}</span>
                 </div>
               </button>
-              
+
               <button
-                className="lobby-badge security-2fa-badge-btn"
+                className={`lobby-badge security-2fa-badge-btn ${twoFactorEnabled
+                  ? 'security-2fa-badge-btn--enabled'
+                  : 'security-2fa-badge-btn--disabled'
+                  }`}
                 onClick={() => setShow2FaModal(true)}
-                title="Configuración de Seguridad (Doble Factor)"
-                style={{
-                  background: twoFactorEnabled ? 'rgba(46, 196, 182, 0.08)' : 'rgba(212, 175, 55, 0.05)',
-                  borderColor: twoFactorEnabled ? 'rgba(46, 196, 182, 0.3)' : 'rgba(212, 175, 55, 0.15)',
-                  cursor: 'pointer'
-                }}
+                title={t("premiumLobby.accountSecurity")}
               >
                 <span className="badge-icon">🔑</span>
                 <div className="badge-details">
-                  <span className="badge-val" style={{ color: twoFactorEnabled ? '#2ec4b6' : '#fac715' }}>
-                    {twoFactorEnabled ? '2FA Activo' : 'Activar 2FA'}
+                  <span className={`badge-val ${twoFactorEnabled
+                        ? 'security-2fa-badge-value--enabled'
+                        : 'security-2fa-badge-value--disabled'
+                      }`}>
+                  {twoFactorEnabled ? t('premiumLobby.twoFaActive') : t('premiumLobby.twoFaActivate')}
                   </span>
-                  <span className="badge-lbl">Seguridad</span>
+                  <span className="badge-lbl">{t('premiumLobby.security')}</span>
                 </div>
               </button>
             </div>
@@ -722,23 +681,23 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           <section className="lobby-column matchmaking-panel">
             <div className="panel-glow-header">
               <span className="panel-icon">⚡</span>
-              <h2>Buscador de Partidas</h2>
+              <h2>{t('premiumLobby.matchFinder')}</h2>
             </div>
-            <p className="panel-desc">Emparejamientos rápidos en red. Juega con los mejores musolaris conectados en directo.</p>
+            <p className="panel-desc">{t('premiumLobby.matchFinderDesc')}</p>
 
             {isSearching ? (
               <div className="search-spinner-area">
                 <div className="lobby-loader"></div>
-                <p className="searching-lbl">Buscando oponentes...</p>
-                {queueSize > 0 && <p className="queue-size-lbl">({queueSize}/4 en cola)</p>}
+                <p className="searching-lbl">{t('premiumLobby.searchingOpponents')}</p>
+                {queueSize > 0 && <p className="queue-size-lbl">{t('premiumLobby.queueSize', { count: queueSize })}</p>}
                 <button className="cancel-search-btn" onClick={onCancelMatchmaking}>
-                  Cancelar Búsqueda
+                  {t('premiumLobby.cancelSearch')}
                 </button>
               </div>
             ) : (
               <>
                 <div className="reyes-selector">
-                  <label className="reyes-selector-label">REGLAS DE REYES:</label>
+                  <label className="reyes-selector-label">{t('premiumLobby.kingsRules')}</label>
                   <div className="reyes-selector-options">
                     <button
                       type="button"
@@ -748,7 +707,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         : 'reyes-option--inactive'
                         }`}
                     >
-                      👑 8 Reyes
+                      {t('lobby.kings8')}
                     </button>
                     <button
                       type="button"
@@ -758,12 +717,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         : 'reyes-option--inactive'
                         }`}
                     >
-                      ⚔️ 4 Reyes
+                      {t('lobby.kings4')}
                     </button>
                   </div>
                 </div>
                 <button className="join-queue-btn" onClick={() => onStartMatchmaking(selectedReyes)}>
-                  Buscar Partida Online
+                  {t('premiumLobby.searchMatch')}
                 </button>
               </>
             )}
@@ -773,20 +732,20 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           <section className="lobby-column private-rooms-panel">
             <div className="panel-glow-header">
               <span className="panel-icon">🔑</span>
-              <h2>Salas de Juego Privadas</h2>
+              <h2>{t('premiumLobby.privateRooms')}</h2>
             </div>
-            <p className="panel-desc">Crea una mesa de juego personalizada con amigos o un código de sala compartido.</p>
+            <p className="panel-desc">{t('premiumLobby.privateRoomsDesc')}</p>
 
             <button className="create-room-btn" onClick={handleCreateRoomLocal}>
-              Crear Nueva Mesa Privada
+              {t('premiumLobby.createNewRoom')}
             </button>
 
-            <div className="divider-or"><span>O BIEN</span></div>
+            <div className="divider-or"><span>{t('premiumLobby.or')}</span></div>
 
             <form onSubmit={handleJoinRoomLocal} className="join-room-form">
               <input
                 type="text"
-                placeholder="CÓDIGO DE SALA"
+                placeholder={t("premiumLobby.roomCode")}
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                 className="room-code-input"
@@ -794,7 +753,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 required
               />
               <button type="submit" className="join-room-submit-btn">
-                Unirse a Mesa
+                {t('premiumLobby.joinTable')}
               </button>
             </form>
           </section>
@@ -803,28 +762,28 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           <section className="social-panel" aria-label="Social y Amigos">
             <div className="social-header-box">
               <span className="panel-icon panel-icon--sm">👥</span>
-              <h2>Comunidad y Amigos</h2>
+              <h2>{t('premiumLobby.communityFriends')}</h2>
             </div>
 
             {/* TABS HEADER */}
             <div className="social-tabs">
               <button
-                className={`social-tab-btn ${socialTab === 'amigos' ? 'social-tab-btn--active' : ''}`}
-                onClick={() => setSocialTab('amigos')}
+                className={`social-tab-btn ${socialTab === 'friends' ? 'social-tab-btn--active' : ''}`}
+                onClick={() => setSocialTab('friends')}
               >
-                Amigos ({friends.length})
+                {t('premiumLobby.friendsCount', { count: friends.length })}
               </button>
               <button
-                className={`social-tab-btn ${socialTab === 'buscar' ? 'social-tab-btn--active' : ''}`}
-                onClick={() => setSocialTab('buscar')}
+                className={`social-tab-btn ${socialTab === 'search' ? 'social-tab-btn--active' : ''}`}
+                onClick={() => setSocialTab('search')}
               >
-                Buscar
+                {t('premiumLobby.search')}
               </button>
               <button
                 className={`social-tab-btn ${socialTab === 'requests' ? 'social-tab-btn--active' : ''}`}
                 onClick={() => setSocialTab('requests')}
               >
-                Peticiones ({requests.length})
+                {t('premiumLobby.requestsCount', { count: requests.length })}
               </button>
             </div>
 
@@ -832,10 +791,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             <div className="social-content-area">
 
               {/* TAB 1: FRIENDS LIST */}
-              {socialTab === 'amigos' && (
+              {socialTab === 'friends' && (
                 friends.length === 0 ? (
                   <div className="social-empty-state social-empty-state--large">
-                    Aún no tienes amigos agregados.
+                    {t('premiumLobby.noFriends')}
                   </div>
                 ) : (
                   friends.map(friend => (
@@ -848,7 +807,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                           <span className="friend-name">{friend.username}</span>
                           <span className="friend-meta-status">
                             <span className={`status-dot ${friend.status === 'online' ? 'status-dot--online' : 'status-dot--offline'}`} />
-                            {friend.status === 'online' ? 'Conectado' : 'Desconectado'}
+                            {friend.status === 'online' ? t('premiumLobby.online') : t('premiumLobby.offline')}
                           </span>
                         </div>
                       </div>
@@ -857,14 +816,14 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         <button
                           className="btn-social-mini btn-chat-mini"
                           onClick={() => setActiveChatUser(friend)}
-                          title="Abrir chat privado"
+                          title={t("premiumLobby.openChat")}
                         >
                           💬
                         </button>
                         <button
                           className="btn-social-mini btn-profile-mini"
                           onClick={() => setSelectedProfileUser(friend)}
-                          title="Ver perfil"
+                          title={t("premiumLobby.viewProfile")}
                         >
                           👁️
                         </button>
@@ -875,24 +834,24 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               )}
 
               {/* TAB 2: USER SEARCH */}
-              {socialTab === 'buscar' && (
+              {socialTab === 'search' && (
                 <>
                   <div className="social-search-row">
                     <input
                       type="text"
-                      placeholder="Nombre de usuario..."
+                      placeholder={t("premiumLobby.usernamePlaceholder")}
                       className="social-search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <button className="btn-search-trigger" onClick={handleSearchUsers}>
-                      Buscar
+                      {t('premiumLobby.search')}
                     </button>
                   </div>
                   <div className="search-results-list">
                     {searchResults.length === 0 ? (
                       <div className="social-empty-state social-empty-state--small">
-                        Introduce el nombre y dale a buscar.
+                        {t('premiumLobby.searchPrompt')}
                       </div>
                     ) : (
                       searchResults.map(user => (
@@ -904,7 +863,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             className="btn-social-mini btn-add-friend-mini"
                             onClick={() => handleSendFriendRequest(user)}
                           >
-                            + Agregar
+                            {t('premiumLobby.add')}
                           </button>
                         </div>
                       ))
@@ -917,7 +876,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               {socialTab === 'requests' && (
                 requests.length === 0 ? (
                   <div className="social-empty-state social-empty-state--large">
-                    No tienes peticiones pendientes.
+                    {t('premiumLobby.noRequests')}
                   </div>
                 ) : (
                   requests.map(req => (
@@ -928,7 +887,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       <div className="request-header">
                         <span className="request-username">{req.username}</span>
                         <span className="request-status">
-                          {req.type === 'received' ? 'Te ha enviado solicitud' : 'Solicitud enviada'}
+                          {req.type === 'received' ? t('premiumLobby.sentRequest') : t('premiumLobby.requestSent')}
                         </span>
                       </div>
                       {req.type === 'received' ? (
@@ -937,13 +896,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             className="btn-action-request btn-accept-req request-btn"
                             onClick={() => handleAcceptRequest(req)}
                           >
-                            Aceptar
+                            {t('premiumLobby.accept')}
                           </button>
                           <button
                             className="btn-action-request btn-decline-req request-btn"
                             onClick={() => handleDeclineRequest(req)}
                           >
-                            Rechazar
+                            {t('premiumLobby.decline')}
                           </button>
                         </div>
                       ) : (
@@ -951,7 +910,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                           className="btn-action-request btn-decline-req request-btn-full request-btn-cancel"
                           onClick={() => handleDeclineRequest(req)}
                         >
-                          Cancelar Solicitud
+                          {t('premiumLobby.cancelRequest')}
                         </button>
                       )}
                     </div>
@@ -971,30 +930,30 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         <div className="tournaments-section">
           <div className="tournaments-header">
             <div>
-              <h2 className="tournaments-title">🏆 Torneos Online de Mus</h2>
+              <h2 className="tournaments-title">{t('premiumLobby.tournamentsTitle')}</h2>
               <p className="tournaments-subtitle">
-                Inscríbete usando tus monedas, compite en eliminatorias directas y gana el gran premio.
+                {t('premiumLobby.tournamentsDesc')}
               </p>
             </div>
             <button
               onClick={fetchOnlineTournaments}
               className="btn-action tournaments-refresh-btn"
             >
-              🔄 Actualizar Lista
+              {t('premiumLobby.updateList')}
             </button>
           </div>
 
           {loadingTournaments ? (
             <div className="tournaments-loading">
               <div className="lobby-loader"></div>
-              <p className="tournaments-loading-text">Cargando torneos online...</p>
+              <p className="tournaments-loading-text">{t('premiumLobby.loadingTournaments')}</p>
             </div>
           ) : onlineTournaments.length === 0 ? (
             <div className="tournaments-empty">
               <span className="tournaments-empty-icon">🎫</span>
-              <h3 className="tournaments-empty-title">No hay torneos online programados</h3>
+              <h3 className="tournaments-empty-title">{t('premiumLobby.noTournaments')}</h3>
               <p className="tournaments-empty-text">
-                Los administradores programan torneos en fechas especiales. Vuelve a consultar más tarde.
+                {t('premiumLobby.noTournamentsDesc')}
               </p>
             </div>
           ) : (
@@ -1010,9 +969,9 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   >
                     <div className="tourney-card-header">
                       <span className={`tourney-card-status ${isPlaying ? 'tourney-card-status--playing' : isFinished ? 'tourney-card-status--finished' : 'tourney-card-status--open'}`}>
-                        {isPlaying ? '⚡ En juego' : isFinished ? '🏆 Finalizado' : '📝 Abierto'}
+                        {isPlaying ? t('premiumLobby.inGame') : isFinished ? t('premiumLobby.finished') : t('premiumLobby.open')}
                       </span>
-                      <span className="tourney-card-platform">🌐 Online</span>
+                      <span className="tourney-card-platform">{t('premiumLobby.onlineLabel')}</span>
                     </div>
 
                     <h3 className="tourney-card-title">
@@ -1020,17 +979,17 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                     </h3>
 
                     <div className="tourney-card-info">
-                      <div>📍 <strong>Servidor:</strong> Enbido.eus Online</div>
-                      <div>🗓️ <strong>Fecha:</strong> {tourney.startDatetime ? tourney.startDatetime.replace('T', ' ').substring(0, 16) : 'Por determinar'}</div>
+                      <div>📍 <strong>{t('premiumLobby.server')}</strong> Enbido.eus Online</div>
+                      <div>🗓️ <strong>{t('premiumLobby.date')}</strong> {tourney.startDatetime ? tourney.startDatetime.replace('T', ' ').substring(0, 16) : t('tournament.determineLater')}</div>
                     </div>
 
                     <div className="tourney-card-prizes">
                       <div className="tourney-prize-col">
-                        <span className="tourney-prize-label">ENTRADA</span>
+                        <span className="tourney-prize-label">{t('premiumLobby.entry')}</span>
                         <span className="tourney-prize-val tourney-prize-val--entry">💰 {tourney.coinsFee || 0} tx</span>
                       </div>
                       <div className="tourney-prize-col">
-                        <span className="tourney-prize-label">PREMIO</span>
+                        <span className="tourney-prize-label">{t('premiumLobby.prize')}</span>
                         <span className="tourney-prize-val tourney-prize-val--reward">🏆 {tourney.coinsReward || 0} tx</span>
                       </div>
                     </div>
@@ -1042,7 +1001,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         handleOpenTourneyDetail(tourney.id || tourney.tournamentId);
                       }}
                     >
-                      {isFinished ? 'Ver Campeón y Brackets' : 'Ver Brackets / Inscribirse'}
+                      {isFinished ? t('premiumLobby.viewChampionBrackets') : t('premiumLobby.viewBracketsRegister')}
                     </button>
                   </div>
                 );
@@ -1055,15 +1014,15 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         {!loading && profile && (
           <footer className="lobby-footer-stats">
             <div className="footer-stat-item">
-              <span className="stat-label">Partidas Jugadas</span>
+              <span className="stat-label">{t('premiumLobby.gamesPlayed')}</span>
               <span className="stat-value">{profile.totalGamesPlayed}</span>
             </div>
             <div className="footer-stat-item">
-              <span className="stat-label">Partidas Ganadas</span>
+              <span className="stat-label">{t('premiumLobby.gamesWon')}</span>
               <span className="stat-value">{profile.totalGamesWon}</span>
             </div>
             <div className="footer-stat-item">
-              <span className="stat-label">Win Rate / Tasa de Éxito</span>
+              <span className="stat-label">{t('premiumLobby.winRate')}</span>
               <span className="stat-value">{winRate}%</span>
             </div>
           </footer>
@@ -1080,16 +1039,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             </div>
             <h3 className="profile-card-username">{selectedProfileUser.username}</h3>
             <span className="profile-card-rank">
-              {selectedProfileUser.elo >= 1500 ? '🥇 Enbido Maisu' : selectedProfileUser.elo >= 1200 ? '🥈 Experto' : '🥉 Principiante'}
+              {selectedProfileUser.elo >= 1500 ? t('premiumLobby.rankEnbidoMaisu') : selectedProfileUser.elo >= 1200 ? t('premiumLobby.rankExpert') : t('premiumLobby.rankBeginner')}
             </span>
 
             <div className="profile-card-details-grid">
               <div className="profile-detail-box">
-                <span className="profile-detail-lbl">Puntos ELO</span>
+                <span className="profile-detail-lbl">{t('premiumLobby.eloPoints')}</span>
                 <span className="profile-detail-val">{selectedProfileUser.elo}</span>
               </div>
               <div className="profile-detail-box">
-                <span className="profile-detail-lbl">Efectividad</span>
+                <span className="profile-detail-lbl">{t('premiumLobby.effectiveness')}</span>
                 <span className="profile-detail-val">
                   {selectedProfileUser.totalGamesPlayed > 0
                     ? Math.round((selectedProfileUser.totalGamesWon / selectedProfileUser.totalGamesPlayed) * 100)
@@ -1097,11 +1056,11 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 </span>
               </div>
               <div className="profile-detail-box">
-                <span className="profile-detail-lbl">Jugadas</span>
+                <span className="profile-detail-lbl">{t('premiumLobby.played')}</span>
                 <span className="profile-detail-val">{selectedProfileUser.totalGamesPlayed}</span>
               </div>
               <div className="profile-detail-box">
-                <span className="profile-detail-lbl">Ganadas</span>
+                <span className="profile-detail-lbl">{t('premiumLobby.won')}</span>
                 <span className="profile-detail-val">{selectedProfileUser.totalGamesWon}</span>
               </div>
             </div>
@@ -1110,7 +1069,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               className="profile-card-close-btn"
               onClick={() => setSelectedProfileUser(null)}
             >
-              Cerrar Perfil
+              {t('premiumLobby.closeProfile')}
             </button>
           </div>
         </div>
@@ -1122,7 +1081,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           <header className="chat-window-header">
             <div className="chat-header-user">
               <span className={`chat-header-dot ${activeChatUser.status === 'online' ? 'chat-header-dot--online' : 'chat-header-dot--offline'}`} />
-              <span className="chat-header-name">Chat: {activeChatUser.username}</span>
+              <span className="chat-header-name">{t('premiumLobby.chatWith', { username: activeChatUser.username })}</span>
             </div>
             <button className="chat-header-close-btn" onClick={() => setActiveChatUser(null)}>
               &times;
@@ -1132,7 +1091,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
           <div className="chat-window-messages" ref={chatEndRef}>
             {chatMessages.length === 0 ? (
               <div className="chat-window-empty">
-                No hay mensajes anteriores en este chat privado.
+                {t('premiumLobby.noPrivateMessages')}
               </div>
             ) : (
               chatMessages.map((msg, index) => {
@@ -1156,13 +1115,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             <input
               type="text"
               className="chat-window-input"
-              placeholder="Escribe un mensaje..."
+              placeholder={t("premiumLobby.writeMessage")}
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               required
             />
             <button type="submit" className="chat-window-send-btn">
-              Enviar
+              {t('premiumLobby.send')}
             </button>
           </form>
         </div>
@@ -1178,8 +1137,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               <div className="leaderboard-title-group">
                 <span className="leaderboard-header-icon">🏆</span>
                 <div>
-                  <h2 className="leaderboard-modal-title">Clasificación General</h2>
-                  <span className="leaderboard-modal-subtitle">Euskadi Mus Arena</span>
+                  <h2 className="leaderboard-modal-title">{t('premiumLobby.leaderboardTitle')}</h2>
+                  <span className="leaderboard-modal-subtitle">{t('premiumLobby.leaderboardSubtitle')}</span>
                 </div>
               </div>
               <button className="leaderboard-close-x" onClick={() => setShowLeaderboard(false)}>
@@ -1246,28 +1205,28 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               {loadingLeaderboard ? (
                 <div className="leaderboard-loading">
                   <div className="lobby-loader"></div>
-                  <p>Cargando clasificación de campeones...</p>
+                  <p>{t('premiumLobby.loadingLeaderboard')}</p>
                 </div>
               ) : sortedLeaderboard.length === 0 ? (
-                <div className="leaderboard-empty">No hay datos de clasificación disponibles.</div>
+                <div className="leaderboard-empty">{t('premiumLobby.noLeaderboardData')}</div>
               ) : (
                 <table className="leaderboard-table">
                   <thead>
                     <tr>
-                      <th>Puesto</th>
-                      <th>Jugador</th>
-                      <th>Título</th>
+                      <th>{t('premiumLobby.position')}</th>
+                      <th>{t('premiumLobby.player')}</th>
+                      <th>{t('premiumLobby.title')}</th>
                       <th onClick={() => handleSort('elo')} className="sortable-header">
                         ELO {sortField === 'elo' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
                       </th>
                       <th onClick={() => handleSort('winRate')} className="sortable-header">
-                        Win Rate {sortField === 'winRate' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
+                        {t('premiumLobby.winRateShort')} {sortField === 'winRate' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
                       </th>
                       <th onClick={() => handleSort('totalGamesPlayed')} className="sortable-header">
-                        Jugadas {sortField === 'totalGamesPlayed' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
+                        {t('premiumLobby.playedShort')} {sortField === 'totalGamesPlayed' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
                       </th>
                       <th onClick={() => handleSort('totalGamesWon')} className="sortable-header">
-                        Ganadas {sortField === 'totalGamesWon' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
+                        {t('premiumLobby.wonShort')} {sortField === 'totalGamesWon' ? (sortDirection === 'desc' ? '▼' : '▲') : '↕'}
                       </th>
                     </tr>
                   </thead>
@@ -1291,14 +1250,14 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                                 {player.username.substring(0, 2).toUpperCase()}
                               </div>
                               <span className="player-username">{player.username}</span>
-                              {isMe && <span className="me-badge">TÚ</span>}
+                              {isMe && <span className="me-badge">{t('premiumLobby.you')}</span>}
                             </div>
                           </td>
                           <td className="col-title">
-                            {player.equippedTitle && player.equippedTitle !== 'Sin Título' ? (
+                            {player.equippedTitle && player.equippedTitle !== t('premiumLobby.noTitle') ? (
                               <span className="title-item-badge">{player.equippedTitle}</span>
                             ) : (
-                              <span className="no-title-badge">-</span>
+                              <span className="no-title-badge">{t('premiumLobby.noTitle')}</span>
                             )}
                           </td>
                           <td className="col-elo">
@@ -1335,8 +1294,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               <div className="leaderboard-title-group">
                 <span className="leaderboard-header-icon">🃏</span>
                 <div>
-                  <h2 className="leaderboard-modal-title">Mus Jokoaren Arauak</h2>
-                  <span className="leaderboard-modal-subtitle">Reglas oficiales y guía de aprendizaje para jugar al Mus</span>
+                  <h2 className="leaderboard-modal-title">{t('premiumLobby.rulesTitle')}</h2>
+                  <span className="leaderboard-modal-subtitle">{t('premiumLobby.rulesSubtitle')}</span>
                 </div>
               </div>
               <button className="leaderboard-close-x" onClick={() => setShowRulesModal(false)}>
@@ -1345,97 +1304,96 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             </header>
 
             <div className="rules-modal-body">
-              {/* Zer da Mus-a */}
+              {/* What is Mus */}
               <div className="rules-section">
                 <h3 className="rules-section-title">
-                  <span>🃏</span> Zer da Mus-a? / ¿Qué es el Mus?
+                  <span>🃏</span> {t('premiumLobby.rulesWhatIsMus')}
                 </h3>
                 <p className="rules-text">
-                  El Mus es un juego de cartas tradicional de origen vasco, ampliamente jugado en toda España y partes de Hispanoamérica.
-                  Se juega por parejas (4 jugadores en total) utilizando la baraja española de 40 cartas. El objetivo es llegar antes que la pareja rival a un número determinado de puntos (usualmente 30 u 40 puntos).
+                  {t('premiumLobby.whatIsMusAnswer')}
                 </p>
                 <p className="rules-note">
-                  Musa bikoteka jokatu beharreko karta joko tradizionala da. Hogeita hamar edo berrogei puntutara jokatu ohi da, eta bikote bakoitzeko kideen arteko komunikazio isila (keinuak) funtsezkoa da garaipena lortzeko.
+                  {t('premiumLobby.musNote')}
                 </p>
               </div>
 
-              {/* Los 4 lances */}
+              {/* The 4 rounds */}
               <div className="rules-section">
                 <h3 className="rules-section-title">
-                  <span>⚔️</span> Jokoaren Lantaldeak / Los 4 Lances de la Mano
+                  <span>⚔️</span> {t('premiumLobby.rules4Lances')}
                 </h3>
                 <p className="rules-text">
-                  Cada mano de Mus consta de 4 lances consecutivos:
+                  {t('premiumLobby.lancesIntro')}
                 </p>
                 <div className="rules-grid-2col">
                   <div className="rules-card">
-                    <h4 className="rules-card-title">1. Handia / La Grande</h4>
+                    <h4 className="rules-card-title">{t('premiumLobby.grandeCardTitle')}</h4>
                     <p className="rules-card-text">
-                      Gana la pareja con las cartas de mayor valor. Los Reyes y Caballos son las cartas más fuertes.
+                      {t('premiumLobby.grandeCardText')}
                     </p>
                   </div>
                   <div className="rules-card">
-                    <h4 className="rules-card-title">2. Txikia / La Chica</h4>
+                    <h4 className="rules-card-title">{t('premiumLobby.chicaCardTitle')}</h4>
                     <p className="rules-card-text">
-                      Gana la pareja con las cartas de menor valor. Los Ases y doses son las mejores cartas.
+                      {t('premiumLobby.chicaCardText')}
                     </p>
                   </div>
                   <div className="rules-card">
-                    <h4 className="rules-card-title">3. Pareak / Los Pares</h4>
+                    <h4 className="rules-card-title">{t('premiumLobby.paresCardTitle')}</h4>
                     <p className="rules-card-text">
-                      Premios por tener cartas iguales. <strong>Par:</strong> dos iguales; <strong>Medias:</strong> tres iguales; <strong>Duples:</strong> cuatro iguales o dos parejas.
+                      {t('premiumLobby.paresCardText')}
                     </p>
                   </div>
                   <div className="rules-card">
-                    <h4 className="rules-card-title">4. Juego o Punto</h4>
+                    <h4 className="rules-card-title">{t('premiumLobby.juegoCardTitle')}</h4>
                     <p className="rules-card-text">
-                      Sumar las cartas. El mejor juego es 31 (Joko Nagusia). Si nadie llega a 31, se juega al Punto (siendo 30 el mejor).
+                      {t('premiumLobby.juegoCardText')}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Señas */}
+              {/* Signs */}
               <div className="rules-section">
                 <h3 className="rules-section-title">
-                  <span>🤫</span> Keinu Gida / Guía de Señas Permitidas
+                  <span>🤫</span> {t('premiumLobby.rulesSignsGuide')}
                 </h3>
                 <div className="rules-guide-grid">
                   {[
-                    { emoji: '👄', name: 'Morder Labio Inferior', meaning: 'Dos Reyes' },
-                    { emoji: '👅', name: 'Punta de la Lengua', meaning: 'Dos Ases' },
-                    { emoji: '😉', name: 'Guiño de un Ojo', meaning: 'Medias (3 iguales)' },
-                    { emoji: '🤨', name: 'Elevar las Cejas', meaning: 'Duples (2 parejas)' },
-                    { emoji: '🤫', name: 'Ladear la Cabeza', meaning: '31 Puntos (Juego)' },
-                    { emoji: '😑', name: 'Cerrar los Ojos', meaning: 'Ciego (Sin Juego)' }
+                    { emoji: '👄', nameKey: 'premiumLobby.biteLowerLip', meaningKey: 'premiumLobby.signMeaningReyes' },
+                    { emoji: '👅', nameKey: 'premiumLobby.tongueTip', meaningKey: 'premiumLobby.signMeaningAses' },
+                    { emoji: '😉', nameKey: 'premiumLobby.winkEye', meaningKey: 'premiumLobby.signMeaningMedias' },
+                    { emoji: '🤨', nameKey: 'premiumLobby.raiseEyebrows', meaningKey: 'premiumLobby.signMeaningDuples' },
+                    { emoji: '🤫', nameKey: 'premiumLobby.tiltHead', meaningKey: 'premiumLobby.signMeaning31' },
+                    { emoji: '😑', nameKey: 'premiumLobby.closeEyes', meaningKey: 'premiumLobby.signMeaningCiego' }
                   ].map((s, i) => (
                     <div key={i} className="rules-guide-item">
                       <span className="rules-guide-emoji">{s.emoji}</span>
                       <div>
-                        <div className="rules-guide-name">{s.name}</div>
-                        <div className="rules-guide-meaning">{s.meaning}</div>
+                        <div className="rules-guide-name">{t(s.nameKey)}</div>
+                        <div className="rules-guide-meaning">{t(s.meaningKey)}</div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Variantes */}
+              {/* Variants */}
               <div className="rules-section">
                 <h3 className="rules-section-title">
-                  <span>⚙️</span> Arau Bertsioak / 4 Reyes vs 8 Reyes
+                  <span>⚙️</span> {t('premiumLobby.rulesVariants')}
                 </h3>
                 <div className="rules-variants-list">
                   <div className="rules-variant-card rules-variant-card--standard">
-                    <strong className="rules-variant-title">8 Reyes (Estándar en Enbido.eus)</strong>
+                    <strong className="rules-variant-title">{t('premiumLobby.rules8ReyesTitle')}</strong>
                     <p className="rules-variant-text">
-                      Los 3es equivalen a Reyes y los 2es a Ases. Se juega en Vizcaya y Guipúzcoa. Esto acelera el ritmo y las manos fuertes de pares o juego.
+                      {t('premiumLobby.rules8ReyesDesc')}
                     </p>
                   </div>
                   <div className="rules-variant-card rules-variant-card--classic">
-                    <strong className="rules-variant-title">4 Reyes (Clásica o Alavesa)</strong>
+                    <strong className="rules-variant-title">{t('premiumLobby.rules4ReyesTitle')}</strong>
                     <p className="rules-variant-text">
-                      Los 3es y 2es valen sus puntos normales. Las manos fuertes son escasas y requiere un juego más pausado y estratégico.
+                      {t('premiumLobby.rules4ReyesDesc')}
                     </p>
                   </div>
                 </div>
@@ -1445,7 +1403,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </div>
       )}
 
-      {/* ---------- MODAL DETALLES TORNEO ONLINE (CON BRACKETS) ---------- */}
+      {/* ---------- ONLINE TOURNAMENT DETAILS MODAL (WITH BRACKETS) ---------- */}
       {selectedTourneyId && tourneyDetails && (
         <div className="tourney-details-overlay">
           <div className="tourney-details-modal">
@@ -1460,7 +1418,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             {/* Header info */}
             <div className="tourney-details-header">
               <span className="tourney-details-subtitle">
-                🌐 Torneo de Mus
+                {t('premiumLobby.tournamentOnline')}
               </span>
               <h2 className="tourney-details-title">
                 {tourneyDetails.tournament.title || tourneyDetails.tournament.tournamentName}
@@ -1470,142 +1428,97 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             {loadingTourneyDetails ? (
               <div className="tourney-details-loader-box">
                 <div className="lobby-loader tourney-details-loader-spinner"></div>
-                <p className="tourney-details-loader-text">Cargando eliminatorias del torneo...</p>
+                <p className="tourney-details-loader-text">{t('premiumLobby.loadingLeaderboard')}</p>
               </div>
             ) : (
-              <div className="tourney-detail-body">
-                {/* Left Column: Ficha Técnica */}
-                <div className="tourney-detail-left">
-                  <div className="tourney-detail-card">
-                    <h3 className="tourney-detail-card-title">📋 Ficha de Torneo</h3>
-                    <div className="tourney-detail-card-list">
-                      <div>
-                        <strong className="tourney-detail-label">🗓️ Fecha y Hora:</strong>
-                        <p className="tourney-detail-value">
-                          {tourneyDetails.tournament.startDatetime ? tourneyDetails.tournament.startDatetime.replace('T', ' a las ').substring(0, 16) : 'Por determinar'}
-                        </p>
-                      </div>
-                      <div>
-                        <strong className="tourney-detail-label">💰 Entrada / Inscripción:</strong>
-                        <p className="tourney-detail-value">{tourneyDetails.tournament.coinsFee || 0} monedas (tx)</p>
-                      </div>
-                      <div>
-                        <strong className="tourney-detail-label">🏆 Premio Campeón:</strong>
-                        <p className="tourney-detail-value">{tourneyDetails.tournament.coinsReward || 0} monedas (tx)</p>
-                      </div>
-                      <div>
-                        <strong className="tourney-detail-label">👥 Aforo Máximo:</strong>
-                        <p className="tourney-detail-value">{tourneyDetails.participants.length} / {tourneyDetails.tournament.maxTeams || 8} participantes</p>
-                      </div>
-                    </div>
+              <>
+                {/* DETAILS GRID */}
+                <div className="tourney-metrics-grid">
+                  <div className="tourney-metric-card">
+                    <span className="tourney-metric-label">{t('premiumLobby.registration')}</span>
+                    <span className="tourney-metric-value tourney-metric-value--fee">💰 {tourneyDetails.tournament.coinsFee || 0} tx</span>
                   </div>
-
-                  <div className="tourney-detail-rules-card">
-                    <h4 className="tourney-detail-rules-title">ℹ️ Descripción y Normativa</h4>
-                    <p className="tourney-detail-rules-text">
-                      Este es un torneo de Mus organizado por la comunidad. Inscríbete usando tus monedas, compite en eliminatorias directas y gana grandes recompensas. La gestión de brackets y el reporte de resultados se realizan en esta plataforma bajo la supervisión del organizador del torneo.
-                    </p>
+                  <div className="tourney-metric-card">
+                    <span className="tourney-metric-label">{t('premiumLobby.championReward')}</span>
+                    <span className="tourney-metric-value tourney-metric-value--reward">🏆 {tourneyDetails.tournament.coinsReward || 0} tx</span>
+                  </div>
+                  <div className="tourney-metric-card">
+                    <span className="tourney-metric-label">{t('premiumLobby.capacity')}</span>
+                    <span className="tourney-metric-value">{tourneyDetails.participants.length} / {tourneyDetails.tournament.maxTeams || 8}</span>
+                  </div>
+                  <div className="tourney-metric-card">
+                    <span className="tourney-metric-label">{t('premiumLobby.status')}</span>
+                    <span className={`tourney-metric-value--status ${
+                      tourneyDetails.tournament.status === 'finished'
+                        ? 'tourney-metric-value--status-finished'
+                        : tourneyDetails.tournament.status === 'playing'
+                        ? 'tourney-metric-value--status-playing'
+                        : 'tourney-metric-value--status-open'
+                    }`}>
+                      {tourneyDetails.tournament.status === 'open' ? t('premiumLobby.open') : tourneyDetails.tournament.status === 'playing' ? t('premiumLobby.inGame') : t('premiumLobby.finished')}
+                    </span>
                   </div>
                 </div>
 
-                {/* Right Column: Interaction / Brackets / Participants */}
-                <div className="tourney-detail-right" style={{ flex: '2 2 450px' }}>
-                  {/* ACTION TRIGGERS (JOIN / START) */}
-                  <div className="tourney-actions-row" style={{ marginBottom: '20px' }}>
-                    {tourneyDetails.tournament.status === 'open' && (
-                      <>
-                        {tourneyDetails.participants.some((p) => p.userId === currentUserId) ? (
-                          <button className="tourney-btn-inscribed" style={{ width: '100%' }} disabled>
-                            ✔ Ya estás inscrito en este torneo
-                          </button>
-                        ) : (
-                          <button className="btn-action tourney-btn-flex" style={{ width: '100%' }} onClick={handleJoinOnlineTournament}>
-                            💰 Inscribirse por {tourneyDetails.tournament.coinsFee || 0} monedas (tx)
-                          </button>
-                        )}
+                {/* ACTION TRIGGERS (JOIN / START) */}
+                {tourneyDetails.tournament.status === 'open' && (
+                  <div className="tourney-actions-row">
+                    {tourneyDetails.participants.some((p: any) => p.userId === currentUserId) ? (
+                      <button className="tourney-btn-inscribed" disabled>
+                        {t('premiumLobby.alreadyRegistered')}
+                      </button>
+                    ) : (
+                      <button className="btn-action tourney-btn-flex" onClick={handleJoinOnlineTournament}>
+                        {t('premiumLobby.registerFor', { fee: tourneyDetails.tournament.coinsFee || 0 })}
+                      </button>
+                    )}
 
-                        {tourneyDetails.tournament.organizerId === currentUserId && (
-                          <button
-                            className="btn-action tourney-btn-admin-start"
-                            style={{ width: '100%', marginTop: '10px' }}
-                            onClick={handleStartOnlineTournament}
-                            disabled={tourneyDetails.participants.length < 2}
-                          >
-                            ⚡ Iniciar Torneo y Generar Llaves (Admin)
-                          </button>
-                        )}
-                      </>
+                    {tourneyDetails.tournament.organizerId === currentUserId && (
+                      <button
+                        className="btn-action tourney-btn-admin-start"
+                        onClick={handleStartOnlineTournament}
+                        disabled={tourneyDetails.participants.length < 2}
+                      >
+                        {t('premiumLobby.startTournamentAdmin')}
+                      </button>
                     )}
                   </div>
+                )}
 
-                  {/* REGISTERED PLAYERS (IF OPEN) */}
-                  {tourneyDetails.tournament.status === 'open' && (
-                    <div className="tourney-participants-section">
-                      <h3 className="tourney-section-heading">Participantes Inscritos</h3>
-                      {tourneyDetails.participants.length === 0 ? (
-                        <p className="tourney-participants-empty">Aún no hay inscripciones para este torneo.</p>
-                      ) : (
-                        <div className="tourney-participants-list">
-                          {tourneyDetails.participants.map((player) => (
-                            <span key={player.userId} className={`tourney-participant-pill ${player.userId === currentUserId ? 'tourney-participant-pill--me' : ''}`}>
-                              👤 {player.username} {player.userId === currentUserId && '(Tú)'}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                {/* REGISTERED PLAYERS (IF OPEN) */}
+                {tourneyDetails.tournament.status === 'open' && (
+                  <div className="tourney-participants-section">
+                    <h3 className="tourney-section-heading">{t('premiumLobby.registeredParticipants')}</h3>
+                    {tourneyDetails.participants.length === 0 ? (
+                      <p className="tourney-participants-empty">{t('premiumLobby.noRegistrations')}</p>
+                    ) : (
+                      <div className="tourney-participants-list">
+                        {tourneyDetails.participants.map((player: any) => (
+                          <span key={player.userId} className={`tourney-participant-pill ${player.userId === currentUserId ? 'tourney-participant-pill--me' : ''}`}>
+                            👤 {player.username} {player.userId === currentUserId && `(${t('premiumLobby.you')})`}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  {/* ---------- VISUAL BRACKET TREE (IF PLAYING OR FINISHED) ---------- */}
-                  {(tourneyDetails.tournament.status === 'playing' || tourneyDetails.tournament.status === 'finished') && (
-                    <div>
-                      <h3 className="tourney-bracket-heading">Cuadro del Torneo / Brackets</h3>
+                {/* ---------- VISUAL BRACKET TREE ---------- */}
+                {(tourneyDetails.tournament.status === 'playing' || tourneyDetails.tournament.status === 'finished') && (
+                  <div>
+                    <h3 className="tourney-bracket-heading">{t('premiumLobby.tournamentBracket')}</h3>
 
                       <div className="tourney-bracket-tree">
 
-                        {/* ROUND 1: QUARTERFINALS */}
-                        {tourneyDetails.matches.some((m) => m.roundNumber === 1) && (
-                          <div className="bracket-round-column">
-                            <span className="bracket-round-label">Cuartos de Final</span>
-                            {tourneyDetails.matches.filter((m) => m.roundNumber === 1).map((match) => {
-                              const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                              const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
-                              const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                              const isActive = !match.winnerId && match.player1Id !== null && match.player2Id !== null;
-
-                              return (
-                                <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
-                                  <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                    <span>{getTourneyUsernameById(match.player1Id)}</span>
-                                    {isWinner1 && <span>✔</span>}
-                                  </div>
-                                  <div className="bracket-divider" />
-                                  <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                    <span>{getTourneyUsernameById(match.player2Id)}</span>
-                                    {isWinner2 && <span>✔</span>}
-                                  </div>
-                                  {match.score && (
-                                    <div className="bracket-score">Resultado: {match.score}</div>
-                                  )}
-                                  {isOrganizer && isActive && reportingMatchId !== match.matchId && (
-                                    <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
-                                      ✎
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* ROUND 2: SEMIFINALS */}
-                        <div className="bracket-round-column bracket-round-column--semis">
-                          <span className="bracket-round-label">Semifinales</span>
-                          {tourneyDetails.matches.filter((m) => m.roundNumber === 2).map((match) => {
+                      {/* ROUND 1: QUARTERFINALS */}
+                      {tourneyDetails.matches.some((m: any) => m.roundNumber === 1) && (
+                        <div className="bracket-round-column">
+                          <span className="bracket-round-label">{t('premiumLobby.quarterfinals')}</span>
+                          {tourneyDetails.matches.filter((m: any) => m.roundNumber === 1).map((match: any) => {
                             const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
                             const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
                             const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                            const isActive = !match.winnerId && match.player1Id !== null && match.player2Id !== null;
+                            const isActive = !match.winnerId && match.player1Id && match.player2Id;
 
                             return (
                               <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
@@ -1619,10 +1532,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                                   {isWinner2 && <span>✔</span>}
                                 </div>
                                 {match.score && (
-                                  <div className="bracket-score">Resultado: {match.score}</div>
+                                  <div className="bracket-score">{t('premiumLobby.result')} {match.score}</div>
                                 )}
                                 {isOrganizer && isActive && reportingMatchId !== match.matchId && (
-                                  <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
+                                  <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title={t("premiumLobby.reportWinnerTooltip")}>
                                     ✎
                                   </button>
                                 )}
@@ -1630,97 +1543,130 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             );
                           })}
                         </div>
+                      )}
 
-                        {/* ROUND 3: GRAND FINAL */}
-                        <div className="bracket-round-column bracket-round-column--final">
-                          <span className="bracket-round-label">Gran Final</span>
-                          {tourneyDetails.matches.filter((m) => m.roundNumber === 3).map((match) => {
-                            const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                            const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
-                            const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                            const isActive = !match.winnerId && match.player1Id !== null && match.player2Id !== null;
-                            const championId = match.winnerId;
+                      {/* ROUND 2: SEMIFINALS */}
+                      <div className="bracket-round-column bracket-round-column--semis">
+                        <span className="bracket-round-label">{t('premiumLobby.semifinals')}</span>
+                        {tourneyDetails.matches.filter((m: any) => m.roundNumber === 2).map((match: any) => {
+                          const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
+                          const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                          const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
+                          const isActive = !match.winnerId && match.player1Id && match.player2Id;
 
-                            return (
-                              <div key={match.matchId} className={`bracket-match-box bracket-match-box--final ${championId ? 'bracket-match-box--championship' : reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
-                                {championId && <span className="bracket-match-champion-tag">👑 ¡Campeón!</span>}
-                                <div className={`bracket-player-row bracket-player-row--final ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                  <span>{getTourneyUsernameById(match.player1Id)}</span>
-                                  {isWinner1 && <span>🏆</span>}
-                                </div>
-                                <div className="bracket-divider bracket-divider--final" />
-                                <div className={`bracket-player-row bracket-player-row--final ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                  <span>{getTourneyUsernameById(match.player2Id)}</span>
-                                  {isWinner2 && <span>🏆</span>}
-                                </div>
-                                {match.score && (
-                                  <div className="bracket-score bracket-score--final">Resultado: {match.score}</div>
-                                )}
-                                {isOrganizer && isActive && reportingMatchId !== match.matchId && (
-                                  <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
-                                    ✎
-                                  </button>
-                                )}
+                          return (
+                            <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
+                              <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
+                                <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                {isWinner1 && <span>✔</span>}
                               </div>
-                            );
-                          })}
-                        </div>
+                              <div className="bracket-divider" />
+                              <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
+                                <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                {isWinner2 && <span>✔</span>}
+                              </div>
+                              {match.score && (
+                                <div className="bracket-score">{t('premiumLobby.result')} {match.score}</div>
+                              )}
+                              {isOrganizer && isActive && reportingMatchId !== match.matchId && (
+                                <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title={t("premiumLobby.reportWinnerTooltip")}>
+                                  ✎
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* ROUND 3: GRAND FINAL */}
+                      <div className="bracket-round-column bracket-round-column--final">
+                        <span className="bracket-round-label">{t('premiumLobby.grandFinal')}</span>
+                        {tourneyDetails.matches.filter((m: any) => m.roundNumber === 3).map((match: any) => {
+                          const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
+                          const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                          const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
+                          const isActive = !match.winnerId && match.player1Id && match.player2Id;
+                          const championId = match.winnerId;
+
+                          return (
+                            <div key={match.matchId} className={`bracket-match-box bracket-match-box--final ${championId ? 'bracket-match-box--championship' : reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
+                              {championId && <span className="bracket-match-champion-tag">{t('premiumLobby.champion')}</span>}
+                              <div className={`bracket-player-row bracket-player-row--final ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
+                                <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                {isWinner1 && <span>🏆</span>}
+                              </div>
+                              <div className="bracket-divider bracket-divider--final" />
+                              <div className={`bracket-player-row bracket-player-row--final ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
+                                <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                {isWinner2 && <span>🏆</span>}
+                              </div>
+                              {match.score && (
+                                <div className="bracket-score bracket-score--final">{t('premiumLobby.result')} {match.score}</div>
+                              )}
+                              {isOrganizer && isActive && reportingMatchId !== match.matchId && (
+                                <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title={t("premiumLobby.reportWinnerTooltip")}>
+                                  ✎
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
 
                       </div>
 
-                      {/* ---------- FLOATING REPORT SCORE PANEL ---------- */}
-                      {reportingMatchId && (
-                        <form onSubmit={handleReportOnlineWinnerSubmit} className="bracket-report-form">
-                          <h4 className="bracket-report-form-title">✎ Registrar Resultado de Partida</h4>
+                    {/* ---------- FLOATING REPORT SCORE PANEL ---------- */}
+                    {reportingMatchId && (
+                      <form onSubmit={handleReportOnlineWinnerSubmit} className="bracket-report-form">
+                        <h4 className="bracket-report-form-title">{t('premiumLobby.reportResult')}</h4>
 
-                          <div className="bracket-report-row">
-                            <div className="bracket-report-field-group">
-                              <label className="bracket-report-label">SELECCIONAR GANADOR</label>
-                              <select
-                                value={reportWinnerId || ''}
-                                onChange={(e) => setReportWinnerId(Number(e.target.value))}
-                                className="bracket-report-select"
-                              >
-                                <option value="">-- Seleccionar --</option>
-                                {tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player1Id && (
-                                  <option value={tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player1Id || ''}>
-                                    {getTourneyUsernameById(tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player1Id || null)}
-                                  </option>
-                                )}
-                                {tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player2Id && (
-                                  <option value={tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player2Id || ''}>
-                                    {getTourneyUsernameById(tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player2Id || null)}
-                                  </option>
-                                )}
-                              </select>
-                            </div>
-
-                            <div className="bracket-report-field-group bracket-report-field-group--score">
-                              <label className="bracket-report-label">MARCADOR</label>
-                              <input
-                                type="text"
-                                value={reportScore}
-                                onChange={(e) => setReportScore(e.target.value)}
-                                placeholder="3-0"
-                                className="bracket-report-input"
-                              />
-                            </div>
-
-                            <div className="bracket-report-actions">
-                              <button type="submit" className="btn-action bracket-report-btn-save" disabled={!reportWinnerId}>
-                                Guardar
-                              </button>
-                              <button type="button" onClick={() => setReportingMatchId(null)} className="bracket-report-btn-cancel">
-                                Cancelar
-                              </button>
-                            </div>
+                        <div className="bracket-report-row">
+                          <div className="bracket-report-field-group">
+                            <label className="bracket-report-label">{t('premiumLobby.selectWinner')}</label>
+                            <select
+                              value={reportWinnerId || ''}
+                              onChange={(e) => setReportWinnerId(Number(e.target.value))}
+                              className="bracket-report-select"
+                            >
+                              <option value="">{t('premiumLobby.selectOption')}</option>
+                              {tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player1Id && (
+                                <option value={tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player1Id || ''}>
+                                  {getTourneyUsernameById(tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player1Id || null)}
+                                </option>
+                              )}
+                              {tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player2Id && (
+                                <option value={tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player2Id || ''}>
+                                  {getTourneyUsernameById(tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player2Id || null)}
+                                </option>
+                              )}
+                            </select>
                           </div>
-                        </form>
-                      )}
+
+                          <div className="bracket-report-field-group bracket-report-field-group--score">
+                            <label className="bracket-report-label">{t('premiumLobby.score')}</label>
+                            <input
+                              type="text"
+                              value={reportScore}
+                              onChange={(e) => setReportScore(e.target.value)}
+                              placeholder={t("premiumLobby.scorePlaceholder")}
+                              className="bracket-report-input"
+                            />
+                          </div>
+
+                          <div className="bracket-report-actions">
+                            <button type="submit" className="btn-action bracket-report-btn-save" disabled={!reportWinnerId}>
+                              {t('premiumLobby.save')}
+                            </button>
+                            <button type="button" onClick={() => setReportingMatchId(null)} className="bracket-report-btn-cancel">
+                              {t('premiumLobby.cancel')}
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    )}
 
                     </div>
                   )}
-                </div>
               </div>
             )}
 
@@ -1728,16 +1674,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </div>
       )}
 
-      {/* ---------- MODAL CONFIGURACIÓN 2FA ---------- */}
+      {/* ---------- 2FA CONFIGURATION MODAL ---------- */}
       {show2FaModal && (
         <div className="leaderboard-modal-overlay" onClick={() => setShow2FaModal(false)}>
-          <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="leaderboard-modal leaderboard-modal--2fa" onClick={(e) => e.stopPropagation()} >
             <header className="leaderboard-modal-header">
               <div className="leaderboard-title-group">
-                <span style={{ fontSize: '28px' }}>🔑</span>
+                <span className="security-modal-icon">🔑</span>
                 <div>
-                  <h2 className="leaderboard-modal-title">Seguridad de la Cuenta</h2>
-                  <span className="leaderboard-modal-subtitle">Configuración de acceso seguro</span>
+                  <h2 className="leaderboard-modal-title">{t('premiumLobby.accountSecurity')}</h2>
+                  <span className="leaderboard-modal-subtitle">{t('premiumLobby.secureAccessConfig')}</span>
                 </div>
               </div>
               <button className="leaderboard-close-x" onClick={() => setShow2FaModal(false)}>
@@ -1745,84 +1691,47 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               </button>
             </header>
 
-            <div style={{ padding: '25px', color: '#ccc', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div 
-                style={{
-                  background: 'rgba(212, 175, 55, 0.03)',
-                  border: '1px solid rgba(212, 175, 55, 0.15)',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '15px',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: 'inset 0 0 12px rgba(212,175,55,0.03)'
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ margin: '0 0 6px 0', color: '#fac715', fontSize: '0.95rem', fontWeight: 'bold' }}>
-                    Doble Factor por Email (2FA)
+            <div className="security-modal-body">
+              <div className="security-card">
+                <div className="security-card-content">
+                  <h4 className="security-card-title">
+                      {t('premiumLobby.emailTwoFactor')}
                   </h4>
-                  <p style={{ margin: 0, color: '#aaa', fontSize: '0.8rem', lineHeight: '1.4' }}>
-                    Al iniciar sesión se enviará un código de verificación temporal a tu correo registrado.
+                  <p className="security-card-description">
+                    {t('premiumLobby.twoFaDescription')}
                   </p>
                 </div>
 
-                <div>
-                  <label 
-                    className="switch" 
-                    style={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      width: '50px',
-                      height: '26px'
-                    }}
-                  >
-                    <input 
-                      type="checkbox" 
+                <div className="security-switch-container">
+                  <label className="switch">
+
+                    <input
+                      type="checkbox"
                       checked={twoFactorEnabled}
                       disabled={updating2Fa}
                       onChange={(e) => handleToggle2Fa(e.target.checked)}
-                      style={{ opacity: 0, width: 0, height: 0 }}
+                      className="switch-input"
                     />
-                    <span 
-                      className="slider round" 
-                      style={{
-                        position: 'absolute',
-                        cursor: updating2Fa ? 'not-allowed' : 'pointer',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: twoFactorEnabled ? '#fac715' : 'rgba(255,255,255,0.1)',
-                        transition: '.4s',
-                        borderRadius: '34px',
-                        boxShadow: twoFactorEnabled ? '0 0 10px rgba(250,199,21,0.4)' : 'none'
-                      }}
+                    <span
+                      className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
+                        } ${updating2Fa ? 'slider--disabled' : ''
+                        }`}
                     >
-                      <span 
-                        style={{
-                          position: 'absolute',
-                          height: '18px',
-                          width: '18px',
-                          left: '4px',
-                          bottom: '4px',
-                          backgroundColor: '#fff',
-                          transition: '.4s',
-                          borderRadius: '50%',
-                          transform: twoFactorEnabled ? 'translateX(24px)' : 'translateX(0)'
-                        }}
+                      <span
+                        className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
+                          }`}
                       />
                     </span>
                   </label>
                 </div>
               </div>
 
-              <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                <button 
-                  className="btn-action" 
+              <div className="security-modal-actions">
+                <button
+                  className="btn-action security-modal-close-btn"
                   onClick={() => setShow2FaModal(false)}
-                  style={{ width: '100%', padding: '12px' }}
                 >
-                  Cerrar
+                  {t('common.close')}
                 </button>
               </div>
             </div>

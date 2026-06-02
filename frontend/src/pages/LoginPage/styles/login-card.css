@@ -3,7 +3,7 @@
   max-width: 30rem;
   background-color: var(--color-card-bg);
   border-radius: var(--radius-2xl);
-  padding: var(--spacing-lg);
+  padding: var(--space-2xl);
   box-shadow: var(--shadow-premium);
   position: relative;
 }
@@ -12,21 +12,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--space-3xl);
 }
 
 .login-card__title {
-  font-family: var(--font-display);
+  font-family: var(--font-display), sans-serif;
   font-size: 2.2rem;
   font-weight: 800;
   color: var(--color-brand-dark);
   letter-spacing: -0.025em;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--space-xs);
   text-align: center;
 }
 
 .login-card__subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: rgba(26, 71, 49, 0.6);
   letter-spacing: 0.2em;
@@ -35,7 +35,7 @@
 
 @media (min-width: 576px) {
   .login-card {
-    padding: var(--spacing-3xl);
+    padding: var(--space-3xl);
   }
   .login-card__title {
     font-size: 3rem;

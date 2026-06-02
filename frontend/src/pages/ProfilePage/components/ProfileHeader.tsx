@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import '../styles/profile-header.css';
 
 interface ProfileHeaderProps {
@@ -8,13 +9,36 @@ interface ProfileHeaderProps {
   equippedTitleItemId?: number;
 }
 
+const ProfileSubtitle: React.FC<{ equippedTitleItemId?: number }> = ({ equippedTitleItemId }): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  if (equippedTitleItemId === 5) {
+    return (
+      <p className="profile-header__subtitle profile-header__subtitle--handia">
+        🔰 {t('musGame.titleHandia')}
+      </p>
+    );
+  }
+  if (equippedTitleItemId === 6) {
+    return (
+      <p className="profile-header__subtitle profile-header__subtitle--maisu">
+        👑 {t('musGame.titleEnbidoMaisu')}
+      </p>
+    );
+  }
+  return <p className="profile-header__subtitle">{t('profile.activePlayer')}</p>;
+};
+
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
-  username = 'Juan Pérez',
-  initials = 'JP',
+  username,
+  initials,
   equippedAvatarItemId,
-  equippedTitleItemId
+  equippedTitleItemId,
 }): React.JSX.Element => {
-  // Configuración de la clase de avatar según item equipado
+  const { t } = useTranslation();
+  const displayName = username || t('shop.defaultUsername');
+  const displayInitials = initials || displayName.slice(0, 2).toUpperCase();
+
   let avatarClass = '';
   if (equippedAvatarItemId === 1) {
     avatarClass = 'profile-header__avatar--gold';
@@ -26,54 +50,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     avatarClass = 'profile-header__avatar--karta';
   }
 
-  // Renderizado del título
-  const renderSubtitle = () => {
-    if (equippedTitleItemId === 5) {
-      return (
-        <p className="profile-header__subtitle profile-header__subtitle--handia">
-          🔰 HANDIA
-        </p>
-      );
-    }
-    if (equippedTitleItemId === 6) {
-      return (
-        <p className="profile-header__subtitle profile-header__subtitle--maisu">
-          👑 ENBIDO MAISU
-        </p>
-      );
-    }
-    if (equippedTitleItemId === 11) {
-      return (
-        <p className="profile-header__subtitle profile-header__subtitle--txapeldun">
-          🏆 TXAPELDUN
-        </p>
-      );
-    }
-    if (equippedTitleItemId === 12) {
-      return (
-        <p className="profile-header__subtitle profile-header__subtitle--musolari">
-          🃏 MUSOLARI
-        </p>
-      );
-    }
-    if (equippedTitleItemId === 13) {
-      return (
-        <p className="profile-header__subtitle profile-header__subtitle--zazpi">
-          🌟 ZAZPI ETA ERDI
-        </p>
-      );
-    }
-    return <p className="profile-header__subtitle">Jugador activo</p>;
-  };
-
   return (
     <div className="profile-header">
       <div className={`profile-header__avatar ${avatarClass}`}>
-        {initials}
+        {displayInitials}
       </div>
       <div className="profile-header__info">
-        <h1 className="profile-header__username">{username}</h1>
-        {renderSubtitle()}
+        <h1 className="profile-header__username">{displayName}</h1>
+        <ProfileSubtitle equippedTitleItemId={equippedTitleItemId} />
       </div>
     </div>
   );

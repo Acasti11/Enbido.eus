@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import '../styles/meetup-ad-card.css';
 import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
+import { useTranslation } from 'react-i18next';
 
 export interface LocalMeetupAd {
   adId: number;
@@ -35,7 +36,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
 
   const currentUserId = Number(localStorage.getItem('userId') || '0');
   const isLoggedIn = !!localStorage.getItem('token');
-
+  const { t } = useTranslation();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   // WebSocket Chat Context
@@ -43,7 +44,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
 
   const handleContactOrganizer = () => {
     if (!isLoggedIn) {
-      alert('Debes iniciar sesión para contactar en privado');
+      alert(t('meetup.loginToContact'));
       return;
     }
     const target = {
@@ -64,7 +65,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       const joined = res.data.some((p: any) => p.userId === currentUserId);
       setHasJoined(joined);
     } catch (err) {
-      console.error('Error fetching participants:', err);
+      console.error(t('meetup.errorFetchParticipants'), err);
     }
   };
 
@@ -73,7 +74,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       const res = await api.get(`/meetups/${adState.adId}/messages`);
       setMessages(res.data);
     } catch (err) {
-      console.error('Error fetching messages:', err);
+      console.error(t('meetup.errorFetchMessages'), err);
     }
   };
 
@@ -118,7 +119,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
 
   const handleJoin = async () => {
     if (!isLoggedIn) {
-      alert('Debes iniciar sesión para unirse a una mesa');
+      alert(t('meetup.loginToJoin'));
       return;
     }
     try {
@@ -127,8 +128,8 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       setHasJoined(true);
       fetchParticipants();
     } catch (err: any) {
-      console.error('Error joining meetup:', err);
-      alert(err.response?.data || 'Error al unirse');
+      console.error(t('meetup.errorJoin'), err);
+      alert(err.response?.data || t('meetup.errorJoin'));
     }
   };
 
@@ -140,33 +141,38 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       setHasJoined(false);
       fetchParticipants();
     } catch (err: any) {
-      console.error('Error leaving meetup:', err);
-      alert(err.response?.data || 'Error al abandonar la mesa');
+      console.error(t('meetup.errorLeave'), err);
+      alert(err.response?.data || t('meetup.errorLeave'));
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('¿Seguro que deseas cancelar y eliminar esta quedada?')) return;
+    if (!window.confirm(t('meetup.confirmDelete'))) return;
     try {
       await api.delete(`/meetups/${adState.adId}`);
       if (onDelete) {
         onDelete(adState.adId);
       }
     } catch (err: any) {
-      console.error('Error deleting meetup:', err);
-      alert('Error al eliminar la quedada');
+      console.error(t('meetup.errorDelete'), err);
+      alert(t('meetup.errorDelete'));
     }
   };
 
   const handleShare = () => {
     const dateFormatted = adState.scheduledAt
       ? formatScheduledDate(adState.scheduledAt)
-      : 'Fecha por coordinar';
-    const text = `¡Aupa! He organizado una quedada para jugar al Mus en ${adState.location} el ${dateFormatted}. ¡Faltan ${adState.missingPlayers} jugadores! Apúntate aquí en Enbido: ${window.location.origin}/meetups`;
+      : t('meetup.dateTBD');
+    const text = t('meetup.shareText', {
+      location: adState.location,
+      date: dateFormatted,
+      count: adState.missingPlayers,
+      url: `${window.location.origin}/meetups`
+    });
 
     navigator.clipboard.writeText(text)
-      .then(() => alert('¡Mensaje para compartir copiado al portapapeles!'))
-      .catch(() => alert('No se pudo copiar al portapapeles'));
+      .then(() => alert(t('meetup.shareCopied')))
+      .catch(() => alert(t('meetup.shareCopyError')));
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -193,17 +199,17 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
 
   const getEstablishmentLabel = (type: string | undefined) => {
     switch (type) {
-      case 'TXOKO': return 'Sociedad / Txoko';
-      case 'CAFE': return 'Cafetería';
-      case 'OUTDOOR': return 'Exterior / Parque';
+      case 'TXOKO': return t('meetup.txoko');
+      case 'CAFE': return t('meetup.cafe');
+      case 'OUTDOOR': return t('meetup.outdoor');
       case 'BAR':
       default:
-        return 'Taberna / Bar';
+        return t('meetup.bar');
     }
   };
 
   const formatScheduledDate = (dateStr: string | undefined) => {
-    if (!dateStr) return 'Fecha por coordinar';
+    if (!dateStr) return t('meetup.dateTBD');
     try {
       const d = new Date(dateStr);
       return d.toLocaleString('es-ES', {
@@ -232,7 +238,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
         </div>
 
         <div className="ad-card__meta-info">
-          <span>Organizado por: <strong>{adState.creatorName}</strong></span>
+          <span>{t('meetup.organizedBy', { name: adState.creatorName })}</span>
           {adState.scheduledAt && (
             <span className="ad-card__date-tag">
               📅 {formatScheduledDate(adState.scheduledAt)}
@@ -243,7 +249,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
 
       <div className="ad-card__body">
         <span className="ad-card__players">
-          {isFull ? '✅ Mesa Completa' : `⚠️ Faltan ${adState.missingPlayers} jugadores`}
+          {isFull ? t('meetup.tableFull') : t('meetup.missingPlayers', { count: adState.missingPlayers })}
         </span>
         <p className="ad-card__desc">{adState.description}</p>
       </div>
@@ -252,10 +258,10 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
         {hasJoined ? (
           <>
             <button className="btn-join btn-joined" disabled>
-              ✓ Te has unido
+              {t('meetup.joined')}
             </button>
             <button className="btn-leave-meetup" onClick={handleLeave}>
-              ❌ Salir
+              {t('meetup.leaveTable')}
             </button>
           </>
         ) : (
@@ -265,16 +271,16 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             disabled={isCreator || isFull || !isLoggedIn}
           >
             {isCreator
-              ? 'Organizador'
+              ? t('meetup.organizer')
               : isFull
-                ? 'Mesa Completa'
-                : 'Unirse a la mesa'}
+                ? t('meetup.tableFull')
+                : t('meetup.joinTable')}
           </button>
         )}
 
         {isCreator && (
-          <button className="btn-delete-meetup" onClick={handleDelete} title="Eliminar anuncio de quedada">
-            ❌ Eliminar
+          <button className="btn-delete-meetup" onClick={handleDelete} title={t('meetup.confirmDelete')}>
+            {t('meetup.delete')}
           </button>
         )}
 
@@ -284,14 +290,14 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             target="_blank"
             rel="noopener noreferrer"
             className="btn-maps-link"
-            title="Abrir ruta en Google Maps"
+            title={t('meetup.howToGetThere')}
           >
-            📍 Cómo llegar
+            {t('meetup.howToGetThere')}
           </a>
         )}
 
-        <button className="btn-chat-toggle btn-share-link" onClick={handleShare} title="Copiar invitación al portapapeles">
-          🔗 Compartir
+        <button className="btn-chat-toggle btn-share-link" onClick={handleShare} title={t('meetup.share')}>
+          {t('meetup.share')}
         </button>
 
         {!isCreator && (
@@ -299,9 +305,9 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             type="button"
             className="btn-chat-toggle btn-chat-contact"
             onClick={handleContactOrganizer}
-            title="Escribir mensaje privado al organizador"
+            title={t('meetup.contact')}
           >
-            💬 Contactar
+            {t('meetup.contact')}
           </button>
         )}
         {(hasJoined || isCreator) && (
@@ -309,38 +315,38 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             className="btn-chat-toggle"
             onClick={() => setIsChatOpen(!isChatOpen)}
           >
-            💬 Chat {isChatOpen ? '▲' : '▼'}
+            {t('meetup.chat')} {isChatOpen ? '▲' : '▼'}
           </button>
         )}
       </div>
 
       {isChatOpen && (hasJoined || isCreator) && (
         <section className="meetup-chat-section">
-          <h5 className="meetup-chat-title">👥 Jugadores en esta mesa:</h5>
+          <h5 className="meetup-chat-title">{t('meetup.playersInTable')}</h5>
           <div className="meetup-participants-list">
             <span className="participant-chip participant-chip--creator">
-              👑 {adState.creatorName} (Creador)
+              👑 {adState.creatorName} ({t('meetup.creator')})
             </span>
             {participants.map((p) => (
               <span key={p.id} className="participant-chip">
-                👤 {p.user ? p.user.name : `Usuario #${p.userId}`}
+                👤 {p.user ? p.user.name : t('meetup.userNumber', { num: p.userId })}
               </span>
             ))}
           </div>
 
-          <h5 className="meetup-chat-title">💬 Chat en Vivo:</h5>
+          <h5 className="meetup-chat-title">{t('meetup.liveChat')}</h5>
           <div className="meetup-chat-window">
             {messages.length === 0 ? (
               <div className="meetup-chat-empty">
-                No hay mensajes aún. ¡Di algo para empezar!
+                {t('meetup.noMessages')}
               </div>
             ) : (
               messages.map((m) => {
                 const isMsgFromMe = m.userId === currentUserId;
                 const isMsgFromCreator = m.userId === adState.creatorId;
                 const senderName = isMsgFromMe
-                  ? 'Tú'
-                  : m.user ? m.user.name : `Usuario #${m.userId}`;
+                  ? t('meetup.you')
+                  : m.user ? m.user.name : t('meetup.userNumber', { num: m.userId });
 
                 return (
                   <div
@@ -348,7 +354,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
                     className={`meetup-message-row ${isMsgFromMe ? 'meetup-message-row--me' : ''}`}
                   >
                     <span className={`meetup-message-sender ${isMsgFromCreator ? 'meetup-message-sender--creator' : ''}`}>
-                      {senderName} {isMsgFromCreator ? '(Creador)' : ''}
+                      {senderName} {isMsgFromCreator ? `(${t('meetup.creator')})` : ''}
                     </span>
                     <span className="meetup-message-text">{m.content}</span>
                   </div>
@@ -363,16 +369,16 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
               <input
                 type="text"
                 className="meetup-chat-input"
-                placeholder="Escribe un mensaje..."
+                placeholder={t('meetup.writeMessage')}
                 value={newMessageText}
                 onChange={(e) => setNewMessageText(e.target.value)}
                 maxLength={250}
               />
-              <button type="submit" className="btn-send-message">Enviar</button>
+              <button type="submit" className="btn-send-message">{t('meetup.send')}</button>
             </form>
           ) : (
             <div className="meetup-chat-login-warning">
-              Inicia sesión para poder chatear
+              {t('meetup.loginToChat')}
             </div>
           )}
         </section>

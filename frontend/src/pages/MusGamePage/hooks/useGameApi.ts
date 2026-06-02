@@ -13,7 +13,7 @@ export const useGameApi = () => {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creando la partida:', error);
+      console.error('Error creating match:', error);
       return null;
     }
   };
@@ -26,7 +26,7 @@ export const useGameApi = () => {
         status
       });
     } catch (error) {
-      console.error('Error actualizando la puntuación:', error);
+      console.error('Error updating score:', error);
     }
   };
 

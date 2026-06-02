@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { TournamentFormState } from '../../../types/tournament';
 import { CONST_INITIAL_FORM_STATE } from '../constants';
+import { useTranslation } from 'react-i18next';
 import PublishFormFields from './PublishFormFields';
 
 interface PublishFormProps {
@@ -21,6 +22,8 @@ const PublishForm = ({ onAddTournament, onCancelPublish }: PublishFormProps): Re
     onAddTournament(formState);
   };
 
+  const { t } = useTranslation();
+
   return (
     <div className="form-container">
       <div className="form-header-box">
@@ -31,17 +34,17 @@ const PublishForm = ({ onAddTournament, onCancelPublish }: PublishFormProps): Re
         <PublishFormFields formState={formState} onChange={handleChange} />
         <div className="form-actions">
           <button type="button" className="btn-cancel" onClick={onCancelPublish}>
-            Ezeztatu / Cancelar
+          {t('tournament.cancel')}
           </button>
           <button type="submit" className="btn-submit">
-            Argitaratu / Publicar
+            {t('tournament.publish')}
           </button>
         </div>
       </form>
       <div className="contact-footer">
-        Arazorik bada / Si tienes problemas:{' '}
+        t('contactFooter') : {' '}
         <a href="mailto:harreman@mus.eus" className="contact-link">harreman@mus.eus</a>
-      </div>
+      </div> 
     </div>
   );
 };

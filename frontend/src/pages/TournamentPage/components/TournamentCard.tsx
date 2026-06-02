@@ -1,5 +1,6 @@
 import React from 'react';
 import type { TournamentDto } from '../../../types/tournament';
+import { useTranslation } from 'react-i18next';
 
 interface TournamentCardProps {
   tournamentData: TournamentDto;
@@ -18,7 +19,7 @@ const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Elem
       <div className="card-content">
         <div className="card-header tournament-card-header">
           <span className="card-tag tournament-card-tag">
-            📍 Presencial
+            {t('tournament.inPerson')}
           </span>
           <h3 className="card-title tournament-card-title">{tournamentData.tournamentName}</h3>
         </div>

@@ -6,15 +6,14 @@
 .meetup-split-layout {
   display: flex;
   height: calc(100vh - 220px);
-  /* Ajustado para caber perfectamente debajo del header */
   min-height: 480px;
-  gap: 24px;
-  margin-top: 20px;
+  gap: var(--space-3xl);
+  margin-top: var(--space-2xl);
   overflow: hidden;
 }
 
 .meetup-empty-state {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   text-align: center;
   margin-top: 40px;
   font-style: italic;
@@ -23,12 +22,12 @@
 .meetup-map-pane {
   flex: 1.2;
   height: 100%;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-dark);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  background: #111111;
+  box-shadow: var(--shadow-xl);
+  background: var(--color-bg-alt);
 }
 
 .meetup-list-pane {
@@ -36,7 +35,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-lg);
   overflow-y: auto;
   padding-right: 8px;
 }
@@ -48,13 +47,13 @@
 
 .meetup-list-pane::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .meetup-list-pane::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
 }
 
 .meetup-list-pane::-webkit-scrollbar-thumb:hover {
@@ -67,24 +66,24 @@
 }
 
 .meetup-map-pane .leaflet-container {
-  background: #111111 !important;
-  font-family: 'Outfit', 'Inter', sans-serif !important;
+  background: var(--color-bg-alt) !important;
+  font-family: var(--font-sans), sans-serif !important;
 }
 
 /* Leaflet Popup Premium Custom Styling */
 .meetup-map-pane .leaflet-popup-content-wrapper {
-  background: #161616 !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(212, 175, 55, 0.45) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85) !important;
+  background: var(--color-surface-dark) !important;
+  color: var(--color-text-white) !important;
+  border: 1px solid var(--color-gold-alpha-30) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-xl) !important;
   padding: 4px !important;
 }
 
 .meetup-map-pane .leaflet-popup-tip {
-  background: #161616 !important;
-  border-left: 1px solid rgba(212, 175, 55, 0.45) !important;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.45) !important;
+  background: var(--color-surface-dark) !important;
+  border-left: 1px solid var(--color-gold-alpha-30) !important;
+  border-bottom: 1px solid var(--color-gold-alpha-30) !important;
 }
 
 .map-popup-content {
@@ -95,8 +94,8 @@
 }
 
 .map-popup-title {
-  color: #d4af37 !important;
-  font-size: 0.95rem !important;
+  color: var(--color-gold) !important;
+  font-size: var(--font-size-sm) !important;
   font-weight: 800 !important;
   margin: 0 0 4px 0 !important;
   letter-spacing: 0.5px;
@@ -104,18 +103,18 @@
 
 .map-popup-text {
   margin: 0 !important;
-  font-size: 0.75rem !important;
-  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: var(--font-size-xs) !important;
+  color: var(--color-text-white-70) !important;
   line-height: 1.4 !important;
 }
 
 .map-popup-badge {
   display: inline-block;
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: #fbbf24;
+  background: var(--color-gold-alpha-15);
+  border: 1px solid var(--color-gold-alpha-30);
+  color: var(--color-gold);
   padding: 2px 6px;
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   border-radius: 4px;
   font-weight: 700;
   width: fit-content;
@@ -123,22 +122,22 @@
 }
 
 .map-popup-action-btn {
-  background: #3b82f6;
+  background: var(--color-info);
   color: var(--color-text-white);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 6px 12px;
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   cursor: pointer;
   margin-top: 8px;
   text-align: center;
-  transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 10px var(--color-info-alpha-30);
 }
 
 .map-popup-action-btn:hover {
-  background: #2563eb;
+  background: var(--color-info-hover);
   transform: translateY(-1px);
 }
 
@@ -149,12 +148,12 @@
 
 .create-map-box {
   height: 240px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
   position: relative;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-  background: #141414;
+  background: var(--color-bg-base);
 }
 
 .create-map-box .leaflet-tile-container {
@@ -163,16 +162,16 @@
 
 .create-map-coordinates-label {
   display: block;
-  font-size: 0.7rem;
-  color: #888888;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
   margin-top: 6px;
-  font-family: monospace;
+  font-family: var(--font-mono), monospace;
 }
 
 /* Active Highlight Card effect */
 .ad-card.map-highlighted {
-  border: 1px solid rgba(212, 175, 55, 0.75) !important;
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25) !important;
+  border: 1px solid var(--color-gold) !important;
+  box-shadow: 0 0 15px var(--color-gold-alpha-30) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -212,7 +211,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--color-text-white);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   animation: bouncePin 0.4s ease-out forwards;
 }
@@ -220,7 +219,7 @@
 .custom-map-pin-inner {
   width: 8px;
   height: 8px;
-  background-color: #ffffff;
+  background-color: var(--color-text-white);
   border-radius: 50%;
 }
 

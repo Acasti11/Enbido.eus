@@ -179,7 +179,7 @@ const PlayerPosition: React.FC<{
   return (
     <div className={`player-position position-${position} ${activeTurnIdx === index ? 'active-zone' : ''}`}>
       <div className="player-avatar-card">
-        <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+        <div className="player-avatar-wrapper">
           <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === index} />
           <div className={`player-avatar-circle ${avatarClass}`}>
             {username.slice(0, 2).toUpperCase()}
@@ -192,11 +192,8 @@ const PlayerPosition: React.FC<{
         </div>
         <div className="player-avatar-details">
           <span className="player-name-label">{displayName}</span>
-          {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
-          {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
-          {isSelf && profile?.equippedTitleItemId === 11 && <span className="player-title-badge player-title-badge--txapeldun">TXAPELDUN</span>}
-          {isSelf && profile?.equippedTitleItemId === 12 && <span className="player-title-badge player-title-badge--musolari">MUSOLARI</span>}
-          {isSelf && profile?.equippedTitleItemId === 13 && <span className="player-title-badge player-title-badge--zazpi">ZAZPI ETA ERDI</span>}
+          {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">{t('musGame.titleHandia')}</span>}
+          {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">{t('musGame.titleEnbidoMaisu')}</span>}
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { GameScore, LogEntry, GamePhase, BettingStage, CardItem } from '../../../types/MusGame';
 
 export interface SeatInfo {
@@ -9,6 +10,8 @@ export interface SeatInfo {
 }
 
 export const useMusGame = (userId: number) => {
+  const { t } = useTranslation();
+
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [phase, setPhase] = useState<GamePhase>('init');
   const [stage, setStage] = useState<BettingStage>('grande');
@@ -16,12 +19,12 @@ export const useMusGame = (userId: number) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
-  const [speechBubbles, setSpeechBubbles] = useState<string[]>(['', '', '', '']); // [Tú, Oeste, Norte, Este]
+  const [speechBubbles, setSpeechBubbles] = useState<string[]>(['', '', '', '']); // [You, West, North, East]
 
   const [playerHand, setPlayerHand] = useState<CardItem[]>([]);
-  const [botHands, setBotHands] = useState<CardItem[][]>([[], [], []]); // [Norte, Oeste, Este] maskable
+  const [botHands, setBotHands] = useState<CardItem[][]>([[], [], []]); // [North, West, East] maskable
   
-  // Nuevos estados multijugador
+  // Multiplayer states
   const [roomId, setRoomId] = useState<string>('');
   const [seats, setSeats] = useState<SeatInfo[]>([
     { chair: 0, username: 'Vacío', isBot: false, userId: null },
@@ -39,7 +42,7 @@ export const useMusGame = (userId: number) => {
   const [activeSigns, setActiveSigns] = useState<{ [chair: number]: string }>({});
   const [dealerIdx, setDealerIdx] = useState<number>(-1);
   
-  // Nuevos estados para configuración de reyes y marcador de chicos
+  // States for king configuration and round marker
   const [reyesOption, setReyesOption] = useState<'4' | '8'>('8');
   const [maxRounds, setMaxRounds] = useState<number>(3);
   const [roundsWonUs, setRoundsWonUs] = useState<number>(0);
@@ -47,17 +50,17 @@ export const useMusGame = (userId: number) => {
 
   const socketRef = useRef<WebSocket | null>(null);
 
-  // Obtener el username guardado en localStorage
+  // Get username stored in localStorage
   const username = localStorage.getItem('username') || `User-${userId}`;
 
   const appendLog = useCallback((message: string) => {
     setLogs((prev) => [{ id: Math.random().toString(), message }, ...prev]);
   }, []);
 
-  // --- CONEXIÓN DE WEBSOCKET ---
+  // --- WEBSOCKET CONNECTION ---
 
   const connectWebSocket = useCallback((targetRoomId: string, joinAsMatchmaker: boolean = false, chosenReyes: '4' | '8' = '8') => {
-    // Si ya existe socket, lo cerramos
+    // Close existing socket if any
     if (socketRef.current) {
       socketRef.current.close();
     }
@@ -75,7 +78,7 @@ export const useMusGame = (userId: number) => {
     socketRef.current = socket;
 
     socket.onopen = () => {
-      console.log('Conexión de socket establecida con Spring Boot.');
+      console.log('Socket connection established with Spring Boot.');
       const token = localStorage.getItem('token');
       
       if (joinAsMatchmaker) {
@@ -107,13 +110,13 @@ export const useMusGame = (userId: number) => {
           setIsPlaying(data.isPlaying);
           setPhase(data.phase);
           
-          // Mapeamos lances a BettingStage del frontend
+          // Map stages to frontend BettingStage
           const betStage = data.stage ? data.stage.toLowerCase() : 'grande';
           setStage(betStage as BettingStage);
           
           setScore({ us: data.score.us, them: data.score.them });
           
-          // Formateamos logs para UI
+          // Format logs for UI
           if (data.logs) {
             const uiLogs = data.logs.map((l: string, idx: number) => ({
               id: `${idx}-${l}`,
@@ -161,34 +164,34 @@ export const useMusGame = (userId: number) => {
           setQueueSize(0);
         }
         else if (type === 'MATCHED') {
-          appendLog(`¡Partida emparejada! Conectando a la mesa ${data.roomId}...`);
+          appendLog(t('musGame.matchFound', { roomId: data.roomId }));
           setRoomId(data.roomId);
           setIsSearching(false);
-          // Reconectamos a la sala real
+          // Reconnect to the real room
           connectWebSocket(data.roomId);
         }
         else if (type === 'ERROR') {
-          appendLog(`⚠️ Error del Servidor: ${data.message}`);
+          appendLog(t('musGame.serverError', { message: data.message }));
           setIsSearching(false);
         }
 
       } catch (err) {
-        console.error('Error parseando mensaje WebSocket:', err);
+        console.error('Error parsing WebSocket message:', err);
       }
     };
 
     socket.onclose = () => {
-      console.log('Conexión de socket cerrada.');
+      console.log('Socket connection closed.');
     };
 
     socket.onerror = (err) => {
-      console.error('Error en el WebSocket de Mus:', err);
-      appendLog('⚠️ Error de conexión con el servidor de juegos.');
+      console.error('Error in Mus WebSocket:', err);
+      appendLog(t('musGame.connectionError'));
     };
 
-  }, [userId, username, appendLog]);
+  }, [userId, username, appendLog, t]);
 
-  // Cerrar sockets al desmontar
+  // Close sockets on unmount
   useEffect(() => {
     return () => {
       if (socketRef.current) {
@@ -197,7 +200,7 @@ export const useMusGame = (userId: number) => {
     };
   }, []);
 
-  // --- ACCIONES ENVIADAS POR WEBSOCKET ---
+  // --- ACTIONS SENT VIA WEBSOCKET ---
 
   const handleStartMatch = () => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -206,7 +209,7 @@ export const useMusGame = (userId: number) => {
   };
 
   const startNewHand = () => {
-    // Al ser servidor síncrono, "Nueva mano" se lanza con el mismo trigger
+    // Since it is a synchronous server, "New hand" uses the same trigger
     handleStartMatch();
   };
 

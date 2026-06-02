@@ -1,7 +1,7 @@
 .chat-widget {
   position: fixed;
-  bottom: var(--spacing-xl);
-  right: var(--spacing-xl);
+  bottom: var(--space-3xl);
+  right: var(--space-3xl);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -11,9 +11,9 @@
 .chat-widget__toggle {
   width: 3.5rem;
   height: 3.5rem;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   background-color: var(--color-brand-main);
-  color: #ffffff;
+  color: var(--color-text-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,11 +30,11 @@
 
 .chat-widget__tooltip {
   position: absolute;
-  right: calc(100% + var(--spacing-md));
+  right: calc(100% + var(--space-lg));
   background-color: var(--color-brand-dark);
-  color: #ffffff;
-  font-size: 0.75rem;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--color-text-white);
+  font-size: var(--font-size-xs);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-md);
   white-space: nowrap;
   opacity: 0;

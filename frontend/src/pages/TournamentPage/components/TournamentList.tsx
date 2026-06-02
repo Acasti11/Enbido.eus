@@ -2,20 +2,20 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { TournamentDto } from '../../../types/tournament';
 import TournamentCard from './TournamentCard';
+import { useTranslation } from 'react-i18next';
 
 interface TournamentListProps {
   tournaments: TournamentDto[];
   onPublish?: () => void;
 }
 
-const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.JSX.Element => {
-  const navigate = useNavigate();
-
+const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentListProps): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
     <div>
       <header className="page-header">
-        <h1 className="page-title">Txapelketak / Tournois</h1>
-        <button className="btn-action" onClick={onPublish}>+ Argitaratu</button>
+        <h1 className="page-title">{t('tournament.title')}</h1>
+        <button className="btn-action" onClick={onPublish}>{t('tournament.publish')}</button>
       </header>
 
       {/* REDIRECTION BANNER TO PLAY TAB FOR BRACKETS */}
@@ -48,7 +48,7 @@ const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.
 
       <section className="tournament-grid">
         {tournaments.length === 0 ? (
-          <p className="empty-msg">Ez dago txapelketarik.</p>
+          <p className="empty-msg">{t('tournament.empty')}</p>
         ) : (
           tournaments.map((t) => (
             <TournamentCard key={t.id} tournamentData={t} />

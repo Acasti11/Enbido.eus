@@ -2,28 +2,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--space-2xl);
   border-bottom: 1px solid rgba(26, 71, 49, 0.1);
-  padding-bottom: var(--spacing-xl);
+  padding-bottom: var(--space-3xl);
 }
 
 .profile-header__avatar {
   width: 6rem;
   height: 6rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-brand-dark) 0%, #2d6b45 100%);
+  border-radius: var(--radius-circle);
+  background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
-  color: #ffffff;
+  color: var(--color-text-white);
   font-weight: 800;
   box-shadow: 0 8px 16px rgba(26, 71, 49, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .profile-header__username {
-  font-family: var(--font-display);
+  font-family: var(--font-display), sans-serif;
   font-size: 1.875rem;
   font-weight: 800;
   color: var(--color-brand-dark);
@@ -33,7 +33,7 @@
 }
 
 .profile-header__subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: rgba(26, 71, 49, 0.6);
   letter-spacing: 0.2em;
@@ -58,13 +58,13 @@
 }
 
 .profile-header__avatar--gold {
-  border: 5px solid #d4af37 !important;
+  border: 5px solid var(--color-gold) !important;
   box-shadow: 0 0 22px rgba(212, 175, 55, 0.85) !important;
   transform: scale(1.03) !important;
 }
 
 .profile-header__avatar--green {
-  border: 5px solid #2e7d32 !important;
+  border: 5px solid var(--color-brand-light) !important;
   box-shadow: 0 0 20px rgba(46, 125, 50, 0.7) !important;
   transform: scale(1.02) !important;
 }
@@ -82,13 +82,13 @@
 }
 
 .profile-header__subtitle--handia {
-  color: #2e7d32 !important;
+  color: var(--color-brand-light) !important;
   font-weight: 900 !important;
   letter-spacing: 0.15em !important;
 }
 
 .profile-header__subtitle--maisu {
-  color: #b8860b !important;
+  color: var(--color-gold-dark) !important;
   font-weight: 900 !important;
   letter-spacing: 0.15em !important;
 }

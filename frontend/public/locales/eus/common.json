@@ -36,8 +36,19 @@
     "goToShop": "Joan Dendara",
     "footerRights": "Eskubide guztiak erreserbatuta.",
     "footerRules": "Arauak",
+    "footerMaps": "Mapak",
+    "featuresSectionAriaLabel": "Jokoaren ezaugarriak",
+    "findMeetupsTitle": "Aurkitu topaketak",
     "footerTournaments": "Txapelketak",
-    "footerMaps": "Mapak"
+    "goToShopTitle": "Joan dendara",
+    "heroImageAlt": "Mus karta-jokoa",
+    "joinTournamentsTitle": "Izena eman txapelketetan",
+    "liveStatsAriaLabel": "Estatistikak zuzenekoan",
+    "playNowTitle": "Jokatu orain",
+    "seoDescription": "Bat egin Enbidorekin doan musean jokatzeko. ELO parekatzeak, gela pribatuak eta boten aurkako joko aurreratua.",
+    "seoJsonLdName": "Jokatu Musean Online - Enbido",
+    "seoKeywords": "jokatu musean, mus online, mus parekatzea, mus gelak, jokatu musean online doan",
+    "seoTitle": "Jokatu Musean Online - Partidak eta Parekatzeak | Enbido"
   },
   "login": {
     "subtitle": "Mahaira konektatzen...",
@@ -77,7 +88,8 @@
     "codeExpiresIn": "Kodea honetan iraungitzen da",
     "codeExpired": "Kodea iraungitu da. Bueltatu bestea sortzeko.",
     "verifyAndEnter": "Egiaztatu eta sartu",
-    "invalidCode": "Sartu 6 digitoko kode bat"
+    "invalidCode": "Sartu 6 digitoko kode bat",
+    "wrongCode": "Segurtasun-kode okerra"
   },
   "meetup": {
     "title": "Aurkitu Partida Fisikoa",
@@ -191,7 +203,6 @@
     "detailsLabel": "Bestelako xehetasunak",
     "posterLabel": "Kartela",
     "inPerson": "📍 Aurrez aurre",
-    "locationDetail": "📍 Kokapena:",
     "dateDetail": "🗓️ Data:",
     "contactDetail": "✉️ Harremana:",
     "seeMore": "Ikusi Xehetasun Gehiago",
@@ -263,7 +274,14 @@
     "gamesPlayed": "Jokatutako partidak",
     "gamesWon": "Irabazitako partidak",
     "elo": "ELO",
-    "coins": "Txanponak"
+    "coins": "Txanponak",
+    "accountSecurity": "Kontuaren Segurtasuna",
+    "activePlayer": "Jokalari aktiboa",
+    "twoFactorDescription": "Babestu zure kontua saioa hasteko 6 digituko egiaztapen-kodea eskatuz, zure posta elektronikora bidalitakoa.",
+    "twoFactorDisabled": "Bi faktoreko autentifikazioa (2FA) desaktibatuta.",
+    "twoFactorEnabled": "Bi faktoreko autentifikazioa (2FA) aktibatuta!",
+    "twoFactorError": "Errorea 2FA ezarpenak eguneratzean",
+    "twoFactorTitle": "Bi faktoreko autentifikazioa (2FA posta elektronikoz)"
   },
   "rules": {
     "title": "Mus Jokoaren Arauak",
@@ -352,12 +370,16 @@
     "roundsGlobal": "Txikoak (Globala)",
     "bestOfRounds": "{{count}} TXIKOTAN ONENA",
     "nextHand": "Hurrengo Eskualdia",
-    "chatAndLogs": "Txata eta Erregistroak",
     "leaveTableShort": "🚪 Mahaia Utzi",
     "leaveShort": "🚪 Utzi",
     "openSignsMenu": "Ireki keinuen menua",
     "cardBackPlaceholder": "?",
-    "errorProfile": "Errorea jokalariaren profila eskuratzean jokoaren tapizerako:"
+    "titleHandia": "HANDIA",
+    "titleEnbidoMaisu": "ENBIDO MAISU",
+    "errorProfile": "Errorea jokalariaren profila eskuratzean jokoaren tapizerako:",
+    "connectionError": "⚠️ Errorea joko-zerbitzariarekin konektatzean.",
+    "matchFound": "¡Partida aurkitu da! {{roomId}} mahaira konektatzen...",
+    "serverError": "⚠️ Zerbitzariaren Errorea: {{message}}"
   },
   "settings": {
     "title": "Jokoaren Ezarpenak",
@@ -418,7 +440,8 @@
     "featuresCommunityDesc": "Bat egin klub, talde eta mus txapelketekin",
     "unknownError": "Errore ezezaguna",
     "posterLarge": "Kartel handia",
-    "soundEffects": "Jokoaren Soinuak"
+    "soundEffects": "Jokoaren Soinuak",
+    "toggleChat": "Txata ireki/itzi"
   },
   "lobby": {
     "leave": "🚪 Utzi",
@@ -439,6 +462,7 @@
     "bestOf": "ONENA HEMENDIK:",
     "waitingRoom": "Itxarongela",
     "empty": "Hutsik",
+    "emptySeat": "Vacio",
     "addBot": "🤖 Gehitu Bot-a",
     "botComputer": "ORDENAGAILU BOT-A",
     "activePlayer": "JOKALARI AKTIBOA",
@@ -527,8 +551,6 @@
     "player": "Jokalaria",
     "title": "Titulua",
     "winRateShort": "Win Rate",
-    "playedShort": "Jokatuak",
-    "wonShort": "Irabaziak",
     "you": "ZU",
     "noTitle": "-",
     "tournamentOnline": "🌐 Onlineko Mus Txapelketa",
@@ -555,7 +577,7 @@
     "save": "Gorde",
     "cancel": "Utzi",
     "waiting": "Zain...",
-    "playerPrefix": "Jokalaria-{{id}}",
+    "playerId": "Jokalaria-{{id}}",
     "alreadyFriend": "Dagoeneko jokalari hau gehitu duzu edo zain dago.",
     "friendRequestSent": "Lagun-eskaera bidalita.",
     "errorSendRequest": "Errorea eskaera bidaltzean",
@@ -578,5 +600,9 @@
     "gameKeywords": "jokatu musean, mus online, mus parekatzea, mus gelak, jokatu musean online doan",
     "gameOgTitle": "Mus Atondoa - Enbido",
     "gamePlatform": "Web Nabigatzailea"
+  },
+  "usersList": {
+    "empty": "Ez dago erabiltzailerik erregistratuta",
+    "title": "Erabiltzaileak"
   }
 }
