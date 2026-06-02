@@ -4,7 +4,7 @@
   justify-content: center;
   padding: 40px 20px;
   min-height: calc(100vh - 80px);
-  background: radial-gradient(circle at center, #0d381e 0%, #06180d 100%);
+  background: var( --color-brand-main);
 }
 
 .premium-lobby-card { 
@@ -1271,6 +1271,13 @@
   background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
   overflow: hidden;
+}
+
+.security-card-description {
+  margin: 0;
+  color: #aaa;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .winrate-fill {

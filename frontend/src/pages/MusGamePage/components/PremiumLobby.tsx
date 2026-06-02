@@ -1702,7 +1702,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 <div className="security-card-content">
                   <h4 className="security-card-title">
                       {t('premiumLobby.emailTwoFactor')}
-                  </h4>
+                  </h4> 
                   <p className="security-card-description">
                     {t('premiumLobby.twoFaDescription')}
                   </p>
