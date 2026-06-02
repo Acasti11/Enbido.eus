@@ -167,8 +167,19 @@ export const useMusGame = (userId: number) => {
           appendLog(t('musGame.matchFound', { roomId: data.roomId }));
           setRoomId(data.roomId);
           setIsSearching(false);
-          // No reconnection needed — server already assigned this socket to the room.
-          // The next ROOM_STATE broadcast will populate the full game state.
+          // Send a JOIN on the same socket so the server confirms our seat
+          // and broadcasts the full ROOM_STATE to us (handles edge cases
+          // where the initial broadcast might not reach us).
+          const token = localStorage.getItem('token');
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+              type: 'JOIN',
+              roomId: data.roomId,
+              token,
+              userId,
+              username
+            }));
+          }
         }
         else if (type === 'ERROR') {
           appendLog(t('musGame.serverError', { message: data.message }));

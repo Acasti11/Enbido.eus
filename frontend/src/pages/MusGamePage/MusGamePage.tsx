@@ -164,6 +164,11 @@ const PlayerPosition: React.FC<{
   const isSelf = position === 'south';
   const displayName = isSelf ? `${username} (${t('musGame.you')})` : username;
 
+  const absChair = seats[index]?.chair;
+  const isTurnActive = absChair !== undefined && activeTurnIdx === absChair;
+  const signType = absChair !== undefined ? activeSigns[absChair] : undefined;
+  const isDealer = absChair !== undefined && dealerIdx === absChair;
+
   let avatarSkinClass = '';
   if (profile?.equippedAvatarItemId === 1) avatarSkinClass = 'avatar-ring-gold';
   else if (profile?.equippedAvatarItemId === 2) avatarSkinClass = 'avatar-ring-green';
@@ -171,20 +176,20 @@ const PlayerPosition: React.FC<{
   else if (profile?.equippedAvatarItemId === 8) avatarSkinClass = 'avatar-ring-karta';
 
   const avatarClass = isSelf
-    ? `player-theme ${activeSigns[index] ? 'has-active-sign' : ''} ${avatarSkinClass}`
+    ? `player-theme ${signType ? 'has-active-sign' : ''} ${avatarSkinClass}`
     : position === 'north'
-    ? `partner-theme ${activeSigns[index] ? 'has-active-sign' : ''}`
-    : `rival-theme ${activeSigns[index] ? 'has-active-sign' : ''}`;
+    ? `partner-theme ${signType ? 'has-active-sign' : ''}`
+    : `rival-theme ${signType ? 'has-active-sign' : ''}`;
 
   return (
-    <div className={`player-position position-${position} ${activeTurnIdx === index ? 'active-zone' : ''}`}>
+    <div className={`player-position position-${position} ${isTurnActive ? 'active-zone' : ''}`}>
       <div className="player-avatar-card">
         <div className="player-avatar-wrapper">
-          <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === index} />
+          <TimerCircle timeLeft={timeLeft} isActive={isTurnActive} />
           <div className={`player-avatar-circle ${avatarClass}`}>
             {username.slice(0, 2).toUpperCase()}
           </div>
-          {activeTurnIdx === index && timeLeft > 0 && (
+          {isTurnActive && timeLeft > 0 && (
             <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
               {timeLeft}s
             </div>
@@ -213,17 +218,17 @@ const PlayerPosition: React.FC<{
           equippedDeckItemId={profile?.equippedDeckItemId}
         />
       </div>
-      {dealerIdx === index && (
+      {isDealer && (
         <div className="dealer-baraja-token" title={t('musGame.dealerTooltip')}>
           <MiniDeckToken />
         </div>
       )}
       {speechBubbles[index] && <div className="speech-bubble show">{speechBubbles[index]}</div>}
-      {activeSigns[index] && (
+      {signType && (
         <div className="mus-sign-badge pop-in">
           <div className="mus-sign-badge-glow"></div>
           <span className="mus-sign-badge-text">
-            {getSignEmojiOnly(activeSigns[index])}
+            {getSignEmojiOnly(signType)}
           </span>
         </div>
       )}

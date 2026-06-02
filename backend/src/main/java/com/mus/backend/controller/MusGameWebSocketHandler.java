@@ -428,10 +428,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     state.put("type", "ROOM_STATE");
                     
                     String json = mapper.writeValueAsString(state);
-                    if (conn.session.isOpen()) {
-                        conn.session.sendMessage(new TextMessage(json));
+                    synchronized (conn.session) {
+                        if (conn.session.isOpen()) {
+                            conn.session.sendMessage(new TextMessage(json));
+                        }
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.err.println("Error broadcasting state to " + conn.username + ": " + e.getMessage());
                 }
             }
@@ -441,10 +443,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     private void sendJsonMessage(WebSocketSession session, Map<String, Object> data) {
         try {
             String json = mapper.writeValueAsString(data);
-            if (session.isOpen()) {
-                session.sendMessage(new TextMessage(json));
+            synchronized (session) {
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(json));
+                }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -454,8 +458,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             Map<String, Object> errorMap = new HashMap<>();
             errorMap.put("type", "ERROR");
             errorMap.put("message", errorMsg);
-            session.sendMessage(new TextMessage(mapper.writeValueAsString(errorMap)));
-        } catch (IOException e) {
+            synchronized (session) {
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(errorMap)));
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
