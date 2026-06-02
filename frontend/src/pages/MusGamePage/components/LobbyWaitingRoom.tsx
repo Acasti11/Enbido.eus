@@ -52,7 +52,12 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
 
   const totalPlayersCount = seats.filter(s => s.userId !== null || s.isBot).length;
   const isTableFull = totalPlayersCount === 4;
-  const isEmptySeat = (username: string): boolean => username === t('lobby.emptySeat') || username === 'Vacio';
+  const isEmptySeat = (username: string): boolean => 
+    !username ||
+    username === t('lobby.emptySeat') || 
+    username === t('lobby.empty') || 
+    username === 'Vacio' || 
+    username === 'Vacío';
   const bestOf = getBestOfCount(maxRounds);
 
   return (
