@@ -7,7 +7,7 @@ import ShopSummary from './components/ShopSummary';
 import ShopToolbar from './components/ShopToolbar';
 import ShopGrid from './components/ShopGrid';
 import ShopLoading from './components/ShopLoading';
-import type { ShopCategory, ShopItem } from '../../types/shop';
+import type { ShopCategory, ShopItem, RawShopItem } from '../../types/shop';
 import './shop-page.css';
 
 const getItemDescription = (t: (key: string) => string, itemId: number): string => {
@@ -18,6 +18,13 @@ const getItemDescription = (t: (key: string) => string, itemId: number): string 
     case 4: return t('shop.itemDesc4');
     case 5: return t('shop.itemDesc5');
     case 6: return t('shop.itemDesc6');
+    case 7: return t('shop.itemDesc7');
+    case 8: return t('shop.itemDesc8');
+    case 9: return t('shop.itemDesc9');
+    case 10: return t('shop.itemDesc10');
+    case 11: return t('shop.itemDesc11');
+    case 12: return t('shop.itemDesc12');
+    case 13: return t('shop.itemDesc13');
     default: return t('shop.itemDescDefault');
   }
 };
@@ -52,7 +59,7 @@ const ShopPage: React.FC = (): React.JSX.Element => {
   const initials = username.slice(0, 2).toUpperCase();
 
   const mappedItems: ShopItem[] = useMemo(() => {
-    return items.map((item: any) => {
+    return items.map((item: RawShopItem) => {
       const itemId = Number(item.itemId);
       const category = (item.category || 'profiles') as ShopCategory;
       const description = getItemDescription(t, itemId);

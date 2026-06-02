@@ -250,6 +250,26 @@
   border: 2px dashed rgba(255, 255, 255, 0.42);
 }
 
+.shop-card__profile-ring--gold {
+  border: 4px solid #d4af37 !important;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.8) !important;
+}
+
+.shop-card__profile-ring--green {
+  border: 4px solid #2e7d32 !important;
+  box-shadow: 0 0 12px rgba(46, 125, 50, 0.7) !important;
+}
+
+.shop-card__profile-ring--ikurrina {
+  border: 4px double #b71c1c !important;
+  box-shadow: 0 0 12px rgba(46, 125, 50, 0.8), 0 0 4px #ffffff !important;
+}
+
+.shop-card__profile-ring--karta {
+  border: 4px solid #1976d2 !important;
+  box-shadow: 0 0 12px rgba(25, 118, 210, 0.8) !important;
+}
+
 .shop-card__deck {
   width: 9rem;
   height: 7rem;

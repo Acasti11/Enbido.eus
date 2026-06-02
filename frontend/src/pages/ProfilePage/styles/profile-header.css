@@ -69,6 +69,18 @@
   transform: scale(1.02) !important;
 }
 
+.profile-header__avatar--ikurrina {
+  border: 5px solid #b71c1c !important;
+  box-shadow: 0 0 22px rgba(46, 125, 50, 0.95), 0 0 5px #ffffff !important;
+  transform: scale(1.03) !important;
+}
+
+.profile-header__avatar--karta {
+  border: 5px solid #1976d2 !important;
+  box-shadow: 0 0 20px rgba(25, 118, 210, 0.8) !important;
+  transform: scale(1.02) !important;
+}
+
 .profile-header__subtitle--handia {
   color: #2e7d32 !important;
   font-weight: 900 !important;
@@ -77,6 +89,24 @@
 
 .profile-header__subtitle--maisu {
   color: #b8860b !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.15em !important;
+}
+
+.profile-header__subtitle--txapeldun {
+  color: #d32f2f !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.15em !important;
+}
+
+.profile-header__subtitle--musolari {
+  color: #1976d2 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.15em !important;
+}
+
+.profile-header__subtitle--zazpi {
+  color: #7b1fa2 !important;
   font-weight: 900 !important;
   letter-spacing: 0.15em !important;
 }

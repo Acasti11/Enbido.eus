@@ -65,13 +65,13 @@ public class ShopService {
         }
 
         StoredProcedureQuery query = entityManager.createStoredProcedureQuery("sp_buy_item");
-        query.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
-        query.registerStoredProcedureParameter("p_item_id", Integer.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("p_user_id", Long.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("p_item_id", Long.class, ParameterMode.IN);
         query.registerStoredProcedureParameter("p_status", String.class, ParameterMode.OUT);
         query.registerStoredProcedureParameter("p_new_coins", Integer.class, ParameterMode.OUT);
 
-        query.setParameter("p_user_id", userId.intValue());
-        query.setParameter("p_item_id", itemId.intValue());
+        query.setParameter("p_user_id", userId);
+        query.setParameter("p_item_id", itemId);
 
         query.execute();
 

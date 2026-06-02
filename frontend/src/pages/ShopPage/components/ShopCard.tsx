@@ -44,7 +44,12 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
 
     const renderPreview = (): React.JSX.Element => {
         if (item.category === 'profiles') {
-            const ringClass = item.id === 1 ? 'shop-card__profile-ring--gold' : 'shop-card__profile-ring--green';
+            let ringClass = '';
+            if (item.id === 1) ringClass = 'shop-card__profile-ring--gold';
+            else if (item.id === 2) ringClass = 'shop-card__profile-ring--green';
+            else if (item.id === 7) ringClass = 'shop-card__profile-ring--ikurrina';
+            else if (item.id === 8) ringClass = 'shop-card__profile-ring--karta';
+
             return (
                 <div className="shop-card__profile">
                     <div className="shop-card__avatar">{initials}</div>
@@ -54,7 +59,12 @@ const ShopCard: React.FC<ShopCardProps> = ({ item, initials, onBuy, onEquip, onU
         }
 
         if (item.category === 'decks') {
-            const cardBackClass = item.id === 3 ? 'euskal-back' : 'gau-beltza-back';
+            let cardBackClass = '';
+            if (item.id === 3) cardBackClass = 'euskal-back';
+            else if (item.id === 4) cardBackClass = 'gau-beltza-back';
+            else if (item.id === 9) cardBackClass = 'klasikoa-back';
+            else if (item.id === 10) cardBackClass = 'berezia-back';
+
             return (
                 <div className="shop-card__deck" aria-hidden="true">
                     <div className={`shop-card__playing-card shop-card__playing-card--left ${cardBackClass}`}>

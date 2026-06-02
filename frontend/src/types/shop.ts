@@ -22,3 +22,10 @@ export type CategoryTotal = {
     owned: number;
     total: number;
 };
+
+export type RawShopItem = {
+    itemId: number;
+    name: string;
+    price: number;
+    category: ShopCategory | null;
+};

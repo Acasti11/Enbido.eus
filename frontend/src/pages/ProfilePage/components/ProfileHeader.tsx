@@ -20,6 +20,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     avatarClass = 'profile-header__avatar--gold';
   } else if (equippedAvatarItemId === 2) {
     avatarClass = 'profile-header__avatar--green';
+  } else if (equippedAvatarItemId === 7) {
+    avatarClass = 'profile-header__avatar--ikurrina';
+  } else if (equippedAvatarItemId === 8) {
+    avatarClass = 'profile-header__avatar--karta';
   }
 
   // Renderizado del título
@@ -35,6 +39,27 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       return (
         <p className="profile-header__subtitle profile-header__subtitle--maisu">
           👑 ENBIDO MAISU
+        </p>
+      );
+    }
+    if (equippedTitleItemId === 11) {
+      return (
+        <p className="profile-header__subtitle profile-header__subtitle--txapeldun">
+          🏆 TXAPELDUN
+        </p>
+      );
+    }
+    if (equippedTitleItemId === 12) {
+      return (
+        <p className="profile-header__subtitle profile-header__subtitle--musolari">
+          🃏 MUSOLARI
+        </p>
+      );
+    }
+    if (equippedTitleItemId === 13) {
+      return (
+        <p className="profile-header__subtitle profile-header__subtitle--zazpi">
+          🌟 ZAZPI ETA ERDI
         </p>
       );
     }

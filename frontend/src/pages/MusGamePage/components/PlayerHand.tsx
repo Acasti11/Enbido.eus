@@ -105,6 +105,10 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       cardBackClass = 'card card-back euskal-back';
     } else if (equippedDeckItemId === 4) {
       cardBackClass = 'card card-back gau-beltza-back';
+    } else if (equippedDeckItemId === 9) {
+      cardBackClass = 'card card-back klasikoa-back';
+    } else if (equippedDeckItemId === 10) {
+      cardBackClass = 'card card-back berezia-back';
     }
     return cardBackClass;
   };
@@ -115,6 +119,10 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       cardFrontClass += ' euskal-front';
     } else if (equippedDeckItemId === 4) {
       cardFrontClass += ' gau-beltza-front';
+    } else if (equippedDeckItemId === 9) {
+      cardFrontClass += ' klasikoa-front';
+    } else if (equippedDeckItemId === 10) {
+      cardFrontClass += ' berezia-front';
     }
     return cardFrontClass;
   };

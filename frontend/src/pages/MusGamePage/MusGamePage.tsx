@@ -163,8 +163,15 @@ const PlayerPosition: React.FC<{
   const username = seats[index]?.username || getBotName();
   const isSelf = position === 'south';
   const displayName = isSelf ? `${username} (${t('musGame.you')})` : username;
+
+  let avatarSkinClass = '';
+  if (profile?.equippedAvatarItemId === 1) avatarSkinClass = 'avatar-ring-gold';
+  else if (profile?.equippedAvatarItemId === 2) avatarSkinClass = 'avatar-ring-green';
+  else if (profile?.equippedAvatarItemId === 7) avatarSkinClass = 'avatar-ring-ikurrina';
+  else if (profile?.equippedAvatarItemId === 8) avatarSkinClass = 'avatar-ring-karta';
+
   const avatarClass = isSelf
-    ? `player-theme ${activeSigns[index] ? 'has-active-sign' : ''} ${profile?.equippedAvatarItemId === 1 ? 'avatar-premium-gold' : profile?.equippedAvatarItemId === 2 ? 'avatar-premium-green' : ''}`
+    ? `player-theme ${activeSigns[index] ? 'has-active-sign' : ''} ${avatarSkinClass}`
     : position === 'north'
     ? `partner-theme ${activeSigns[index] ? 'has-active-sign' : ''}`
     : `rival-theme ${activeSigns[index] ? 'has-active-sign' : ''}`;
@@ -187,6 +194,9 @@ const PlayerPosition: React.FC<{
           <span className="player-name-label">{displayName}</span>
           {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
           {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
+          {isSelf && profile?.equippedTitleItemId === 11 && <span className="player-title-badge player-title-badge--txapeldun">TXAPELDUN</span>}
+          {isSelf && profile?.equippedTitleItemId === 12 && <span className="player-title-badge player-title-badge--musolari">MUSOLARI</span>}
+          {isSelf && profile?.equippedTitleItemId === 13 && <span className="player-title-badge player-title-badge--zazpi">ZAZPI ETA ERDI</span>}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../../../services/api';
-import type { ShopCategory, Toast, CategoryTotal } from '../../../types/shop';
+import type { ShopCategory, Toast, CategoryTotal, RawShopItem } from '../../../types/shop';
 
 export const useShopData = () => {
     const [coins, setCoins] = useState<number>(0);
@@ -8,7 +8,7 @@ export const useShopData = () => {
     const [equippedAvatarItemId, setEquippedAvatarItemId] = useState<number | null>(null);
     const [equippedDeckItemId, setEquippedDeckItemId] = useState<number | null>(null);
     const [equippedTitleItemId, setEquippedTitleItemId] = useState<number | null>(null);
-    const [items, setItems] = useState<any[]>([]);
+    const [items, setItems] = useState<RawShopItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [toast, setToast] = useState<Toast>(null);
 
@@ -40,6 +40,7 @@ export const useShopData = () => {
         }
     }, [showToast]);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         fetchData();
     }, [fetchData]);
@@ -54,8 +55,9 @@ export const useShopData = () => {
             showToast(`Has comprado "${name}" con exito!`, 'success');
             setCoins(res.data.newCoins ?? coins - price);
             setInventory((prev) => [...prev, itemId]);
-        } catch (err: any) {
-            showToast(err.response?.data || 'Error al realizar la compra', 'error');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: string } };
+            showToast(error.response?.data || 'Error al realizar la compra', 'error');
         }
     }, [coins, showToast]);
 
@@ -66,8 +68,9 @@ export const useShopData = () => {
             if (category === 'profiles') setEquippedAvatarItemId(itemId);
             else if (category === 'decks') setEquippedDeckItemId(itemId);
             else if (category === 'aliases') setEquippedTitleItemId(itemId);
-        } catch (err: any) {
-            showToast(err.response?.data || 'Error al equipar el objeto', 'error');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: string } };
+            showToast(error.response?.data || 'Error al equipar el objeto', 'error');
         }
     }, [showToast]);
 
@@ -78,8 +81,9 @@ export const useShopData = () => {
             if (category === 'profiles') setEquippedAvatarItemId(null);
             else if (category === 'decks') setEquippedDeckItemId(null);
             else if (category === 'aliases') setEquippedTitleItemId(null);
-        } catch (err: any) {
-            showToast(err.response?.data || 'Error al desequipar el objeto', 'error');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: string } };
+            showToast(error.response?.data || 'Error al desequipar el objeto', 'error');
         }
     }, [showToast]);
 
@@ -92,15 +96,13 @@ export const useShopData = () => {
         ];
 
         return categories.map((cat) => {
-            const catItems = items.filter((item: any) => {
-                const itemCategory = typeof item.category === 'string'
-                    ? item.category
-                    : item.category?.name;
+            const catItems = items.filter((item: RawShopItem) => {
+                const itemCategory = item.category;
                 return itemCategory === cat.category;
             });
 
-            const owned = catItems.filter((item: any) =>
-                inventory.includes(Number(item.itemId || item.id))
+            const owned = catItems.filter((item: RawShopItem) =>
+                inventory.includes(Number(item.itemId))
             ).length;
 
             return {

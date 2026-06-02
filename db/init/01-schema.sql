@@ -347,7 +347,14 @@ INSERT IGNORE INTO items (item_id, category_id, name, price) VALUES
 (3, 2, 'Baraja Euskal', 1200), 
 (4, 2, 'Baraja Gau Beltza', 1450), 
 (5, 3, 'Handia', 350), 
-(6, 3, 'Enbido Maisu', 700);
+(6, 3, 'Enbido Maisu', 700),
+(7, 1, 'Perfil Ikurriña', 900),
+(8, 1, 'Perfil Karta', 500),
+(9, 2, 'Baraja Klasikoa', 600),
+(10, 2, 'Baraja Berezia', 1500),
+(11, 3, 'Txapeldun', 800),
+(12, 3, 'Musolari', 400),
+(13, 3, 'Zazpi eta Erdi', 300);
 
 -- Insertar usuarios de prueba
 INSERT IGNORE INTO user_login (user_id, name, email, password, username, birth_date) VALUES 
