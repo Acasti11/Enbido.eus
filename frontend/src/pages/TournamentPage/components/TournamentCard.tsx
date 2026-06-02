@@ -1,5 +1,6 @@
 import React from 'react';
 import type { TournamentDto } from '../../../types/tournament';
+import { useTranslation } from 'react-i18next';
 
 interface TournamentCardProps {
   tournamentData: TournamentDto;
@@ -7,6 +8,7 @@ interface TournamentCardProps {
 }
 
 const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
     <article className="tournament-card" onClick={() => onClickDetail(tournamentData.id)}>
       <div className="card-poster">
@@ -16,13 +18,13 @@ const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps):
           className="card-poster-img"
         />
         <div className="card-poster-overlay">
-          <span>Ver Información / Detalles</span>
+          <span>{t('tournamentSheet')}</span>
         </div>
       </div>
       <div className="card-content">
         <div className="card-header tournament-card-header">
           <span className="card-tag tournament-card-tag">
-            📍 Presencial
+            {t('inPerson')}
           </span>
           <h3 className="card-title tournament-card-title">{tournamentData.tournamentName}</h3>
         </div>
@@ -42,7 +44,7 @@ const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps):
             onClickDetail(tournamentData.id);
           }}
         >
-          Ver Más Detalles
+          {t('seeMore')}
         </button>
       </div>
     </article>
