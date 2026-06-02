@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TournamentDto } from '../../../types/tournament';
 import TournamentCard from './TournamentCard';
+import { useTranslation } from 'react-i18next';
 
 interface TournamentListProps {
   tournaments: TournamentDto[];
@@ -9,15 +10,16 @@ interface TournamentListProps {
 }
 
 const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentListProps): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
     <div>
       <header className="page-header">
-        <h1 className="page-title">Txapelketak / Tournois</h1>
-        <button className="btn-action" onClick={onPublish}>+ Argitaratu</button>
+        <h1 className="page-title">{t('title')}</h1>
+        <button className="btn-action" onClick={onPublish}>{t('publish')}</button>
       </header>
       <section className="tournament-grid">
         {tournaments.length === 0 ? (
-          <p className="empty-msg">Ez dago txapelketarik.</p>
+          <p className="empty-msg">{t('empty')}</p>
         ) : (
           tournaments.map((t) => (
             <TournamentCard key={t.id} tournamentData={t} onClickDetail={onClickDetail} />
