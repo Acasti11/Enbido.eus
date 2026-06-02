@@ -465,11 +465,6 @@
 .card-back {
   background: #c2410c;
   /* Rojo teja tradicional */
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.15) 9px, transparent 10px),
-    radial-gradient(rgba(255, 255, 255, 0.15) 9px, transparent 10px);
-  background-size: 12px 12px;
-  background-position: 0 0, 6px 6px;
   border: 3.5px solid #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
 }
