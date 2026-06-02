@@ -15,7 +15,7 @@ const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentLis
     <div>
       <header className="page-header">
         <h1 className="page-title">{t('title')}</h1>
-        <button className="btn-action" onClick={onPublish}>{t('publish')}</button>
+        <button className="btn-action" onClick={onPublish}>{t('tournamet.publish')}</button>
       </header>
       <section className="tournament-grid">
         {tournaments.length === 0 ? (
