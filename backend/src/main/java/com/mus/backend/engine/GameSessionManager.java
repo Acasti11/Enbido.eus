@@ -270,6 +270,18 @@ public class GameSessionManager {
         }
     }
 
+    public void cancelGameInDb(GameSession session) {
+        if (session.getGameDatabaseId() == null) return;
+        try {
+            playGameRepository.findById(session.getGameDatabaseId()).ifPresent(pg -> {
+                pg.setGameStateId(3); // 3 = Cancelada
+                playGameRepository.save(pg);
+            });
+        } catch (Exception e) {
+            System.err.println("Error cancelling game in DB: " + e.getMessage());
+        }
+    }
+
     private void syncUserStatsPostGame(GameSession session) {
         boolean team1Won = session.getScoreUs() >= 30;
         

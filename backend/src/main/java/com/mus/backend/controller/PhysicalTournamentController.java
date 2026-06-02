@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +47,7 @@ public class PhysicalTournamentController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<?> createTournament(@RequestBody PhysicalTournament tournament, HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         if (userId == null) {
@@ -84,6 +86,7 @@ public class PhysicalTournamentController {
     }
 
     @PostMapping("/{id}/join")
+    @Transactional
     public ResponseEntity<?> joinTournament(@PathVariable Long id, HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         if (userId == null) {
@@ -131,6 +134,7 @@ public class PhysicalTournamentController {
     }
 
     @PostMapping("/{id}/start")
+    @Transactional
     public ResponseEntity<?> startTournament(@PathVariable Long id, HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         PhysicalTournament tournament = tournamentRepository.findById(id).orElse(null);
@@ -221,6 +225,7 @@ public class PhysicalTournamentController {
     }
 
     @PostMapping("/{id}/matches/{matchId}/report")
+    @Transactional
     public ResponseEntity<?> reportMatchWinner(
             @PathVariable Long id,
             @PathVariable Long matchId,

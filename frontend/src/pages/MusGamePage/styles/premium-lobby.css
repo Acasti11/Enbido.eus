@@ -1839,6 +1839,57 @@
   flex: 1;
 }
 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.switch-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 34px;
+  transition: 0.4s;
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.slider--active {
+  background-color: #fac715;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.slider--disabled {
+  cursor: not-allowed;
+}
+
+.slider-knob {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  transition: 0.4s;
+}
+
+.slider-knob--active {
+  transform: translateX(24px);
+}
+
+.security-switch-container {
+  display: flex;
+  align-items: center;
+}
+
 .rules-modal-body {
   padding: 20px;
   color: #ccc;

@@ -47,6 +47,7 @@ export const useMusGame = (userId: number) => {
   const [maxRounds, setMaxRounds] = useState<number>(3);
   const [roundsWonUs, setRoundsWonUs] = useState<number>(0);
   const [roundsWonThem, setRoundsWonThem] = useState<number>(0);
+  const [leaveVotes, setLeaveVotes] = useState<number[]>([]);
 
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -140,8 +141,14 @@ export const useMusGame = (userId: number) => {
           setRoundsWonThem(data.roundsWonThem || 0);
           setTurnDeadline(data.turnDeadline || 0);
           setDealerIdx(data.dealerIdx !== undefined ? data.dealerIdx : -1);
+          setLeaveVotes(data.leaveVotes || []);
           setIsSearching(false);
         } 
+        else if (type === 'GAME_CANCELLED') {
+          appendLog(t('musGame.friendlyExitSuccess') || 'La partida ha sido cancelada de mutuo acuerdo.');
+          alert(t('musGame.friendlyExitSuccess') || 'La partida ha sido cancelada de mutuo acuerdo.');
+          onLeaveRoom();
+        }
         else if (type === 'QUEUEING') {
           setIsSearching(true);
           setQueueSize(data.queueSize);
@@ -325,6 +332,15 @@ export const useMusGame = (userId: number) => {
     }
   };
 
+  const sendLeaveVote = (vote: boolean) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'LEAVE_VOTE',
+        vote
+      }));
+    }
+  };
+
   const sendSign = (signType: string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
@@ -385,5 +401,7 @@ export const useMusGame = (userId: number) => {
     sendChatMessage,
     sendSpeechBubble,
     sendSign,
+    leaveVotes,
+    sendLeaveVote,
   };
 };

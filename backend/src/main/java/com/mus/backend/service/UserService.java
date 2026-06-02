@@ -72,6 +72,7 @@ public class UserService {
     @Transactional
     public LoginResponseDto authenticate(String username, String password) {
         Usuario usuario = usuarioRepository.findByUsername(username)
+            .or(() -> usuarioRepository.findByEmail(username))
             .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
         if (!passwordEncoder.matches(password, usuario.getPassword())) {

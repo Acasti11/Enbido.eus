@@ -329,6 +329,17 @@
     "4reyesDesc": "Los Treses y los Doses son cartas numéricas normales con su valor de 3 y 2 puntos respectivamente. En esta variante los pares altos y las manos de 31 son mucho más raros, forzando un juego de mus más táctico y controlado."
   },
   "musGame": {
+    "quiero": "Quiero",
+    "noQuiero": "No Quiero",
+    "envido": "Envido",
+    "ordago": "Órdago",
+    "paso": "Paso",
+    "friendlyExitSuccess": "La partida ha sido cancelada de mutuo acuerdo.",
+    "friendlyExitBanner": "Votos para salir amistosamente: {{count}}/4",
+    "voteExit": "Votar Salir",
+    "cancelExitVote": "Cancelar Voto",
+    "voteExitConfirm": "Si sales de la partida en curso serás penalizado, a menos que ambas parejas decidan salir amistosamente de mutuo acuerdo. ¿Quieres proponer una salida amistosa?",
+    "cancelExitVoteConfirm": "¿Quieres retirar tu voto de salida?",
     "leaveTable": "🚪 Abandonar Mesa",
     "leave": "🚪 Abandonar",
     "closePanel": "✕ Cerrar Panel",

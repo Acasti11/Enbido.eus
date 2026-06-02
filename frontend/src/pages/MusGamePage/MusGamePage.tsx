@@ -282,7 +282,8 @@ const MusGamePage: React.FC = () => {
     handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
     onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
     reyesOption, maxRounds, updateRoomConfig, sendChatMessage, sendSign,
-    activeSigns, turnDeadline, activeTurnIdx, dealerIdx
+    activeSigns, turnDeadline, activeTurnIdx, dealerIdx,
+    leaveVotes, sendLeaveVote
   } = useMusGame(currentUserId);
 
   const [activeTab, setActiveTab] = useState<'logs' | 'chat'>('logs');
@@ -383,6 +384,27 @@ const MusGamePage: React.FC = () => {
     handleBetAction(action);
   };
 
+  const mySeat = seats.find(s => s.userId === currentUserId);
+  const myChair = mySeat ? mySeat.chair : -1;
+  const hasVotedToLeave = myChair !== -1 && leaveVotes.includes(myChair);
+
+  const handleExitRequest = () => {
+    if (!isPlaying) {
+      onLeaveRoom();
+      return;
+    }
+
+    if (hasVotedToLeave) {
+      if (window.confirm(t('musGame.cancelExitVoteConfirm') || '¿Quieres retirar tu voto de salida?')) {
+        sendLeaveVote(false);
+      }
+    } else {
+      if (window.confirm(t('musGame.voteExitConfirm') || 'Si sales de la partida en curso serás penalizado, a menos que ambas parejas decidan salir amistosamente de mutuo acuerdo. ¿Quieres proponer una salida amistosa?')) {
+        sendLeaveVote(true);
+      }
+    }
+  };
+
   if (roomId === '') {
     return (
       <PremiumLobby
@@ -426,6 +448,20 @@ const MusGamePage: React.FC = () => {
 
         <div className="felt-layout-pane">
 
+          {isPlaying && leaveVotes.length > 0 && (
+            <div className="friendly-exit-banner">
+              <span>{t('musGame.friendlyExitBanner', { count: leaveVotes.length })}</span>
+              <button
+                className={`friendly-exit-btn-action ${hasVotedToLeave ? 'friendly-exit-btn-action--cancel' : ''}`}
+                onClick={handleExitRequest}
+              >
+                {hasVotedToLeave
+                  ? t('musGame.cancelExitVote')
+                  : t('musGame.voteExit')}
+              </button>
+            </div>
+          )}
+
           {isMobile && (
             <div className="mobile-score-container" onClick={() => setIsSidebarOpen(true)}>
               <div className="mobile-score-row">
@@ -454,7 +490,7 @@ const MusGamePage: React.FC = () => {
               {!isMobile && (
                 <button
                   className="leave-felt-btn"
-                  onClick={onLeaveRoom}
+                  onClick={handleExitRequest}
                 >
                   {t('musGame.leaveTableShort')}
                 </button>
@@ -547,7 +583,7 @@ const MusGamePage: React.FC = () => {
               </button>
               <button
                 className="leave-felt-btn leave-felt-btn--mobile"
-                onClick={onLeaveRoom}
+                onClick={handleExitRequest}
               >
                 {t('musGame.leaveShort')}
               </button>

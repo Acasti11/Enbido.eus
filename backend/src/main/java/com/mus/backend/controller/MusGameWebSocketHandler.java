@@ -103,6 +103,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             else if ("SEND_SIGN".equals(type)) {
                 handleSendSign(conn, data);
             }
+            else if ("LEAVE_VOTE".equals(type)) {
+                handleLeaveVote(conn, data);
+            }
 
         } catch (Exception e) {
             System.err.println("Error handling websocket message: " + e.getMessage());
@@ -585,6 +588,43 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             if (conn.roomId.equals(otherConn.roomId)) {
                 sendJsonMessage(otherConn.session, signEvent);
             }
+        }
+    }
+
+    private void handleLeaveVote(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null || conn.chair == -1) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null || !room.isPlaying()) return;
+
+        boolean vote = (Boolean) data.get("vote");
+        if (vote) {
+            room.addLeaveVote(conn.chair);
+            room.appendLog(conn.username + " ha votado para salir de la partida de mutuo acuerdo.");
+        } else {
+            room.removeLeaveVote(conn.chair);
+            room.appendLog(conn.username + " ha retirado su voto de salida.");
+        }
+
+        if (room.hasBothTeamsVotedToLeave()) {
+            room.setPlaying(false);
+            room.appendLog("Partida cancelada de mutuo acuerdo.");
+            sessionManager.cancelGameInDb(room);
+
+            Map<String, Object> cancelEvent = new HashMap<>();
+            cancelEvent.put("type", "GAME_CANCELLED");
+            broadcastToRoom(room, cancelEvent);
+
+            ScheduledFuture<?> future = activeTimers.remove(conn.roomId);
+            if (future != null) {
+                future.cancel(false);
+            }
+            
+            // Clean up the room after a delay
+            timerScheduler.schedule(() -> {
+                sessionManager.removeRoom(conn.roomId);
+            }, 3, TimeUnit.SECONDS);
+        } else {
+            broadcastRoomState(room);
         }
     }
 

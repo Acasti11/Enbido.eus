@@ -329,6 +329,17 @@
     "4reyesDesc": "Threes and Twos are normal numerical cards with their value of 3 and 2 points respectively. In this variant high pairs and 31 hands are much rarer, forcing a more tactical and controlled game of mus."
   },
   "musGame": {
+    "quiero": "I Accept",
+    "noQuiero": "No, thanks",
+    "envido": "Envido (Bet)",
+    "ordago": "Órdago",
+    "paso": "Paso",
+    "friendlyExitSuccess": "The match has been mutually cancelled.",
+    "friendlyExitBanner": "Friendly exit votes: {{count}}/4",
+    "voteExit": "Vote Exit",
+    "cancelExitVote": "Cancel Vote",
+    "voteExitConfirm": "If you leave the current game you will be penalized, unless both teams agree to a friendly exit. Do you want to propose a friendly exit?",
+    "cancelExitVoteConfirm": "Do you want to withdraw your exit vote?",
     "leaveTable": "🚪 Leave Table",
     "leave": "🚪 Leave",
     "closePanel": "✕ Close Panel",

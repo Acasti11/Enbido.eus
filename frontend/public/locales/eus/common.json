@@ -329,6 +329,17 @@
     "4reyesDesc": "Hirukoak eta Biakoak zenbakizko karta arruntak dira, 3 eta 2 puntuko balioarekin, hurrenez hurren. Aldaera honetan pare handiak eta 31ko eskuak askoz arraroagoak dira, mus joko taktikoago eta kontrolatuago bat behartuz."
   },
   "musGame": {
+    "quiero": "Nahi dut",
+    "noQuiero": "Ez dut nahi",
+    "envido": "Enbido",
+    "ordago": "Hórdago",
+    "paso": "Paso",
+    "friendlyExitSuccess": "Partida adostuta bertan behera utzi da.",
+    "friendlyExitBanner": "Lagunarteko irteera botoak: {{count}}/4",
+    "voteExit": "Irten Botoa",
+    "cancelExitVote": "Botoa Utzi",
+    "voteExitConfirm": "Jokoan dagoen partidatik irtenez gero zigortua izango zara, bi bikoteak lagunarteko irteera bat adostu ezean. Lagunarteko irteera bat proposatu nahi al duzu?",
+    "cancelExitVoteConfirm": "Zure irteera botoa kendu nahi al duzu?",
     "leaveTable": "🚪 Utzi Mahaia",
     "leave": "🚪 Irten",
     "closePanel": "✕ Itxi Panela",

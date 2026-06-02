@@ -322,6 +322,17 @@
     "4reyesDesc": "Les Trois et Deux sont des cartes numériques normales avec leur valeur de 3 et 2 points respectivement. Dans cette variante, les paires hautes et les mains de 31 sont beaucoup plus rares, obligeant à jouer un mus plus tactique et contrôlé."
   },
   "musGame": {
+    "quiero": "Je Veux",
+    "noQuiero": "Pas d'Accord",
+    "envido": "Envido",
+    "ordago": "Órdago",
+    "paso": "Paso",
+    "friendlyExitSuccess": "La partie a été annulée d'un commun accord.",
+    "friendlyExitBanner": "Votes de sortie amicale: {{count}}/4",
+    "voteExit": "Voter Sortie",
+    "cancelExitVote": "Annuler Vote",
+    "voteExitConfirm": "Si vous quittez la partie en cours, vous serez pénalisé, à moins que les deux équipes ne s'entendent pour une sortie amicale. Voulez-vous proposer une sortie amicale ?",
+    "cancelExitVoteConfirm": "Voulez-vous retirer votre vote de sortie ?",
     "leaveTable": "🚪 Quitter la Table",
     "leave": "🚪 Quitter",
     "closePanel": "✕ Fermer le Panneau",
