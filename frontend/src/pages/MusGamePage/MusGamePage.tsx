@@ -185,8 +185,8 @@ const PlayerPosition: React.FC<{
         </div>
         <div className="player-avatar-details">
           <span className="player-name-label">{displayName}</span>
-          {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">HANDIA</span>}
-          {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">ENBIDO MAISU</span>}
+          {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">{t('musGame.titleHandia')}</span>}
+          {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">{t('musGame.titleEnbidoMaisu')}</span>}
         </div>
       </div>
 

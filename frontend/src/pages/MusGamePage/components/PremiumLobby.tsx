@@ -169,7 +169,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const getTourneyUsernameById = (id: number | null): string => {
     if (!id || !tourneyDetails) return t('premiumLobby.waitingEllipsis');
     const match = tourneyDetails.participants.find((p: any) => p.userId === id);
-    return match ? match.username : `Jugador-${id}`;
+    return match ? match.username : t('premiumLobby.playerId', { id });
   };
 
   const handleSort = (field: 'elo' | 'winRate' | 'totalGamesPlayed' | 'totalGamesWon') => {

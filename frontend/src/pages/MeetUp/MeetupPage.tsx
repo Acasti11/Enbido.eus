@@ -7,6 +7,7 @@ import CreateAdPage, { type CreateAdFormState } from './components/CreateAdPage'
 import api from '../../services/api';
 import './styles/meetup-page.css';
 import './styles/meetup-map.css';
+import { useTranslation } from 'react-i18next';
 
 // Corregir imágenes de marcadores rotos en Leaflet con Vite
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -24,20 +25,21 @@ import { useSeo } from '../../hooks/useSeo';
 
 const MeetupPage: React.FC = (): React.JSX.Element => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useSeo({
-    title: 'Quedadas de Mus en Euskadi - Meetups Presenciales | Enbido',
-    description: 'Encuentra y organiza quedadas presenciales de Mus en Euskadi. Busca mesas completas o libres con nuestro mapa interactivo y únete a partidas locales.',
-    keywords: 'mus euskadi, quedadas de mus, meetups mus, mapa de mus, jugar mus presencial',
+    title: t('meetup.seoTitle'),
+    description: t('meetup.seoDescription'),
+    keywords: t('meetup.seoKeywords'),
     canonical: 'https://enbido.eus/quedadas',
     ogImage: 'https://enbido.eus/home-image-mus.png',
     lang: 'es',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      'name': 'Quedadas y Mesas Físicas de Mus - Enbido',
+      'name': t('meetup.seoJsonLdName'),
       'url': 'https://enbido.eus/quedadas',
-      'description': 'Eventos y encuentros locales de jugadores de Mus en Euskadi.'
+      'description': t('meetup.seoJsonLdDescription')
     }
   });
 
@@ -51,7 +53,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
   const [filterOnlyMine, setFilterOnlyMine] = useState<boolean>(false);
 
   const currentUserId = Number(localStorage.getItem('userId') || '0');
-  const username = localStorage.getItem('username') || 'Tú (Jugador Actual)';
+  const username = localStorage.getItem('username') || t('meetup.currentUserFallback');
 
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<number, L.Marker>>(new Map());
@@ -68,7 +70,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
   };
 
   const formatScheduledDate = (dateStr: string | undefined) => {
-    if (!dateStr) return 'Fecha por coordinar';
+    if (!dateStr) return t('meetup.dateTBD');
     try {
       const d = new Date(dateStr);
       return d.toLocaleString('es-ES', {
@@ -89,7 +91,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
       const mapped = res.data.map((ad: any) => ({
         adId: ad.adId,
         creatorId: ad.creatorId,
-        creatorName: ad.creator ? ad.creator.name : 'Usuario',
+        creatorName: ad.creator ? ad.creator.name : t('meetup.userFallback'),
         location: ad.location,
         missingPlayers: ad.missingPlayers,
         description: ad.description,
@@ -101,7 +103,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
       }));
       setAds(mapped);
     } catch (err) {
-      console.error('Error fetching physical meetups:', err);
+      console.error(t('meetup.errorFetch'), err);
     } finally {
       if (!isBackground) setLoading(false);
     }
@@ -129,7 +131,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
   const getMarkerIcon = (ad: LocalMeetupAd) => {
     const isCreator = ad.creatorId === currentUserId;
     const isFull = ad.missingPlayers <= 0;
-    
+
     let pinColor = '#fac715'; // Dorado (Necesita jugadores)
     if (isCreator) {
       pinColor = '#3b82f6'; // Azul (Creada por ti)
@@ -187,11 +189,11 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
       // Crear el popup content
       const popupDiv = document.createElement('div');
       popupDiv.className = 'map-popup-content';
-      
+
       const titleEl = document.createElement('h4');
       titleEl.className = 'map-popup-title';
       titleEl.innerText = `${getEstablishmentIcon(ad.establishmentType)} ${ad.location}`;
-      
+
       const dateEl = document.createElement('p');
       dateEl.className = 'map-popup-date';
       dateEl.innerHTML = `📅 <strong>${formatScheduledDate(ad.scheduledAt)}</strong>`;
@@ -201,15 +203,15 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
 
       const creatorEl = document.createElement('p');
       creatorEl.className = 'map-popup-text';
-      creatorEl.innerHTML = `Organizado por: <strong>${ad.creatorName}</strong>`;
+      creatorEl.innerHTML = `${t('meetup.organizedBy', { name: ad.creatorName })}`;
 
       const playersEl = document.createElement('span');
       playersEl.className = 'map-popup-badge';
-      playersEl.innerText = ad.missingPlayers <= 0 ? '✅ Mesa Completa' : `⚠️ Faltan ${ad.missingPlayers} jugadores`;
+      playersEl.innerText = ad.missingPlayers <= 0 ? t('meetup.tableFull') : t('meetup.missingPlayers', { count: ad.missingPlayers });
 
       const btnEl = document.createElement('button');
       btnEl.className = 'map-popup-action-btn';
-      btnEl.innerText = 'Ver Anuncio / Unirse';
+      btnEl.innerText = t('meetup.viewAndJoin');
       btnEl.onclick = () => {
         const el = document.getElementById(`ad-card-${ad.adId}`);
         if (el) {
@@ -235,10 +237,10 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
         chatBtn.style.backgroundColor = 'rgba(212, 175, 55, 0.15)';
         chatBtn.style.color = '#fac715';
         chatBtn.style.border = '1px solid rgba(212, 175, 55, 0.4)';
-        chatBtn.innerText = '💬 Escribir Privado';
+        chatBtn.innerText = t('meetup.writePrivate');
         chatBtn.onclick = () => {
           if (!localStorage.getItem('token')) {
-            alert('Debes iniciar sesión para contactar en privado');
+            alert(t('meetup.loginToContact'));
             return;
           }
           const target = {
@@ -260,7 +262,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
         mapsLink.target = '_blank';
         mapsLink.rel = 'noopener noreferrer';
         mapsLink.className = 'map-popup-link';
-        mapsLink.innerText = '📍 Cómo llegar (Google Maps)';
+        mapsLink.innerText = t('meetup.howToGetThere');
         mapsLink.style.display = 'block';
         mapsLink.style.textAlign = 'center';
         mapsLink.style.marginTop = '8px';
@@ -341,7 +343,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
       const newAd: LocalMeetupAd = {
         adId: saved.adId,
         creatorId: saved.creatorId,
-        creatorName: `${username} (Tú)`,
+        creatorName: `${username} (${t('meetup.you')})`,
         location: saved.location,
         missingPlayers: saved.missingPlayers,
         description: saved.description,
@@ -351,12 +353,12 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
         scheduledAt: saved.scheduledAt,
         establishmentType: saved.establishmentType
       };
-      
+
       setAds([newAd, ...ads]);
       handleNavigateToList();
     } catch (err) {
-      console.error('Error saving meetup to DB:', err);
-      alert('Inicia sesión para poder crear anuncios de quedadas');
+      console.error(t('meetup.errorSave'), err);
+      alert(t('meetup.loginToCreate'));
     }
   };
 
@@ -373,24 +375,24 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
     <div className="page-container">
       <main className="page-content">
         {loading ? (
-          <div className="meetup-loading">Kargatzen / Cargando...</div>
+          <div className="meetup-loading">{t('meetup.loading')}</div>
         ) : (
           <>
             {currentView === 'list' ? (
               <div>
                 <header className="list-header">
                   <div>
-                    <h1 className="list-title">Buscar Partida Física</h1>
-                    <p className="list-subtitle">Encuentra mesas con huecos libres cerca de ti en Euskadi</p>
+                    <h1 className="list-title">{t('meetup.title')}</h1>
+                    <p className="list-subtitle">{t('meetup.subtitle')}</p>
                   </div>
                   <button className="btn-create-main" onClick={handleNavigateToCreate}>
-                    + Crear Anuncio
+                    {t('meetup.createAd')}
                   </button>
                 </header>
 
                 {/* FILTROS RÁPIDOS */}
                 <div className="meetup-filters-panel">
-                  <span className="filters-label">Filtros rápidos:</span>
+                  <span className="filters-label">{t('meetup.filters')}</span>
                   <label className="filter-checkbox-label">
                     <input 
                       type="checkbox" 
@@ -398,7 +400,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
                       checked={filterOnlyAvailable} 
                       onChange={(e) => setFilterOnlyAvailable(e.target.checked)}
                     />
-                    <span>Mesas con huecos libres</span>
+                    <span>{t('meetup.filterAvailable')}</span>
                   </label>
                   <label className="filter-checkbox-label">
                     <input 
@@ -407,10 +409,10 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
                       checked={filterOnlyMine} 
                       onChange={(e) => setFilterOnlyMine(e.target.checked)}
                     />
-                    <span>Creadas por mí</span>
+                    <span>{t('meetup.filterMine')}</span>
                   </label>
                 </div>
-                
+
                 {/* DISEÑO DIVIDIDO CON MAPA Y TARJETAS */}
                 <div className="meetup-split-layout">
                   {/* PANEL DEL MAPA INTERACTIVO */}
@@ -422,7 +424,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
                   <div className="meetup-list-pane">
                     {filteredAds.length === 0 ? (
                       <div className="meetup-empty-state">
-                        No hay anuncios que coincidan con los filtros seleccionados.
+                        {t('meetup.empty')}
                       </div>
                     ) : (
                       filteredAds.map((ad) => (
