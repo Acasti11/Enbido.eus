@@ -168,9 +168,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
       fetchProfileData();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error joining online tournament:', err);
-      alert(err.response?.data || t('premiumLobby.tournamentJoinError'));
+      const axiosError = err as { response?: { data?: string } };
+      alert(axiosError.response?.data || t('premiumLobby.tournamentJoinError'));
     }
   };
 
@@ -181,9 +182,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert(t('premiumLobby.tournamentStartSuccess'));
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error starting online tournament:', err);
-      alert(err.response?.data || t('premiumLobby.tournamentStartError'));
+      const axiosError = err as { response?: { data?: string } };
+      alert(axiosError.response?.data || t('premiumLobby.tournamentStartError'));
     }
   };
 
@@ -202,9 +204,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       setReportWinnerId(null);
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error reporting match score:', err);
-      alert(err.response?.data || t('premiumLobby.reportError'));
+      const axiosError = err as { response?: { data?: string } };
+      alert(axiosError.response?.data || t('premiumLobby.reportError'));
     }
   };
 
@@ -494,9 +497,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert(res.data.message || t('premiumLobby.friendRequestSent'));
       fetchRequests();
       fetchFriends();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error sending friend request:', err);
-      alert(err.response?.data?.error || t('premiumLobby.errorSendRequest'));
+      const axiosError = err as { response?: { data?: { error?: string } } };
+      alert(axiosError.response?.data?.error || t('premiumLobby.errorSendRequest'));
     }
   };
 
@@ -506,9 +510,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert(t('premiumLobby.friendRequestAccepted'));
       fetchFriends();
       fetchRequests();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error accepting friend request:', err);
-      alert(err.response?.data?.error || t('premiumLobby.errorAcceptRequest'));
+      const axiosError = err as { response?: { data?: { error?: string } } };
+      alert(axiosError.response?.data?.error || t('premiumLobby.errorAcceptRequest'));
     }
   };
 
@@ -517,9 +522,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       await api.post(`/friendships/decline/${req.friendshipId}`);
       alert(t('premiumLobby.requestDeclined'));
       fetchRequests();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error declining request:', err);
-      alert(err.response?.data?.error || t('premiumLobby.errorDeclineRequest'));
+      const axiosError = err as { response?: { data?: { error?: string } } };
+      alert(axiosError.response?.data?.error || t('premiumLobby.errorDeclineRequest'));
     }
   };
 
@@ -1667,7 +1673,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
                     </div>
                   )}
-              </div>
+              </>
             )}
 
           </div>

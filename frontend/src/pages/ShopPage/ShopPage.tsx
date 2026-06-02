@@ -7,16 +7,8 @@ import ShopSummary from './components/ShopSummary';
 import ShopToolbar from './components/ShopToolbar';
 import ShopGrid from './components/ShopGrid';
 import ShopLoading from './components/ShopLoading';
-import type { ShopCategory, ShopItem, RawShopItem } from '../../types/shop';
+import type { ShopCategory, ShopItem, RawShopItem, CategoryTotal, Toast } from '../../types/shop';
 import './shop-page.css';
-
-interface ShopItemResponse {
-  itemId?: number | string;
-  id?: number | string;
-  name: string;
-  price: number | string;
-  category?: string | { name?: string };
-}
 
 const getItemDescription = (t: (key: string) => string, itemId: number): string => {
   switch (itemId) {
@@ -41,41 +33,6 @@ const getItemAccent = (category: ShopCategory): 'gold' | 'red' | 'green' => {
   if (category === 'profiles') return 'gold';
   if (category === 'decks') return 'red';
   return 'green';
-};
-
-const useShopItems = (
-  items: ShopItemResponse[],
-  inventory: number[],
-  equippedAvatarItemId: number | null,
-  equippedDeckItemId: number | null,
-  equippedTitleItemId: number | null,
-  t: (key: string) => string
-): ShopItem[] => {
-  return useMemo(() => {
-    return items.map((item) => {
-      const itemId = Number(item.itemId);
-      const category = (typeof item.category === 'string' ? item.category : item.category?.name || 'profiles') as ShopCategory;
-      const description = getItemDescription(t, itemId);
-      const accent = getItemAccent(category);
-      const isOwned = inventory.includes(itemId);
-
-      let isEquipped = false;
-      if (category === 'profiles') isEquipped = equippedAvatarItemId === itemId;
-      else if (category === 'decks') isEquipped = equippedDeckItemId === itemId;
-      else if (category === 'aliases') isEquipped = equippedTitleItemId === itemId;
-
-      return {
-        id: itemId,
-        category,
-        name: item.name,
-        price: Number(item.price),
-        description,
-        accent,
-        owned: isOwned,
-        equipped: isEquipped,
-      };
-    });
-  }, [items, inventory, equippedAvatarItemId, equippedDeckItemId, equippedTitleItemId, t]);
 };
 
 const useSortedItems = (

@@ -9,7 +9,8 @@ interface TournamentListProps {
   onPublish?: () => void;
 }
 
-const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentListProps): React.JSX.Element => {
+const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.JSX.Element => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   return (
     <div>

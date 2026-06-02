@@ -7,6 +7,7 @@ interface TournamentCardProps {
 }
 
 const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
     <article className="tournament-card">
       <div className="card-poster">

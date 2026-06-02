@@ -242,6 +242,7 @@ interface NormalLoginFormProps {
   setShowPassword: (value: boolean) => void;
   error: string;
   onSubmit: (e: React.FormEvent) => void;
+  onSwitchToRecover: () => void;
 }
 
 const NormalLoginForm: React.FC<NormalLoginFormProps> = ({
@@ -252,7 +253,8 @@ const NormalLoginForm: React.FC<NormalLoginFormProps> = ({
   showPassword,
   setShowPassword,
   error,
-  onSubmit
+  onSubmit,
+  onSwitchToRecover
 }): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -264,6 +266,7 @@ const NormalLoginForm: React.FC<NormalLoginFormProps> = ({
         onChange={setPassword}
         showPassword={showPassword}
         onToggleShow={() => setShowPassword(!showPassword)}
+        onSwitchToRecover={onSwitchToRecover}
       />
       {error && <p className="login-form__error">{error}</p>}
       <button type="submit" className="login-form__submit">
@@ -273,7 +276,11 @@ const NormalLoginForm: React.FC<NormalLoginFormProps> = ({
   );
 };
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  onSwitchToRecover: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover }) => {
   const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -413,6 +420,7 @@ const LoginForm: React.FC = () => {
       setShowPassword={setShowPassword}
       error={error}
       onSubmit={handleSubmit}
+      onSwitchToRecover={onSwitchToRecover}
     />
   );
 };
