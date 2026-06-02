@@ -114,7 +114,12 @@ export const useMusGame = (userId: number) => {
           const betStage = data.stage ? data.stage.toLowerCase() : 'grande';
           setStage(betStage as BettingStage);
           
-          setScore({ us: data.score.us, them: data.score.them });
+          setScore({
+            us: data.score.us,
+            them: data.score.them,
+            roundsUs: data.score.roundsUs,
+            roundsThem: data.score.roundsThem
+          });
           
           // Format logs for UI
           if (data.logs) {

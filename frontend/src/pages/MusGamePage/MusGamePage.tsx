@@ -10,6 +10,7 @@ import { useMusGame } from './hooks/useMusGame';
 import api from '../../services/api';
 import './styles/mus-game.css';
 import { useSeo } from '../../hooks/useSeo';
+import GameOverModal from '../../components/layout/GameOverModal';
 
 const getSignEmojiOnly = (signKey: string): string => {
   const mapping: { [key: string]: string } = {
@@ -264,6 +265,13 @@ const MusGamePage: React.FC = () => {
   const currentUserId = Number(localStorage.getItem('userId') || '1');
   const [profile, setProfile] = useState<any>(null);
 
+  // New states for Game Over Pop-up summary
+  const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const [eloChange, setEloChange] = useState<number | null>(null);
+  const [winningProfiles, setWinningProfiles] = useState<{ [userId: number]: any }>({});
+  const [initialProfile, setInitialProfile] = useState<any>(null);
+  const [finalMatchData, setFinalMatchData] = useState<any>(null);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -284,6 +292,76 @@ const MusGamePage: React.FC = () => {
     reyesOption, maxRounds, updateRoomConfig, sendChatMessage, sendSign,
     activeSigns, turnDeadline, activeTurnIdx, dealerIdx
   } = useMusGame(currentUserId);
+
+  // Fetch initial profile when match starts
+  useEffect(() => {
+    if (isPlaying && initialProfile === null) {
+      const fetchInitial = async () => {
+        try {
+          const res = await api.get('/usuarios/me/profile');
+          setInitialProfile(res.data);
+        } catch (err) {
+          console.error('Error fetching initial profile:', err);
+        }
+      };
+      fetchInitial();
+    }
+  }, [isPlaying, initialProfile]);
+
+  const prevIsPlaying = useRef(isPlaying);
+
+  // Detect match completion
+  useEffect(() => {
+    if (prevIsPlaying.current === true && isPlaying === false && roomId !== '') {
+      const handleGameFinished = async () => {
+        // Freeze final match stats so they persist on modal regardless of lobby resets
+        setFinalMatchData({
+          roundsWonUs: score.roundsUs || 0,
+          roundsWonThem: score.roundsThem || 0,
+          maxRounds: maxRounds,
+          scoreUs: score.us,
+          scoreThem: score.them,
+          seats: [...seats]
+        });
+
+        // Fetch updated profile to calculate ELO diff
+        try {
+          const meRes = await api.get('/usuarios/me/profile');
+          const finalProfile = meRes.data;
+          
+          const beforeElo = initialProfile ? initialProfile.elo : profile?.elo;
+          if (beforeElo !== undefined && finalProfile.elo !== undefined) {
+            setEloChange(finalProfile.elo - beforeElo);
+          }
+          setProfile(finalProfile);
+        } catch (err) {
+          console.error('Error fetching final player profile:', err);
+        }
+
+        // Fetch profiles of the winning couple
+        const isUsWinner = (score.roundsUs || 0) > (score.roundsThem || 0);
+        const winningChairs = isUsWinner ? [0, 2] : [1, 3];
+        const winners = seats.filter(s => winningChairs.includes(s.chair));
+
+        const profilesMap: { [userId: number]: any } = {};
+        for (const w of winners) {
+          if (w.userId && !w.isBot) {
+            try {
+              const wRes = await api.get(`/usuarios/${w.userId}/profile`);
+              profilesMap[w.userId] = wRes.data;
+            } catch (err) {
+              console.error(`Error fetching winner ${w.username} profile:`, err);
+            }
+          }
+        }
+        setWinningProfiles(profilesMap);
+        setIsGameOverOpen(true);
+      };
+
+      handleGameFinished();
+    }
+    prevIsPlaying.current = isPlaying;
+  }, [isPlaying, roomId, score, maxRounds, seats, initialProfile, profile]);
 
   const [activeTab, setActiveTab] = useState<'logs' | 'chat'>('logs');
   const [chatInput, setChatInput] = useState('');
@@ -339,6 +417,36 @@ const MusGamePage: React.FC = () => {
     return () => clearInterval(interval);
   }, [turnDeadline, isMyTurn, isMuted]);
 
+  const renderGameOverModal = () => {
+    if (!finalMatchData) return null;
+    return (
+      <GameOverModal
+        isOpen={isGameOverOpen}
+        onClose={() => {
+          setIsGameOverOpen(false);
+          setFinalMatchData(null);
+          setEloChange(null);
+          setInitialProfile(null);
+        }}
+        onLeave={() => {
+          onLeaveRoom();
+          setIsGameOverOpen(false);
+          setFinalMatchData(null);
+          setEloChange(null);
+          setInitialProfile(null);
+        }}
+        roundsWonUs={finalMatchData.roundsWonUs}
+        roundsWonThem={finalMatchData.roundsWonThem}
+        maxRounds={finalMatchData.maxRounds}
+        scoreUs={finalMatchData.scoreUs}
+        scoreThem={finalMatchData.scoreThem}
+        seats={finalMatchData.seats}
+        eloChange={eloChange}
+        winningProfiles={winningProfiles}
+      />
+    );
+  };
+
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
@@ -385,31 +493,37 @@ const MusGamePage: React.FC = () => {
 
   if (roomId === '') {
     return (
-      <PremiumLobby
-        username={username}
-        isSearching={isSearching}
-        queueSize={queueSize}
-        onJoinRoom={onJoinRoom}
-        onCreateRoom={onCreateRoom}
-        onStartMatchmaking={onStartMatchmaking}
-        onCancelMatchmaking={onCancelMatchmaking}
-      />
+      <>
+        <PremiumLobby
+          username={username}
+          isSearching={isSearching}
+          queueSize={queueSize}
+          onJoinRoom={onJoinRoom}
+          onCreateRoom={onCreateRoom}
+          onStartMatchmaking={onStartMatchmaking}
+          onCancelMatchmaking={onCancelMatchmaking}
+        />
+        {renderGameOverModal()}
+      </>
     );
   }
 
   if (!isPlaying) {
     return (
-      <LobbyWaitingRoom
-        roomId={roomId}
-        seats={seats}
-        currentUserId={currentUserId}
-        onAddBot={onAddBot}
-        onStartGame={handleStartMatch}
-        onLeaveRoom={onLeaveRoom}
-        reyesOption={reyesOption}
-        maxRounds={maxRounds}
-        onUpdateConfig={updateRoomConfig}
-      />
+      <>
+        <LobbyWaitingRoom
+          roomId={roomId}
+          seats={seats}
+          currentUserId={currentUserId}
+          onAddBot={onAddBot}
+          onStartGame={handleStartMatch}
+          onLeaveRoom={onLeaveRoom}
+          reyesOption={reyesOption}
+          maxRounds={maxRounds}
+          onUpdateConfig={updateRoomConfig}
+        />
+        {renderGameOverModal()}
+      </>
     );
   }
 
@@ -644,6 +758,8 @@ const MusGamePage: React.FC = () => {
         </aside>
 
       </div>
+
+      {renderGameOverModal()}
     </>
   );
 };

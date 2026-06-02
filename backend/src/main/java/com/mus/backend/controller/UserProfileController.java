@@ -44,6 +44,19 @@ public class UserProfileController {
     }
 
     // ============================================
+    // PROTEGIDO: Obtener perfil de juego de otro usuario por ID
+    // ============================================
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<?> getUserProfile(@PathVariable Long userId, HttpServletRequest request) {
+        getCurrentUserId(request);
+        if (!userProfileService.userExists(userId)) {
+            return ResponseEntity.notFound().build();
+        }
+        UserGameProfile profile = userProfileService.getOrCreateUserProfile(userId);
+        return ResponseEntity.ok(profile);
+    }
+
+    // ============================================
     // PROTEGIDO: Obtener Clasificación / Leaderboard
     // ============================================
     @GetMapping("/leaderboard")
