@@ -202,6 +202,15 @@ public class GameSessionManager {
         matchmakingQueue8.removeIf(entry -> entry.userId.equals(userId));
     }
 
+    public synchronized List<Long> getMatchmakingUserIds(String reyesOption) {
+        List<MatchmakerEntry> queue = "4".equals(reyesOption) ? matchmakingQueue4 : matchmakingQueue8;
+        List<Long> userIds = new ArrayList<>();
+        for (MatchmakerEntry entry : queue) {
+            userIds.add(entry.userId);
+        }
+        return userIds;
+    }
+
     public synchronized int getMatchmakingQueueSize() {
         return getMatchmakingQueueSize("8");
     }
