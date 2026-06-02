@@ -101,82 +101,59 @@ const SecuritySection: React.FC<SecuritySectionProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="profile-card">
-      <div className="profile-card__container">
-        <ProfileHeader
-          username={username}
-          initials={initials}
-          equippedAvatarItemId={equippedAvatarItemId}
-          equippedTitleItemId={equippedTitleItemId}
-        />
-        <StatsGrid stats={stats} />
+    <div className="profile-security-section">
+      <h3 className="profile-security-title">
+        🔑 {t('profile.accountSecurity')}
+      </h3>
 
-        {/* Sección Premium de Seguridad y Doble Factor */}
-        <div
-          className="profile-security-section"
-        >
-          <h3 className="profile-security-title">
-            🔑 Seguridad de la Cuenta
-          </h3>
+      <div className="profile-security-card">
+        <div className="profile-security-content">
+          <h4 className="profile-security-card-title">
+            {t('profile.twoFactorTitle')}
+          </h4>
+          <p className="profile-security-card-description">
+            {t('profile.twoFactorDescription')}
+          </p>
+        </div>
 
-          <div
-            className="profile-security-card"
-          >
-            <div className="profile-security-content">
-              <h4 className="profile-security-card-title">
-                Autenticación de Doble Factor (2FA por Email)
-              </h4>
-              <p className="profile-security-card-description">
-                Protege tu cuenta requiriendo un código de verificación de 6 dígitos enviado a tu correo cada vez que inicies sesión.
-              </p>
-            </div>
-
-            <div>
-              {loading2Fa ? (
-                <div className="profile-security-loading"
+        <div>
+          {loading2Fa ? (
+            <div className="profile-security-loading" />
+          ) : (
+            <label className="switch">
+              <input
+                className="switch-input"
+                type="checkbox"
+                checked={twoFactorEnabled}
+                disabled={updating2Fa}
+                onChange={(e) => onToggle2Fa?.(e.target.checked)}
+              />
+              <span
+                className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
+                  } ${updating2Fa ? 'slider--disabled' : ''
+                  }`}
+              >
+                <span
+                  className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
+                    }`}
                 />
-              ) : (
-                <label
-                  className="switch"
-                >
-                  <input
-                    className="switch-input"
-                    type="checkbox"
-                    checked={twoFactorEnabled}
-                    disabled={updating2Fa}
-                    onChange={(e) => onToggle2Fa?.(e.target.checked)}
-                  />
-                  <span
-                    className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
-                      } ${updating2Fa ? 'slider--disabled' : ''
-                      }`}
-                  >
-                    <span
-                      className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
-                        }`}
-                    />
-                  </span>
-                </label>
-              )}
-            </div>
-          </div>
-
-          {success2Fa && (
-            <p className="profile-security-success">
-              ✓ {success2Fa}
-            </p>
-          )}
-
-          {error2Fa && (
-            <p className="profile-security-error">
-              ⚠️ {error2Fa}
-            </p>
+              </span>
+            </label>
           )}
         </div>
       </div>
 
-      {success2Fa && <StatusMessage type="success" message={success2Fa} />}
-      {error2Fa && <StatusMessage type="error" message={error2Fa} />}
+      {success2Fa && (
+        <p className="profile-security-success">
+          ✓ {success2Fa}
+        </p>
+      )}
+
+      {error2Fa && (
+        <p className="profile-security-error">
+          ⚠️ {error2Fa}
+        </p>
+      )}
     </div>
   );
 };

@@ -15,14 +15,14 @@ const ProfileSubtitle: React.FC<{ equippedTitleItemId?: number }> = ({ equippedT
   if (equippedTitleItemId === 5) {
     return (
       <p className="profile-header__subtitle profile-header__subtitle--handia">
-        🔰 HANDIA
+        🔰 {t('musGame.titleHandia')}
       </p>
     );
   }
   if (equippedTitleItemId === 6) {
     return (
       <p className="profile-header__subtitle profile-header__subtitle--maisu">
-        👑 ENBIDO MAISU
+        👑 {t('musGame.titleEnbidoMaisu')}
       </p>
     );
   }
