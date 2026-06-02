@@ -667,6 +667,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 room.setScoreUs(30);
                 room.setScoreThem(Math.min(room.getScoreThem(), 29));
             }
+            room.setPlaying(false);
             
             // Aplicar penalización por abandono en base de datos
             try {

@@ -77,7 +77,6 @@
 
 .felt-center-emblem {
   text-align: center;
-  opacity: 0.12;
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -91,6 +90,7 @@
   letter-spacing: 14px;
   color: #fff;
   text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0.12;
 }
 
 .felt-sub {
@@ -98,6 +98,7 @@
   letter-spacing: 8px;
   text-transform: uppercase;
   font-weight: 600;
+  opacity: 0.12;
 }
 
 /* =========================================
@@ -1868,6 +1869,9 @@ btn-primary-action btn-action-bet {
   font-weight: 600;
   transition: background-color 0.2s;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  opacity: 1 !important;
+  z-index: 10;
 }
 
 .leave-felt-btn:hover {

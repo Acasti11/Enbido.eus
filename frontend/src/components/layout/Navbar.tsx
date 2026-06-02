@@ -59,6 +59,16 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const [username, setUsername] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
+
+  useEffect(() => {
+    const checkGameState = () => {
+      setIsGameActive(localStorage.getItem('isGameActive') === 'true');
+    };
+    checkGameState();
+    window.addEventListener('game_state_changed', checkGameState);
+    return () => window.removeEventListener('game_state_changed', checkGameState);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -146,6 +156,10 @@ const Navbar: React.FC = (): React.JSX.Element => {
       );
     });
   };
+
+  if (isGameActive && location.pathname === '/jugar') {
+    return <></>;
+  }
 
   return (
     <header className="navbar">

@@ -634,7 +634,7 @@ const MusGamePage: React.FC = () => {
                       const parts = msg.split(': ');
                       const sender = parts[0];
                       const content = parts.slice(1).join(': ');
-                      const isMe = sender === username;
+                      const isMe = sender.trim().toLowerCase() === username.trim().toLowerCase();
 
                       return (
                         <div key={idx} className={`game-chat-message ${isMe ? 'game-chat-message--me' : 'game-chat-message--other'}`}>

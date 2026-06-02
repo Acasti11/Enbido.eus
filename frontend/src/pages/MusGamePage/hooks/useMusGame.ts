@@ -58,6 +58,11 @@ export const useMusGame = (userId: number) => {
     setLogs((prev) => [{ id: Math.random().toString(), message }, ...prev]);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('isGameActive', roomId !== '' ? 'true' : 'false');
+    window.dispatchEvent(new Event('game_state_changed'));
+  }, [roomId]);
+
   // --- WEBSOCKET CONNECTION ---
 
   const connectWebSocket = useCallback((targetRoomId: string, joinAsMatchmaker: boolean = false, chosenReyes: '4' | '8' = '8') => {
@@ -115,7 +120,12 @@ export const useMusGame = (userId: number) => {
           const betStage = data.stage ? data.stage.toLowerCase() : 'grande';
           setStage(betStage as BettingStage);
           
-          setScore({ us: data.score.us, them: data.score.them });
+          setScore({
+            us: data.score.us,
+            them: data.score.them,
+            roundsUs: data.score.roundsUs,
+            roundsThem: data.score.roundsThem
+          });
           
           // Format logs for UI
           if (data.logs) {
