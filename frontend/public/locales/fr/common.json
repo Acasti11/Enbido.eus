@@ -636,7 +636,8 @@
     "botReply2_2": "Belle partie hier. As-tu vu les signes dans le menu Règles ?",
     "botReply2_3": "Aupa les gars ! On jouera plus tard ?",
     "botReply2_4": "J'ai une main incroyable. On fait un ordago ?",
-    "botReply3_1": "Bonjour, je suis hors ligne aujourd'hui, mais préviens-moi demain pour jouer le tournoi physique à Bilbao. Txapela au sommet ! 🏆"
+    "botReply3_1": "Bonjour, je suis hors ligne aujourd'hui, mais préviens-moi demain pour jouer le tournoi physique à Bilbao. Txapela au sommet ! 🏆",
+    "waitingEllipsis": "enattendant"
   },
   "usersList": {
     "title": "Utilisateurs",

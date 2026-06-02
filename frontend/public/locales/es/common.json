@@ -644,7 +644,8 @@
     "twoFaUpdateError": "Error al cambiar la configuración de 2FA",
     "whatIsMusAnswer": "El Mus es un juego de cartas tradicional de origen vasco, ampliamente jugado en toda España y partes de Latinoamérica. Se juega en parejas (4 jugadores) con la baraja española de 40 cartas. El objetivo es alcanzar una cantidad de puntos fijada antes que la pareja contraria (normalmente 30 o 40 puntos).",
     "winRateValue": "{{value}}% Win Rate",
-    "winkEye": "Guiñar un ojo"
+    "winkEye": "Guiñar un ojo",
+    "waitingEllipsis": "Esperando"
   },
   "usersList": {
     "title": "Usuarios",

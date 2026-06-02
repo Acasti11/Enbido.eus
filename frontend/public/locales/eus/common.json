@@ -592,7 +592,8 @@
     "reportSuccess": "Partidaren markagailua zuzen jakinarazi da.",
     "reportError": "Errorea jakinaraztean.",
     "rulesTitle": "Mus Jokoaren Arauak",
-    "rulesSubtitle": "Musean jokatzeko arau ofizialak eta ikasteko gida"
+    "rulesSubtitle": "Musean jokatzeko arau ofizialak eta ikasteko gida",
+    "waitingEllipsis": "itxoiten"
   },
   "seo": {
     "gameTitle": "Jokatu Musean Online - Partidak eta Parekatzeak | Enbido",

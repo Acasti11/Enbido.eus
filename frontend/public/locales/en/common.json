@@ -643,7 +643,8 @@
     "botReply2_2": "Great game yesterday. Have you seen the signs in the Rules menu?",
     "botReply2_3": "Aupa guys! Shall we play later?",
     "botReply2_4": "I have an amazing hand. Shall we throw an ordago?",
-    "botReply3_1": "Hello, I'm offline today, but let me know tomorrow to play the physical tournament in Bilbao. Txapela on! 🏆"
+    "botReply3_1": "Hello, I'm offline today, but let me know tomorrow to play the physical tournament in Bilbao. Txapela on! 🏆",
+    "waitingEllipsis": "waiting"
   },
   "usersList": {
     "title": "Users",
