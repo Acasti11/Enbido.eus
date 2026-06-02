@@ -14,12 +14,12 @@ const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentLis
   return (
     <div>
       <header className="page-header">
-        <h1 className="page-title">{t('title')}</h1>
-        <button className="btn-action" onClick={onPublish}>{t('publish')}</button>
+        <h1 className="page-title">{t('tournament.title')}</h1>
+        <button className="btn-action" onClick={onPublish}>{t('tournament.publish')}</button>
       </header>
       <section className="tournament-grid">
         {tournaments.length === 0 ? (
-          <p className="empty-msg">{t('empty')}</p>
+          <p className="empty-msg">{t('tournament.empty')}</p>
         ) : (
           tournaments.map((t) => (
             <TournamentCard key={t.id} tournamentData={t} onClickDetail={onClickDetail} />

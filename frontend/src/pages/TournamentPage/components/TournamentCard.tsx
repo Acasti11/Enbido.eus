@@ -18,13 +18,13 @@ const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps):
           className="card-poster-img"
         />
         <div className="card-poster-overlay">
-          <span>{t('tournamentSheet')}</span>
+          <span>{t('tournament.tournamentSheet')}</span>
         </div>
       </div>
       <div className="card-content">
         <div className="card-header tournament-card-header">
           <span className="card-tag tournament-card-tag">
-            {t('inPerson')}
+            {t('tournament.inPerson')}
           </span>
           <h3 className="card-title tournament-card-title">{tournamentData.tournamentName}</h3>
         </div>
@@ -44,7 +44,7 @@ const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps):
             onClickDetail(tournamentData.id);
           }}
         >
-          {t('seeMore')}
+          {t('tournament.seeMore')}
         </button>
       </div>
     </article>
