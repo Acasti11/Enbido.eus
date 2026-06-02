@@ -350,6 +350,8 @@
     "leaveShort": "🚪 Utzi",
     "openSignsMenu": "Ireki keinuen menua",
     "cardBackPlaceholder": "?",
+    "titleHandia": "HANDIA",
+    "titleEnbidoMaisu": "ENBIDO MAISU",
     "errorProfile": "Errorea jokalariaren profila eskuratzean jokoaren tapizerako:"
   },
   "settings": {
@@ -432,6 +434,7 @@
     "bestOf": "ONENA HEMENDIK:",
     "waitingRoom": "Itxarongela",
     "empty": "Hutsik",
+    "emptySeat": "Vacio",
     "addBot": "🤖 Gehitu Bot-a",
     "botComputer": "ORDENAGAILU BOT-A",
     "activePlayer": "JOKALARI AKTIBOA",
@@ -548,6 +551,7 @@
     "save": "Gorde",
     "cancel": "Utzi",
     "waiting": "Zain...",
+    "playerId": "Jokalaria-{{id}}",
     "playerPrefix": "Jokalaria-{{id}}",
     "alreadyFriend": "Dagoeneko jokalari hau gehitu duzu edo zain dago.",
     "friendRequestSent": "Lagun-eskaera bidalita.",
