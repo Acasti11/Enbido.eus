@@ -167,8 +167,8 @@ export const useMusGame = (userId: number) => {
           appendLog(t('musGame.matchFound', { roomId: data.roomId }));
           setRoomId(data.roomId);
           setIsSearching(false);
-          // Reconnect to the real room
-          connectWebSocket(data.roomId);
+          // No reconnection needed — server already assigned this socket to the room.
+          // The next ROOM_STATE broadcast will populate the full game state.
         }
         else if (type === 'ERROR') {
           appendLog(t('musGame.serverError', { message: data.message }));

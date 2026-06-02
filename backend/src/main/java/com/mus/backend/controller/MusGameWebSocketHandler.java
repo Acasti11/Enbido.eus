@@ -714,6 +714,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                GameSession room = sessionManager.getRoom(roomId);
                if (room == null) continue;
                
+               // Assign WebSocket connections to their chairs in the room
                for (UserConnection otherConn : activeConnections.values()) {
                    if (otherConn.roomId == null && otherConn.userId != null) {
                        if (playerIds.contains(otherConn.userId)) {
@@ -740,6 +741,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                        }
                    }
                }
+               
+               // Start the match now that all players are assigned
+               room.startMatch();
+               broadcastRoomState(room);
+               triggerBotTurnsRecursively(room);
+               startTurnTimer(room);
            }
        }
    }

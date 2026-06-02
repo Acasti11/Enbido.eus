@@ -177,7 +177,6 @@ public class GameSessionManager {
                     session.addPlayer(3, p3.userId, p3.username);
                     
                     saveNewGameToDb(session);
-                    session.startMatch();
                     
                     Map<String, Object> matchInfo = new HashMap<>();
                     matchInfo.put("roomId", autoRoomId);
