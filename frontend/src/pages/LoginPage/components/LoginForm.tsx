@@ -67,16 +67,30 @@ interface PasswordFieldProps {
   onChange: (value: string) => void;
   showPassword: boolean;
   onToggleShow: () => void;
+  onSwitchToRecover: () => void;
 }
 
-const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPassword, onToggleShow }): React.JSX.Element => {
+const PasswordField: React.FC<PasswordFieldProps> = ({ value, onChange, showPassword, onToggleShow, onSwitchToRecover }): React.JSX.Element => {
   const { t } = useTranslation();
 
   return (
     <div className="login-form__field">
       <div className="login-form__label-row">
         <label className="login-form__label">{t('login.password')}</label>
-        <a href="#" className="login-form__forgot">{t('login.forgotPassword')}</a>
+        <button
+          type="button"
+          className="login-form__forgot"
+          onClick={onSwitchToRecover}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            fontFamily: 'inherit'
+          }}
+        >
+          {t('login.forgotPassword')}
+        </button>
       </div>
       <div className="login-form__input-wrapper">
         <LockIcon />
@@ -101,6 +115,7 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover }) => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -278,53 +293,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover }) => {
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
-      <div className="login-form__field">
-        <label className="login-form__label">Usuario o Email / Erabiltzailea edo Emaila</label>
-        <div className="login-form__input-wrapper">
-          <UserIcon />
-          <input
-            type="text"
-            className="login-form__input"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Introduce: juanito"
-            required
-          />
-        </div>
-      </div>
-      <div className="login-form__field">
-        <div className="login-form__label-row">
-          <label className="login-form__label">Contraseña / Pasahitza</label>
-          <button
-            type="button"
-            className="login-form__forgot"
-            onClick={onSwitchToRecover}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              fontFamily: 'inherit'
-            }}
-          >
-            ¿Olvidaste la contraseña? / Ahaztu zaizu?
-          </button>
-        </div>
-        <div className="login-form__input-wrapper">
-          <LockIcon />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            className="login-form__input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Introduce: 1234"
-            required
-          />
-          <button type="button" className="login-form__toggle" onClick={() => setShowPassword(!showPassword)}>
-            <EyeIcon open={showPassword} />
-          </button>
-        </div>
-      </div>
+      <UsernameField value={username} onChange={setUsername} />
+      <PasswordField
+        value={password}
+        onChange={setPassword}
+        showPassword={showPassword}
+        onToggleShow={() => setShowPassword(!showPassword)}
+        onSwitchToRecover={onSwitchToRecover}
+      />
 
       {error && <p className="login-form__error">{error}</p>}
       <button type="submit" className="login-form__submit">
