@@ -47,6 +47,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         String username;
         String roomId;
         int chair; // -1 if not seated yet
+        String reyesOption; // null if not in matchmaking queue
     }
 
     @Override
@@ -118,7 +119,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         UserConnection conn = activeConnections.remove(session.getId());
         if (conn != null) {
             // Salir de matchmaking si estaba buscando
-            sessionManager.removeFromMatchmaking(conn.userId);
+            if (conn.userId != null) {
+                sessionManager.removeFromMatchmaking(conn.userId);
+                if (conn.reyesOption != null) {
+                    broadcastQueueSize(conn.reyesOption);
+                }
+            }
 
             if (conn.roomId != null) {
                 GameSession room = sessionManager.getRoom(conn.roomId);
@@ -241,14 +247,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         
         conn.userId = userId;
         conn.username = username;
+        conn.reyesOption = reyesOption;
 
         try {
             sessionManager.addToMatchmaking(userId, username, reyesOption);
-            // Confirmamos que está en cola
-            Map<String, Object> queueEvent = new HashMap<>();
-            queueEvent.put("type", "QUEUEING");
-            queueEvent.put("queueSize", sessionManager.getMatchmakingQueueSize(reyesOption));
-            sendJsonMessage(conn.session, queueEvent);
+            // Confirmamos que está en cola a todos los miembros de esa cola
+            broadcastQueueSize(reyesOption);
         } catch (Exception e) {
             sendErrorMessage(conn.session, e.getMessage());
         }
@@ -279,6 +283,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             Map<String, Object> leaveEvent = new HashMap<>();
             leaveEvent.put("type", "LEAVED_QUEUE");
             sendJsonMessage(conn.session, leaveEvent);
+            
+            if (conn.reyesOption != null) {
+                String reyes = conn.reyesOption;
+                conn.reyesOption = null;
+                broadcastQueueSize(reyes);
+            }
         }
     }
 
@@ -638,6 +648,19 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private void broadcastQueueSize(String reyesOption) {
+        List<Long> queueUserIds = sessionManager.getMatchmakingUserIds(reyesOption);
+        Map<String, Object> queueEvent = new HashMap<>();
+        queueEvent.put("type", "QUEUEING");
+        queueEvent.put("queueSize", queueUserIds.size());
+
+        for (UserConnection conn : activeConnections.values()) {
+            if (conn.userId != null && queueUserIds.contains(conn.userId)) {
+                sendJsonMessage(conn.session, queueEvent);
+            }
+        }
+    }
+
     private void handleAbandonment(String roomId, Long userId, String username, int chair) {
         leaverTimers.remove(roomId + "_" + userId);
         
@@ -754,6 +777,10 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
            if (matches == null || matches.isEmpty()) {
                return;
            }
+
+           // Broadcast the new queue sizes to remaining players since some got matched and removed
+           broadcastQueueSize("8");
+           broadcastQueueSize("4");
            
            for (Map<String, Object> match : matches) {
                String roomId = (String) match.get("roomId");
@@ -778,6 +805,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                            if (chair != -1) {
                                otherConn.roomId = roomId;
                                otherConn.chair = chair;
+                               otherConn.reyesOption = null;
                                
                                Map<String, Object> matchEvent = new HashMap<>();
                                matchEvent.put("type", "MATCHED");
