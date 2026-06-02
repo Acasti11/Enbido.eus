@@ -3,6 +3,48 @@ import api from '../../../services/api';
 import '../styles/premium-lobby.css';
 import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
 
+interface ParticipantInfo {
+  userId: number;
+  username: string;
+}
+
+interface MatchInfo {
+  matchId: number;
+  tournamentId: number;
+  roundNumber: number;
+  matchIndex: number;
+  player1Id: number | null;
+  player2Id: number | null;
+  winnerId: number | null;
+  score: string;
+}
+
+interface TournamentBackendDto {
+  tournamentId: number;
+  id?: number;
+  title: string;
+  tournamentName?: string;
+  city: string;
+  specificLocation: string;
+  startDatetime: string;
+  entryFee: number;
+  maxTeams: number;
+  status: string;
+  coinsFee: number;
+  coinsReward: number;
+  organizerId: number;
+  organizer: {
+    email: string;
+  } | null;
+  posterImage?: string;
+}
+
+interface TournamentDetails {
+  tournament: TournamentBackendDto;
+  participants: ParticipantInfo[];
+  matches: MatchInfo[];
+}
+
 interface PremiumLobbyProps {
   username: string;
   isSearching: boolean;
@@ -75,10 +117,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [showRulesModal, setShowRulesModal] = useState(false);
 
-  const [onlineTournaments, setOnlineTournaments] = useState<any[]>([]);
+  const [onlineTournaments, setOnlineTournaments] = useState<TournamentBackendDto[]>([]);
   const [loadingTournaments, setLoadingTournaments] = useState(false);
   const [selectedTourneyId, setSelectedTourneyId] = useState<number | null>(null);
-  const [tourneyDetails, setTourneyDetails] = useState<any>(null);
+  const [tourneyDetails, setTourneyDetails] = useState<TournamentDetails | null>(null);
   const [loadingTourneyDetails, setLoadingTourneyDetails] = useState(false);
 
   // Reporting states
@@ -124,9 +166,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
       fetchProfileData();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error joining online tournament:', err);
-      alert(err.response?.data || 'Error al inscribirse. Comprueba tus monedas.');
+      let errMsg = 'Error al inscribirse. Comprueba tus monedas.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: string } };
+        if (axiosErr.response?.data) {
+          errMsg = axiosErr.response.data;
+        }
+      }
+      alert(errMsg);
     }
   };
 
@@ -137,9 +186,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert('¡Torneo online iniciado y brackets de eliminatorias generados!');
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error starting online tournament:', err);
-      alert(err.response?.data || 'Error al iniciar.');
+      let errMsg = 'Error al iniciar.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: string } };
+        if (axiosErr.response?.data) {
+          errMsg = axiosErr.response.data;
+        }
+      }
+      alert(errMsg);
     }
   };
 
@@ -158,15 +214,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       setReportWinnerId(null);
       handleOpenTourneyDetail(selectedTourneyId);
       fetchOnlineTournaments();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error reporting match score:', err);
-      alert(err.response?.data || 'Error al reportar.');
+      let errMsg = 'Error al reportar.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: string } };
+        if (axiosErr.response?.data) {
+          errMsg = axiosErr.response.data;
+        }
+      }
+      alert(errMsg);
     }
   };
 
   const getTourneyUsernameById = (id: number | null): string => {
     if (!id || !tourneyDetails) return 'Esperando...';
-    const match = tourneyDetails.participants.find((p: any) => p.userId === id);
+    const match = tourneyDetails.participants.find((p) => p.userId === id);
     return match ? match.username : `Jugador-${id}`;
   };
 
@@ -209,9 +272,15 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     type: 'received' | 'sent';
   }
 
+  interface SearchUserDto {
+    user_id: number;
+    username: string;
+    elo?: number;
+  }
+
   const [socialTab, setSocialTab] = useState<'amigos' | 'buscar' | 'requests'>('amigos');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchUserDto[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<PendingRequest[]>([]);
 
@@ -275,6 +344,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   // ---------- INITIALIZE PROFILE & SOCIAL & POLLING ----------
   useEffect(() => {
     fetchProfileData();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFriends();
     fetchRequests();
     fetchOnlineTournaments();
@@ -291,9 +361,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       const res = await api.post('/usuarios/me/2fa/toggle', { enabled });
       setTwoFactorEnabled(res.data.twoFactorEnabled);
       alert(enabled ? '¡Autenticación de Doble Factor (2FA) activada con éxito!' : 'Autenticación de Doble Factor (2FA) desactivada.');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating 2FA in lobby:', err);
-      alert(err.response?.data?.error || 'Error al cambiar la configuración de 2FA');
+      let errMsg = 'Error al cambiar la configuración de 2FA';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        if (axiosErr.response?.data?.error) {
+          errMsg = axiosErr.response.data.error;
+        }
+      }
+      alert(errMsg);
     } finally {
       setUpdating2Fa(false);
     }
@@ -314,7 +391,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       } else {
         try {
           const res = await api.get(`/messages/${activeChatUser.id}`);
-          const mapped = res.data.map((m: any) => ({
+          const mapped = res.data.map((m: { senderId: number; content: string; sentAt: string }) => ({
             senderId: m.senderId,
             senderName: m.senderId === currentUserId ? activeUsername : activeChatUser.username,
             content: m.content,
@@ -340,7 +417,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       // Registrar id para excluir notificaciones
       localStorage.setItem('enbido_active_chat_user_id', String(activeChatUser.id));
 
-      registerDmCallback((newMsg: any) => {
+      registerDmCallback((newMsg: { senderId: number; receiverId: number; content: string; sentAt: string; sender?: { username: string } }) => {
         if (
           (newMsg.senderId === currentUserId && newMsg.receiverId === activeChatUser.id) ||
           (newMsg.senderId === activeChatUser.id && newMsg.receiverId === currentUserId)
@@ -416,7 +493,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     try {
       const res = await api.get('/usuarios');
       // Filtrar la lista de usuarios en base a la query (excluyendo el usuario propio)
-      const matches = res.data.filter((u: any) =>
+      const matches = res.data.filter((u: { username: string }) =>
         u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
         u.username !== activeUsername
       );
@@ -426,7 +503,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     }
   };
 
-  const handleSendFriendRequest = async (targetUser: any) => {
+  const handleSendFriendRequest = async (targetUser: { username: string }) => {
     const isAlreadyFriend = friends.some(f => f.username === targetUser.username);
     if (isAlreadyFriend) {
       alert('Ya tienes agregado o pendiente a este jugador.');
@@ -438,9 +515,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert(res.data.message || 'Solicitud de amistad enviada.');
       fetchRequests();
       fetchFriends();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error sending friend request:', err);
-      alert(err.response?.data?.error || 'Error al enviar solicitud');
+      let errMsg = 'Error al enviar solicitud';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        if (axiosErr.response?.data?.error) {
+          errMsg = axiosErr.response.data.error;
+        }
+      }
+      alert(errMsg);
     }
   };
 
@@ -450,9 +534,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert('Solicitud de amistad aceptada.');
       fetchFriends();
       fetchRequests();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error accepting friend request:', err);
-      alert(err.response?.data?.error || 'Error al aceptar solicitud');
+      let errMsg = 'Error al aceptar solicitud';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        if (axiosErr.response?.data?.error) {
+          errMsg = axiosErr.response.data.error;
+        }
+      }
+      alert(errMsg);
     }
   };
 
@@ -461,9 +552,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       await api.post(`/friendships/decline/${req.friendshipId}`);
       alert('Solicitud rechazada/cancelada.');
       fetchRequests();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error declining request:', err);
-      alert(err.response?.data?.error || 'Error al rechazar solicitud');
+      let errMsg = 'Error al rechazar solicitud';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        if (axiosErr.response?.data?.error) {
+          errMsg = axiosErr.response.data.error;
+        }
+      }
+      alert(errMsg);
     }
   };
 
@@ -1362,7 +1460,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
             {/* Header info */}
             <div className="tourney-details-header">
               <span className="tourney-details-subtitle">
-                🌐 Torneo Online de Mus
+                🌐 Torneo de Mus
               </span>
               <h2 className="tourney-details-title">
                 {tourneyDetails.tournament.title || tourneyDetails.tournament.tournamentName}
@@ -1375,94 +1473,139 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 <p className="tourney-details-loader-text">Cargando eliminatorias del torneo...</p>
               </div>
             ) : (
-              <>
-                {/* DETAILS GRID */}
-                <div className="tourney-metrics-grid">
-                  <div className="tourney-metric-card">
-                    <span className="tourney-metric-label">INSCRIPCIÓN</span>
-                    <span className="tourney-metric-value tourney-metric-value--fee">💰 {tourneyDetails.tournament.coinsFee || 0} tx</span>
+              <div className="tourney-detail-body">
+                {/* Left Column: Ficha Técnica */}
+                <div className="tourney-detail-left">
+                  <div className="tourney-detail-card">
+                    <h3 className="tourney-detail-card-title">📋 Ficha de Torneo</h3>
+                    <div className="tourney-detail-card-list">
+                      <div>
+                        <strong className="tourney-detail-label">🗓️ Fecha y Hora:</strong>
+                        <p className="tourney-detail-value">
+                          {tourneyDetails.tournament.startDatetime ? tourneyDetails.tournament.startDatetime.replace('T', ' a las ').substring(0, 16) : 'Por determinar'}
+                        </p>
+                      </div>
+                      <div>
+                        <strong className="tourney-detail-label">💰 Entrada / Inscripción:</strong>
+                        <p className="tourney-detail-value">{tourneyDetails.tournament.coinsFee || 0} monedas (tx)</p>
+                      </div>
+                      <div>
+                        <strong className="tourney-detail-label">🏆 Premio Campeón:</strong>
+                        <p className="tourney-detail-value">{tourneyDetails.tournament.coinsReward || 0} monedas (tx)</p>
+                      </div>
+                      <div>
+                        <strong className="tourney-detail-label">👥 Aforo Máximo:</strong>
+                        <p className="tourney-detail-value">{tourneyDetails.participants.length} / {tourneyDetails.tournament.maxTeams || 8} participantes</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="tourney-metric-card">
-                    <span className="tourney-metric-label">RECOMPENSA CAMPEÓN</span>
-                    <span className="tourney-metric-value tourney-metric-value--reward">🏆 {tourneyDetails.tournament.coinsReward || 0} tx</span>
-                  </div>
-                  <div className="tourney-metric-card">
-                    <span className="tourney-metric-label">AFORO</span>
-                    <span className="tourney-metric-value">{tourneyDetails.participants.length} / {tourneyDetails.tournament.maxTeams || 8}</span>
-                  </div>
-                  <div className="tourney-metric-card">
-                    <span className="tourney-metric-label">ESTADO</span>
-                    <span className={`tourney-metric-value--status ${
-                      tourneyDetails.tournament.status === 'finished'
-                        ? 'tourney-metric-value--status-finished'
-                        : tourneyDetails.tournament.status === 'playing'
-                        ? 'tourney-metric-value--status-playing'
-                        : 'tourney-metric-value--status-open'
-                    }`}>
-                      {tourneyDetails.tournament.status === 'open' ? 'Abierto' : tourneyDetails.tournament.status === 'playing' ? 'En juego' : 'Finalizado'}
-                    </span>
+
+                  <div className="tourney-detail-rules-card">
+                    <h4 className="tourney-detail-rules-title">ℹ️ Descripción y Normativa</h4>
+                    <p className="tourney-detail-rules-text">
+                      Este es un torneo de Mus organizado por la comunidad. Inscríbete usando tus monedas, compite en eliminatorias directas y gana grandes recompensas. La gestión de brackets y el reporte de resultados se realizan en esta plataforma bajo la supervisión del organizador del torneo.
+                    </p>
                   </div>
                 </div>
 
-                {/* ACTION TRIGGERS (JOIN / START) */}
-                {tourneyDetails.tournament.status === 'open' && (
-                  <div className="tourney-actions-row">
-                    {tourneyDetails.participants.some((p: any) => p.userId === currentUserId) ? (
-                      <button className="tourney-btn-inscribed" disabled>
-                        ✔ Ya estás inscrito en este torneo online
-                      </button>
-                    ) : (
-                      <button className="btn-action tourney-btn-flex" onClick={handleJoinOnlineTournament}>
-                        💰 Inscribirse por {tourneyDetails.tournament.coinsFee || 0} monedas (tx)
-                      </button>
-                    )}
+                {/* Right Column: Interaction / Brackets / Participants */}
+                <div className="tourney-detail-right" style={{ flex: '2 2 450px' }}>
+                  {/* ACTION TRIGGERS (JOIN / START) */}
+                  <div className="tourney-actions-row" style={{ marginBottom: '20px' }}>
+                    {tourneyDetails.tournament.status === 'open' && (
+                      <>
+                        {tourneyDetails.participants.some((p) => p.userId === currentUserId) ? (
+                          <button className="tourney-btn-inscribed" style={{ width: '100%' }} disabled>
+                            ✔ Ya estás inscrito en este torneo
+                          </button>
+                        ) : (
+                          <button className="btn-action tourney-btn-flex" style={{ width: '100%' }} onClick={handleJoinOnlineTournament}>
+                            💰 Inscribirse por {tourneyDetails.tournament.coinsFee || 0} monedas (tx)
+                          </button>
+                        )}
 
-                    {tourneyDetails.tournament.organizerId === currentUserId && (
-                      <button
-                        className="btn-action tourney-btn-admin-start"
-                        onClick={handleStartOnlineTournament}
-                        disabled={tourneyDetails.participants.length < 2}
-                      >
-                        ⚡ Iniciar Torneo y Generar Llaves (Admin)
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* REGISTERED PLAYERS (IF OPEN) */}
-                {tourneyDetails.tournament.status === 'open' && (
-                  <div className="tourney-participants-section">
-                    <h3 className="tourney-section-heading">Participantes Inscritos</h3>
-                    {tourneyDetails.participants.length === 0 ? (
-                      <p className="tourney-participants-empty">Aún no hay inscripciones para este torneo.</p>
-                    ) : (
-                      <div className="tourney-participants-list">
-                        {tourneyDetails.participants.map((player: any) => (
-                          <span key={player.userId} className={`tourney-participant-pill ${player.userId === currentUserId ? 'tourney-participant-pill--me' : ''}`}>
-                            👤 {player.username} {player.userId === currentUserId && '(Tú)'}
-                          </span>
-                        ))}
-                      </div>
+                        {tourneyDetails.tournament.organizerId === currentUserId && (
+                          <button
+                            className="btn-action tourney-btn-admin-start"
+                            style={{ width: '100%', marginTop: '10px' }}
+                            onClick={handleStartOnlineTournament}
+                            disabled={tourneyDetails.participants.length < 2}
+                          >
+                            ⚡ Iniciar Torneo y Generar Llaves (Admin)
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
-                )}
 
-                {/* ---------- VISUAL BRACKET TREE ---------- */}
-                {(tourneyDetails.tournament.status === 'playing' || tourneyDetails.tournament.status === 'finished') && (
-                  <div>
-                    <h3 className="tourney-bracket-heading">Cuadro del Torneo / Brackets</h3>
+                  {/* REGISTERED PLAYERS (IF OPEN) */}
+                  {tourneyDetails.tournament.status === 'open' && (
+                    <div className="tourney-participants-section">
+                      <h3 className="tourney-section-heading">Participantes Inscritos</h3>
+                      {tourneyDetails.participants.length === 0 ? (
+                        <p className="tourney-participants-empty">Aún no hay inscripciones para este torneo.</p>
+                      ) : (
+                        <div className="tourney-participants-list">
+                          {tourneyDetails.participants.map((player) => (
+                            <span key={player.userId} className={`tourney-participant-pill ${player.userId === currentUserId ? 'tourney-participant-pill--me' : ''}`}>
+                              👤 {player.username} {player.userId === currentUserId && '(Tú)'}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                    <div className="tourney-bracket-tree">
+                  {/* ---------- VISUAL BRACKET TREE (IF PLAYING OR FINISHED) ---------- */}
+                  {(tourneyDetails.tournament.status === 'playing' || tourneyDetails.tournament.status === 'finished') && (
+                    <div>
+                      <h3 className="tourney-bracket-heading">Cuadro del Torneo / Brackets</h3>
 
-                      {/* ROUND 1: QUARTERFINALS */}
-                      {tourneyDetails.matches.some((m: any) => m.roundNumber === 1) && (
-                        <div className="bracket-round-column">
-                          <span className="bracket-round-label">Cuartos de Final</span>
-                          {tourneyDetails.matches.filter((m: any) => m.roundNumber === 1).map((match: any) => {
+                      <div className="tourney-bracket-tree">
+
+                        {/* ROUND 1: QUARTERFINALS */}
+                        {tourneyDetails.matches.some((m) => m.roundNumber === 1) && (
+                          <div className="bracket-round-column">
+                            <span className="bracket-round-label">Cuartos de Final</span>
+                            {tourneyDetails.matches.filter((m) => m.roundNumber === 1).map((match) => {
+                              const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
+                              const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                              const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
+                              const isActive = !match.winnerId && match.player1Id !== null && match.player2Id !== null;
+
+                              return (
+                                <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
+                                  <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
+                                    <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                    {isWinner1 && <span>✔</span>}
+                                  </div>
+                                  <div className="bracket-divider" />
+                                  <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
+                                    <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                    {isWinner2 && <span>✔</span>}
+                                  </div>
+                                  {match.score && (
+                                    <div className="bracket-score">Resultado: {match.score}</div>
+                                  )}
+                                  {isOrganizer && isActive && reportingMatchId !== match.matchId && (
+                                    <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
+                                      ✎
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* ROUND 2: SEMIFINALS */}
+                        <div className="bracket-round-column bracket-round-column--semis">
+                          <span className="bracket-round-label">Semifinales</span>
+                          {tourneyDetails.matches.filter((m) => m.roundNumber === 2).map((match) => {
                             const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
                             const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
                             const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                            const isActive = !match.winnerId && match.player1Id && match.player2Id;
+                            const isActive = !match.winnerId && match.player1Id !== null && match.player2Id !== null;
 
                             return (
                               <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
@@ -1487,131 +1630,98 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             );
                           })}
                         </div>
+
+                        {/* ROUND 3: GRAND FINAL */}
+                        <div className="bracket-round-column bracket-round-column--final">
+                          <span className="bracket-round-label">Gran Final</span>
+                          {tourneyDetails.matches.filter((m) => m.roundNumber === 3).map((match) => {
+                            const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
+                            const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                            const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
+                            const isActive = !match.winnerId && match.player1Id !== null && match.player2Id !== null;
+                            const championId = match.winnerId;
+
+                            return (
+                              <div key={match.matchId} className={`bracket-match-box bracket-match-box--final ${championId ? 'bracket-match-box--championship' : reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
+                                {championId && <span className="bracket-match-champion-tag">👑 ¡Campeón!</span>}
+                                <div className={`bracket-player-row bracket-player-row--final ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
+                                  <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                  {isWinner1 && <span>🏆</span>}
+                                </div>
+                                <div className="bracket-divider bracket-divider--final" />
+                                <div className={`bracket-player-row bracket-player-row--final ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
+                                  <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                  {isWinner2 && <span>🏆</span>}
+                                </div>
+                                {match.score && (
+                                  <div className="bracket-score bracket-score--final">Resultado: {match.score}</div>
+                                )}
+                                {isOrganizer && isActive && reportingMatchId !== match.matchId && (
+                                  <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
+                                    ✎
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                      </div>
+
+                      {/* ---------- FLOATING REPORT SCORE PANEL ---------- */}
+                      {reportingMatchId && (
+                        <form onSubmit={handleReportOnlineWinnerSubmit} className="bracket-report-form">
+                          <h4 className="bracket-report-form-title">✎ Registrar Resultado de Partida</h4>
+
+                          <div className="bracket-report-row">
+                            <div className="bracket-report-field-group">
+                              <label className="bracket-report-label">SELECCIONAR GANADOR</label>
+                              <select
+                                value={reportWinnerId || ''}
+                                onChange={(e) => setReportWinnerId(Number(e.target.value))}
+                                className="bracket-report-select"
+                              >
+                                <option value="">-- Seleccionar --</option>
+                                {tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player1Id && (
+                                  <option value={tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player1Id || ''}>
+                                    {getTourneyUsernameById(tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player1Id || null)}
+                                  </option>
+                                )}
+                                {tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player2Id && (
+                                  <option value={tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player2Id || ''}>
+                                    {getTourneyUsernameById(tourneyDetails.matches.find((m) => m.matchId === reportingMatchId)?.player2Id || null)}
+                                  </option>
+                                )}
+                              </select>
+                            </div>
+
+                            <div className="bracket-report-field-group bracket-report-field-group--score">
+                              <label className="bracket-report-label">MARCADOR</label>
+                              <input
+                                type="text"
+                                value={reportScore}
+                                onChange={(e) => setReportScore(e.target.value)}
+                                placeholder="3-0"
+                                className="bracket-report-input"
+                              />
+                            </div>
+
+                            <div className="bracket-report-actions">
+                              <button type="submit" className="btn-action bracket-report-btn-save" disabled={!reportWinnerId}>
+                                Guardar
+                              </button>
+                              <button type="button" onClick={() => setReportingMatchId(null)} className="bracket-report-btn-cancel">
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        </form>
                       )}
 
-                      {/* ROUND 2: SEMIFINALS */}
-                      <div className="bracket-round-column bracket-round-column--semis">
-                        <span className="bracket-round-label">Semifinales</span>
-                        {tourneyDetails.matches.filter((m: any) => m.roundNumber === 2).map((match: any) => {
-                          const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                          const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
-                          const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                          const isActive = !match.winnerId && match.player1Id && match.player2Id;
-
-                          return (
-                            <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
-                              <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player1Id)}</span>
-                                  {isWinner1 && <span>✔</span>}
-                              </div>
-                              <div className="bracket-divider" />
-                              <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player2Id)}</span>
-                                {isWinner2 && <span>✔</span>}
-                              </div>
-                              {match.score && (
-                                <div className="bracket-score">Resultado: {match.score}</div>
-                              )}
-                              {isOrganizer && isActive && reportingMatchId !== match.matchId && (
-                                <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
-                                  ✎
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* ROUND 3: GRAND FINAL */}
-                      <div className="bracket-round-column bracket-round-column--final">
-                        <span className="bracket-round-label">Gran Final</span>
-                        {tourneyDetails.matches.filter((m: any) => m.roundNumber === 3).map((match: any) => {
-                          const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                          const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
-                          const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                          const isActive = !match.winnerId && match.player1Id && match.player2Id;
-                          const championId = match.winnerId;
-
-                          return (
-                            <div key={match.matchId} className={`bracket-match-box bracket-match-box--final ${championId ? 'bracket-match-box--championship' : reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
-                              {championId && <span className="bracket-match-champion-tag">👑 ¡Campeón!</span>}
-                              <div className={`bracket-player-row bracket-player-row--final ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player1Id)}</span>
-                                {isWinner1 && <span>🏆</span>}
-                              </div>
-                              <div className="bracket-divider bracket-divider--final" />
-                              <div className={`bracket-player-row bracket-player-row--final ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player2Id)}</span>
-                                {isWinner2 && <span>🏆</span>}
-                              </div>
-                              {match.score && (
-                                <div className="bracket-score bracket-score--final">Resultado: {match.score}</div>
-                              )}
-                              {isOrganizer && isActive && reportingMatchId !== match.matchId && (
-                                <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title="Reportar Ganador">
-                                  ✎
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-
                     </div>
-
-                    {/* ---------- FLOATING REPORT SCORE PANEL ---------- */}
-                    {reportingMatchId && (
-                      <form onSubmit={handleReportOnlineWinnerSubmit} className="bracket-report-form">
-                        <h4 className="bracket-report-form-title">✎ Registrar Resultado de Partida</h4>
-
-                        <div className="bracket-report-row">
-                          <div className="bracket-report-field-group">
-                            <label className="bracket-report-label">SELECCIONAR GANADOR</label>
-                            <select
-                              value={reportWinnerId || ''}
-                              onChange={(e) => setReportWinnerId(Number(e.target.value))}
-                              className="bracket-report-select"
-                            >
-                              <option value="">-- Seleccionar --</option>
-                              {tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player1Id && (
-                                <option value={tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player1Id || ''}>
-                                  {getTourneyUsernameById(tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player1Id || null)}
-                                </option>
-                              )}
-                              {tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player2Id && (
-                                <option value={tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player2Id || ''}>
-                                  {getTourneyUsernameById(tourneyDetails.matches.find((m: any) => m.matchId === reportingMatchId)?.player2Id || null)}
-                                </option>
-                              )}
-                            </select>
-                          </div>
-
-                          <div className="bracket-report-field-group bracket-report-field-group--score">
-                            <label className="bracket-report-label">MARCADOR</label>
-                            <input
-                              type="text"
-                              value={reportScore}
-                              onChange={(e) => setReportScore(e.target.value)}
-                              placeholder="3-0"
-                              className="bracket-report-input"
-                            />
-                          </div>
-
-                          <div className="bracket-report-actions">
-                            <button type="submit" className="btn-action bracket-report-btn-save" disabled={!reportWinnerId}>
-                              Guardar
-                            </button>
-                            <button type="button" onClick={() => setReportingMatchId(null)} className="bracket-report-btn-cancel">
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      </form>
-                    )}
-
-                  </div>
-                )}
-              </>
+                  )}
+                </div>
+              </div>
             )}
 
           </div>

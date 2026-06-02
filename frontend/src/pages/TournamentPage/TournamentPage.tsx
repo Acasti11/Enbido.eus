@@ -7,14 +7,21 @@ import TournamentList from './components/TournamentList';
 import PublishForm from './components/PublishForm';
 import './tournament.css';
 
-interface ParticipantInfo {
-  userId: number;
-  username: string;
-}
-
-interface TournamentDetails {
-  tournament: any;
-  participants: ParticipantInfo[];
+interface TournamentBackendDto {
+  tournamentId: number;
+  title: string;
+  city: string;
+  specificLocation: string;
+  startDatetime: string;
+  entryFee: number;
+  maxTeams: number;
+  status: string;
+  coinsFee: number;
+  coinsReward: number;
+  organizerId: number;
+  organizer: {
+    email: string;
+  } | null;
 }
 
 import { useSeo } from '../../hooks/useSeo';
@@ -47,16 +54,12 @@ const TournamentPage = (): React.JSX.Element => {
   const [tournamentsList, setTournamentsList] = useState<TournamentDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // ---------- DETAIL STATES ----------
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [details, setDetails] = useState<TournamentDetails | null>(null);
-  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
+
 
   const fetchTournaments = async () => {
     try {
-      setLoading(true);
       const res = await api.get('/tournaments');
-      const mapped = res.data.map((t: any) => ({
+      const mapped = res.data.map((t: TournamentBackendDto) => ({
         id: t.tournamentId,
         tournamentName: t.title,
         contactEmail: t.organizer?.email || 'harreman@mus.eus',
@@ -83,21 +86,11 @@ const TournamentPage = (): React.JSX.Element => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTournaments();
   }, []);
 
-  const handleOpenDetail = async (id: number) => {
-    setSelectedId(id);
-    setLoadingDetails(true);
-    try {
-      const res = await api.get(`/tournaments/${id}/details`);
-      setDetails(res.data);
-    } catch (err) {
-      console.error('Error fetching details:', err);
-    } finally {
-      setLoadingDetails(false);
-    }
-  };
+
 
   const handleSaveTournament = async (newTournamentData: TournamentFormState) => {
     try {
@@ -157,7 +150,6 @@ const TournamentPage = (): React.JSX.Element => {
               <TournamentList
                 tournaments={tournamentsList}
                 onPublish={() => setCurrentView(CONST_VIEW_PUBLISH)}
-                onClickDetail={handleOpenDetail}
               />
             )}
             {currentView === CONST_VIEW_PUBLISH && (
@@ -169,83 +161,6 @@ const TournamentPage = (): React.JSX.Element => {
           </>
         )}
       </main>
-
-      {/* ---------- DETAIL MODAL OVERLAY ---------- */}
-      {selectedId && details && (
-        <div className="modal-overlay" onClick={() => { setSelectedId(null); setDetails(null); }}>
-          <div className="form-container tourney-detail-modal" onClick={(e) => e.stopPropagation()}>
-
-            <header className="tourney-detail-header">
-              <div>
-                <span className="welcome-tag tourney-detail-tag">DETALLES DEL TORNEO</span>
-                <h2 className="welcome-title tourney-detail-title">{details.tournament.title}</h2>
-                <p className="tourney-detail-location">📍 {details.tournament.specificLocation}, {details.tournament.city}</p>
-              </div>
-              <button
-                onClick={() => { setSelectedId(null); setDetails(null); }}
-                className="tourney-detail-close-btn"
-              >
-                &times;
-              </button>
-            </header>
-
-            {loadingDetails ? (
-              <div className="tourney-detail-loading-box">
-                <div className="lobby-loader tourney-list-loading-spinner"></div>
-                <p className="tourney-detail-loading-text">Kargatzen / Cargando...</p>
-              </div>
-            ) : (
-              <div className="tourney-detail-body">
-                {/* Left Side: Poster and info */}
-                <div className="tourney-detail-left">
-                  <img
-                    src={details.tournament.posterImage || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80'}
-                    alt={details.tournament.title}
-                    className="tourney-detail-poster-img"
-                  />
-                </div>
-
-                {/* Right Side: Information sheet */}
-                <div className="tourney-detail-right">
-                  <div className="tourney-detail-card">
-                    <h3 className="tourney-detail-card-title">
-                      📋 Ficha de Torneo Presencial
-                    </h3>
-
-                    <div className="tourney-detail-card-list">
-                      <div>
-                        <strong className="tourney-detail-label">📍 Lugar:</strong>
-                        <p className="tourney-detail-value">{details.tournament.specificLocation}, {details.tournament.city}</p>
-                      </div>
-                      <div>
-                        <strong className="tourney-detail-label">🗓️ Fecha y Hora:</strong>
-                        <p className="tourney-detail-value">
-                          {details.tournament.startDatetime ? details.tournament.startDatetime.replace('T', ' a las ').substring(0, 16) : 'Por determinar'}
-                        </p>
-                      </div>
-                      <div>
-                        <strong className="tourney-detail-label">📧 Email de Contacto:</strong>
-                        <p className="tourney-detail-value">{details.tournament.organizer?.email || 'harreman@mus.eus'}</p>
-                      </div>
-                      <div>
-                        <strong className="tourney-detail-label">🏆 Premios y Trofeos:</strong>
-                        <p className="tourney-detail-value">Txapela para la pareja ganadora + Premios locales del organizador.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="tourney-detail-rules-card">
-                    <h4 className="tourney-detail-rules-title">ℹ️ Descripción y Normativa</h4>
-                    <p className="tourney-detail-rules-text">
-                      Este es un torneo de Mus presencial organizado por la comunidad. La inscripción, los pagos y el registro de partidas se realizarán directamente en el local de juego bajo la supervisión de los organizadores del torneo. Para más detalles sobre las bases del campeonato, por favor ponte en contacto a través del correo electrónico facilitado.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

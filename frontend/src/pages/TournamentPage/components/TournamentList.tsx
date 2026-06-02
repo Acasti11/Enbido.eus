@@ -1,26 +1,57 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { TournamentDto } from '../../../types/tournament';
 import TournamentCard from './TournamentCard';
 
 interface TournamentListProps {
   tournaments: TournamentDto[];
   onPublish?: () => void;
-  onClickDetail: (id: number) => void;
 }
 
-const TournamentList = ({ tournaments, onPublish, onClickDetail }: TournamentListProps): React.JSX.Element => {
+const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.JSX.Element => {
+  const navigate = useNavigate();
+
   return (
     <div>
       <header className="page-header">
         <h1 className="page-title">Txapelketak / Tournois</h1>
         <button className="btn-action" onClick={onPublish}>+ Argitaratu</button>
       </header>
+
+      {/* REDIRECTION BANNER TO PLAY TAB FOR BRACKETS */}
+      <div 
+        className="presencial-redirect-banner" 
+        style={{
+          background: 'rgba(212, 175, 55, 0.08)',
+          border: '1px solid rgba(212, 175, 55, 0.3)',
+          borderRadius: '12px',
+          padding: '16px 24px',
+          marginBottom: '30px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '15px'
+        }}
+      >
+        <span style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 500 }}>
+          🏆 Si quieres unirte a un torneo virtual y ver/gestionar sus brackets, haz clic aquí.
+        </span>
+        <button 
+          className="btn-action" 
+          onClick={() => navigate('/jugar')}
+          style={{ padding: '8px 16px', fontSize: '0.85rem', boxShadow: 'none' }}
+        >
+          Torneos Virtuales
+        </button>
+      </div>
+
       <section className="tournament-grid">
         {tournaments.length === 0 ? (
           <p className="empty-msg">Ez dago txapelketarik.</p>
         ) : (
           tournaments.map((t) => (
-            <TournamentCard key={t.id} tournamentData={t} onClickDetail={onClickDetail} />
+            <TournamentCard key={t.id} tournamentData={t} />
           ))
         )}
       </section>

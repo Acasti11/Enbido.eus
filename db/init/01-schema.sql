@@ -374,14 +374,18 @@ INSERT IGNORE INTO user_game_profile (user_id, elo, coins, total_games_played, t
 -- Insertar torneos de prueba
 INSERT IGNORE INTO physical_tournament (tournament_id, organizer_id, title, city, specific_location, start_datetime, entry_fee, max_teams, status, coins_fee, coins_reward) VALUES 
 (100, 100, 'Gran Copa Euskal Herria', 'Donostia', 'Gros Kiroldegia', '2026-06-15 18:00:00', 0, 8, 'open', 50, 400), 
-(101, 101, 'Kopa Bilbo Mus', 'Bilbo', 'Kasko Zaharra Cafe', '2026-05-30 19:30:00', 0, 8, 'playing', 100, 800);
+(101, 101, 'Kopa Bilbo Mus', 'Bilbo', 'Kasko Zaharra Cafe', '2026-05-30 19:30:00', 0, 8, 'playing', 100, 800),
+(102, 100, 'Txapelketa Gasteiz', 'Gasteiz', 'Zabalgana Kultur Etxea', '2026-05-20 17:00:00', 0, 8, 'finished', 75, 600),
+(103, 102, 'Torneo Rápido Eibar', 'Eibar', 'Unzaga Plaza Taberna', '2026-06-10 20:00:00', 0, 8, 'open', 40, 300);
 
 -- Insertar participantes de los torneos
 INSERT IGNORE INTO physical_tournament_participant (tournament_id, user_id) VALUES 
 (100, 100), (100, 101), (100, 102), (100, 103),
-(101, 100), (101, 101), (101, 102), (101, 103), (101, 104), (101, 105), (101, 106), (101, 107);
+(101, 100), (101, 101), (101, 102), (101, 103), (101, 104), (101, 105), (101, 106), (101, 107),
+(102, 100), (102, 101), (102, 102), (102, 103), (102, 104), (102, 105), (102, 106), (102, 107),
+(103, 100), (103, 101), (103, 102), (103, 103), (103, 104), (103, 105), (103, 106);
 
--- Insertar emparejamientos/llaves del torneo 101
+-- Insertar emparejamientos/llaves del torneo 101 (En Juego)
 INSERT IGNORE INTO physical_tournament_match (match_id, tournament_id, round_number, match_index, player1_id, player2_id, winner_id, score) VALUES 
 (1, 101, 1, 0, 100, 101, 100, '3-1'),
 (2, 101, 1, 1, 102, 103, 103, '3-2'),
@@ -390,6 +394,17 @@ INSERT IGNORE INTO physical_tournament_match (match_id, tournament_id, round_num
 (5, 101, 2, 0, 100, 103, NULL, ''),
 (6, 101, 2, 1, 104, NULL, NULL, ''),
 (7, 101, 3, 0, NULL, NULL, NULL, '');
+
+-- Insertar emparejamientos/llaves del torneo 102 (Finalizado)
+INSERT IGNORE INTO physical_tournament_match (match_id, tournament_id, round_number, match_index, player1_id, player2_id, winner_id, score) VALUES 
+(8, 102, 1, 0, 100, 101, 101, '3-2'),
+(9, 102, 1, 1, 102, 103, 102, '3-1'),
+(10, 102, 1, 2, 104, 105, 105, '3-0'),
+(11, 102, 1, 3, 106, 107, 106, '3-1'),
+(12, 102, 2, 0, 101, 102, 101, '3-0'),
+(13, 102, 2, 1, 105, 106, 105, '3-2'),
+(14, 102, 3, 0, 101, 105, 101, '3-1');
+
 
 -- ==========================================
 -- ÍNDICES DE RENDIMIENTO (ACCESO EFICIENTE)

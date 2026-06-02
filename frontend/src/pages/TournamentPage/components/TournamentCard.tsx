@@ -3,21 +3,17 @@ import type { TournamentDto } from '../../../types/tournament';
 
 interface TournamentCardProps {
   tournamentData: TournamentDto;
-  onClickDetail: (id: number) => void;
 }
 
-const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps): React.JSX.Element => {
+const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Element => {
   return (
-    <article className="tournament-card" onClick={() => onClickDetail(tournamentData.id)}>
+    <article className="tournament-card">
       <div className="card-poster">
         <img
           src={tournamentData.posterImage || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80'}
           alt={tournamentData.tournamentName}
           className="card-poster-img"
         />
-        <div className="card-poster-overlay">
-          <span>Ver Información / Detalles</span>
-        </div>
       </div>
       <div className="card-content">
         <div className="card-header tournament-card-header">
@@ -34,16 +30,6 @@ const TournamentCard = ({ tournamentData, onClickDetail }: TournamentCardProps):
             <p className="tournament-card-body-text">✉️ <strong>Contacto:</strong> {tournamentData.contactEmail}</p>
           )}
         </div>
-
-        <button
-          className="btn-action tournament-card-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClickDetail(tournamentData.id);
-          }}
-        >
-          Ver Más Detalles
-        </button>
       </div>
     </article>
   );
