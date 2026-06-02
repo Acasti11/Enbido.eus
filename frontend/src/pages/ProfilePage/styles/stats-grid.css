@@ -1,20 +1,20 @@
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-lg);
+  gap: var(--space-2xl);
 }
 
 .stats-grid__item {
   background-color: rgba(15, 41, 30, 0.3);
   border: 1px solid rgba(26, 71, 49, 0.2);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--space-2xl);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
-  transition: all 0.3s ease;
+  gap: var(--space-lg);
+  transition: all var(--transition-normal) ease;
 }
 
 .stats-grid__item:hover {
@@ -25,7 +25,7 @@
 }
 
 .stats-grid__label {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: rgba(26, 71, 49, 0.7);
   letter-spacing: 0.05em;
@@ -34,7 +34,7 @@
 }
 
 .stats-grid__value {
-  font-family: var(--font-display);
+  font-family: var(--font-display), sans-serif;
   font-size: 2rem;
   font-weight: 800;
   color: var(--color-brand-dark);
@@ -51,17 +51,17 @@
   align-items: center;
   justify-content: center;
   color: var(--color-brand-dark);
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
 }
 
 @media (min-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-xl);
+    gap: var(--space-3xl);
   }
 
   .stats-grid__item {
-    padding: var(--spacing-xl);
+    padding: var(--space-3xl);
   }
 
   .stats-grid__value {
@@ -75,6 +75,6 @@
   }
 
   .stats-grid__item {
-    padding: var(--spacing-2xl);
+    padding: var(--space-3xl);
   }
 }

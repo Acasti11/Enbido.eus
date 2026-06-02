@@ -250,7 +250,7 @@ const useLiveStats = () => {
 const useHomeSeo = () => {
   const { t } = useTranslation();
   useSeo({
-    title: t('home.seoTitle'),
+    title: t('Enbido'),
     description: t('home.seoDescription'),
     keywords: t('home.seoKeywords'),
     canonical: 'https://enbido.eus/',

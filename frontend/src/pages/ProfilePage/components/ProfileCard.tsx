@@ -101,71 +101,76 @@ const SecuritySection: React.FC<SecuritySectionProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div
-      className="profile-security-section"
-      style={{
-        marginTop: '1.5rem',
-        paddingTop: '1.5rem',
-        borderTop: '1px solid rgba(212, 175, 55, 0.15)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-      }}
-    >
-      <h3
-        style={{
-          margin: 0,
-          fontSize: '1.1rem',
-          color: '#fff',
-          fontWeight: 800,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}
-      >
-        🔑 {t('profile.accountSecurity')}
-      </h3>
+    <div className="profile-card">
+      <div className="profile-card__container">
+        <ProfileHeader
+          username={username}
+          initials={initials}
+          equippedAvatarItemId={equippedAvatarItemId}
+          equippedTitleItemId={equippedTitleItemId}
+        />
+        <StatsGrid stats={stats} />
 
-      <div
-        style={{
-          background: 'rgba(212, 175, 55, 0.03)',
-          border: '1px solid rgba(212, 175, 55, 0.15)',
-          borderRadius: '12px',
-          padding: '1.25rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '1.5rem',
-          backdropFilter: 'blur(10px)',
-          boxShadow: 'inset 0 0 12px rgba(212,175,55,0.03)',
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <h4 style={{ margin: '0 0 0.25rem 0', color: '#d4af37', fontSize: '0.95rem', fontWeight: 'bold' }}>
-            {t('profile.twoFactorTitle')}
-          </h4>
-          <p style={{ margin: 0, color: '#aaa', fontSize: '0.8rem', lineHeight: '1.4' }}>
-            {t('profile.twoFactorDescription')}
-          </p>
-        </div>
+        {/* Sección Premium de Seguridad y Doble Factor */}
+        <div
+          className="profile-security-section"
+        >
+          <h3 className="profile-security-title">
+            🔑 Seguridad de la Cuenta
+          </h3>
 
-        <div>
-          {loading2Fa ? (
-            <div
-              style={{
-                width: '50px',
-                height: '26px',
-                borderRadius: '13px',
-                background: 'rgba(255,255,255,0.05)',
-                opacity: 0.5,
-              }}
-            />
-          ) : (
-            <ToggleSwitch
-              checked={twoFactorEnabled || false}
-              disabled={updating2Fa}
-              onChange={(checked) => onToggle2Fa?.(checked)}
-            />
+          <div
+            className="profile-security-card"
+          >
+            <div className="profile-security-content">
+              <h4 className="profile-security-card-title">
+                Autenticación de Doble Factor (2FA por Email)
+              </h4>
+              <p className="profile-security-card-description">
+                Protege tu cuenta requiriendo un código de verificación de 6 dígitos enviado a tu correo cada vez que inicies sesión.
+              </p>
+            </div>
+
+            <div>
+              {loading2Fa ? (
+                <div className="profile-security-loading"
+                />
+              ) : (
+                <label
+                  className="switch"
+                >
+                  <input
+                    className="switch-input"
+                    type="checkbox"
+                    checked={twoFactorEnabled}
+                    disabled={updating2Fa}
+                    onChange={(e) => onToggle2Fa?.(e.target.checked)}
+                  />
+                  <span
+                    className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
+                      } ${updating2Fa ? 'slider--disabled' : ''
+                      }`}
+                  >
+                    <span
+                      className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
+                        }`}
+                    />
+                  </span>
+                </label>
+              )}
+            </div>
+          </div>
+
+          {success2Fa && (
+            <p className="profile-security-success">
+              ✓ {success2Fa}
+            </p>
+          )}
+
+          {error2Fa && (
+            <p className="profile-security-error">
+              ⚠️ {error2Fa}
+            </p>
           )}
         </div>
       </div>

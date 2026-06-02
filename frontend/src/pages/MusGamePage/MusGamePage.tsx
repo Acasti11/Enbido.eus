@@ -172,7 +172,7 @@ const PlayerPosition: React.FC<{
   return (
     <div className={`player-position position-${position} ${activeTurnIdx === index ? 'active-zone' : ''}`}>
       <div className="player-avatar-card">
-        <div className="player-avatar-wrapper" style={{ position: 'relative', width: '52px', height: '52px' }}>
+        <div className="player-avatar-wrapper">
           <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === index} />
           <div className={`player-avatar-circle ${avatarClass}`}>
             {username.slice(0, 2).toUpperCase()}
