@@ -2,14 +2,14 @@
   display: flex; 
   justify-content: center; 
   align-items: flex-start; 
-  padding: var(--spacing-xl) 0; 
+  padding: var(--space-3xl) 0; 
   width: 100%;
 }
 
 .create-form-card {
-  background-color: #fdfcf2; 
+  background-color: var(--color-card-bg); 
   border-radius: var(--radius-xl);
-  padding: var(--spacing-2xl);
+  padding: var(--space-3xl);
   width: 100%;
   max-width: 600px;
   box-shadow: var(--shadow-premium);
@@ -18,23 +18,23 @@
 .form-group {
   display: flex; 
   flex-direction: column; 
-  gap: var(--spacing-sm); 
-  margin-bottom: var(--spacing-lg); 
+  gap: var(--space-md); 
+  margin-bottom: var(--space-2xl); 
 }
 
 .form-label {
-  font-size: 0.875rem; 
+  font-size: var(--font-size-sm); 
   font-weight: 700; 
   color: var(--color-brand-dark);
 }
 
 .form-input, .form-textarea {
-  background-color: #ffffff;
-  border: 1px solid #d1d5db; 
+  background-color: var(--color-text-white);
+  border: 1px solid var(--color-card-border); 
   border-radius: var(--radius-md);
-  padding: 14px var(--spacing-md);
-  font-family: var(--font-sans);
-  font-size: 1rem;
+  padding: 14px var(--space-lg);
+  font-family: var(--font-sans), sans-serif;
+  font-size: var(--font-size-md);
   color: var(--color-text-primary);
   outline: none;
   transition: all var(--transition-fast);
@@ -52,25 +52,25 @@
 
 .form-actions {
   display: flex; 
-  gap: var(--spacing-lg); 
-  margin-top: var(--spacing-2xl); 
+  gap: var(--space-2xl); 
+  margin-top: var(--space-3xl); 
 }
 
 .btn-cancel-form {
   flex: 1; 
-  background: #ffffff; 
-  border: 1px solid #d1d5db; 
-  color: var(--color-text-secondary); 
+  background: var(--color-text-white); 
+  border: 1px solid var(--color-card-border); 
+  color: var(--color-text-muted); 
   border-radius: var(--radius-md); 
   padding: 14px; 
   font-weight: 700; 
-  font-size: 1.1rem; 
+  font-size: var(--font-size-md); 
   cursor: pointer; 
-  transition: var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .btn-cancel-form:hover { 
-  background: #f9fafb; 
+  background: var(--color-surface); 
   color: var(--color-text-primary); 
 }
 
@@ -82,9 +82,9 @@
   border-radius: var(--radius-md); 
   padding: 14px; 
   font-weight: 700; 
-  font-size: 1.1rem; 
+  font-size: var(--font-size-md); 
   cursor: pointer; 
-  transition: var(--transition-fast); 
+  transition: all var(--transition-fast); 
   box-shadow: 0 4px 6px rgba(45, 107, 69, 0.2);
 }
 
@@ -98,14 +98,14 @@
   top: 76px;
   left: 0;
   right: 0;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  background-color: var(--color-text-white);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-md);
   margin: 4px 0 0 0;
   padding: 0;
   list-style: none;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-lg);
   max-height: 200px;
   overflow-y: auto;
   border-top: none;
@@ -114,9 +114,9 @@
 .osm-suggestion-item {
   padding: 10px 14px;
   cursor: pointer;
-  font-size: 0.875rem;
-  color: #333333;
-  border-bottom: 1px solid #f3f4f6;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -125,7 +125,7 @@
 }
 
 .osm-suggestion-item:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-surface-hover);
   color: var(--color-brand-main);
 }
 
@@ -151,7 +151,7 @@
   border: 1px solid var(--color-brand-light);
   border-radius: var(--radius-md);
   padding: 6px 12px;
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -159,7 +159,7 @@
 
 .btn-gps-locate:hover {
   background-color: var(--color-brand-light);
-  color: #fff;
+  color: var(--color-text-white);
 }
 
 .create-location-group {
@@ -198,9 +198,9 @@
 }
 
 .create-establishment-select {
-  background: #121212;
+  background: var(--color-bg-base);
   color: var(--color-text-white);
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid var(--color-card-border);
   height: 42px;
 }
 
@@ -209,21 +209,21 @@
    ========================================= */
 @media (max-width: 576px) {
   .create-view {
-    padding: var(--spacing-md) 0;
+    padding: var(--space-lg) 0;
   }
   .create-form-card {
-    padding: var(--spacing-lg);
+    padding: var(--space-lg);
     border-radius: var(--radius-lg);
   }
   .form-actions {
     flex-direction: column;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
   }
   .btn-submit-form,
   .btn-cancel-form {
     width: 100%;
     padding: 12px;
-    font-size: 1rem;
+    font-size: var(--font-size-md);
   }
 }

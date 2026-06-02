@@ -1,27 +1,27 @@
 /* Toast Notification Popup UI */
 .toast-notification {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
   z-index: 9999;
   width: 320px;
   background: rgba(15, 30, 22, 0.95);
-  border: 1px solid #d4af37;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.2);
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lg), 0 0 15px var(--color-gold-alpha-15);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  color: white;
-  font-family: Inter, sans-serif;
+  transition: all var(--transition-normal) ease-in-out;
+  color: var(--color-text-white);
+  font-family: var(--font-sans), sans-serif;
 }
 
 .toast-notification:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.3);
+  box-shadow: var(--shadow-xl), 0 0 20px var(--color-gold-alpha-30);
 }
 
 .toast-header {
@@ -31,7 +31,7 @@
 }
 
 .toast-title {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -41,25 +41,25 @@
 .toast-close-btn {
   background: none;
   border: none;
-  color: #aaa;
+  color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 14px;
-  transition: color 0.2s;
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
 }
 
 .toast-close-btn:hover {
-  color: #fff;
+  color: var(--color-text-white);
 }
 
 .toast-body {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  color: #d4af37;
+  color: var(--color-gold);
 }
 
 .toast-message {
-  font-size: 12px;
-  color: #ccc;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-white-70);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -67,7 +67,7 @@
 
 /* UsuariosList styles */
 .usuarios-list-error {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
 }
 
 .usuarios-list-container {
@@ -76,14 +76,14 @@
 }
 
 .usuarios-list-item {
-  padding: 1rem;
-  margin: 0.5rem 0;
-  background: var(--color-surface, #f5f5f5);
-  border-radius: 8px;
-  border-left: 4px solid var(--color-brand-light, #646cff);
+  padding: var(--space-lg);
+  margin: var(--space-sm) 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--color-brand-light);
 }
 
 .usuarios-list-item-email {
-  color: var(--color-text-white-70, #666);
-  margin-left: 1rem;
+  color: var(--color-text-white-70);
+  margin-left: var(--space-lg);
 }

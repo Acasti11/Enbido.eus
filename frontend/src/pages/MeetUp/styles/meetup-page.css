@@ -8,7 +8,7 @@
 
 .page-content {  
   flex: 1; 
-  padding: var(--spacing-xl); 
+  padding: var(--space-3xl); 
   max-width: 1200px; 
   margin: 0 auto; 
   width: 100%; 
@@ -19,62 +19,62 @@
   display: flex; 
   justify-content: space-between; 
   align-items: flex-end; 
-  margin-bottom: var(--spacing-xl); 
+  margin-bottom: var(--space-3xl); 
 }
 
 .list-title { 
-  font-family: var(--font-display); 
+  font-family: var(--font-display), sans-serif; 
   font-size: 2.5rem; 
   font-weight: 800; 
   color: var(--color-text-white); 
-  margin: 0 0 var(--spacing-xs) 0; 
+  margin: 0 0 var(--space-xs) 0; 
 }
 
 .list-subtitle { 
-  color: rgba(255,255,255,0.7); 
+  color: var(--color-text-white-70); 
   margin: 0; 
-  font-size: 1rem; 
+  font-size: var(--font-size-md); 
 }
 
 .btn-create-main {
   background-color: var(--color-accent-yellow); 
   color: var(--color-brand-dark); 
-  padding: 12px var(--spacing-lg); 
+  padding: 12px var(--space-2xl); 
   border-radius: var(--radius-md);
   font-weight: 700; 
-  font-size: 1rem; 
+  font-size: var(--font-size-md); 
   border: none; 
   cursor: pointer; 
-  transition: var(--transition-fast); 
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  transition: all var(--transition-fast); 
+  box-shadow: 0 4px 12px var(--color-gold-alpha-30);
 }
 
 .btn-create-main:hover { 
-  background-color: #ebd475; 
+  background-color: var(--color-gold-hover); 
   transform: translateY(-2px); 
 }
 
 .grid-container { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-  gap: var(--spacing-lg); 
+  gap: var(--space-2xl); 
 }
 
 /* Filters Panel styles */
 .meetup-filters-panel {
   display: flex;
-  gap: 24px;
+  gap: var(--space-3xl);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 12px 20px;
-  margin-bottom: 20px;
+  border-radius: var(--radius-md);
+  padding: 12px var(--space-2xl);
+  margin-bottom: var(--space-2xl);
   align-items: center;
 }
 
 .filters-label {
-  font-size: 0.9rem;
-  color: #9CA3AF;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
   font-weight: 700;
 }
 
@@ -82,12 +82,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #ffffff;
-  font-size: 0.9rem;
+  color: var(--color-text-white);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   user-select: none;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-fast);
 }
 
 .filter-checkbox-label:hover {
@@ -118,7 +118,7 @@
   .list-header {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--spacing-md);
+    gap: var(--space-lg);
   }
   .btn-create-main {
     width: 100%;
@@ -127,13 +127,13 @@
   .meetup-filters-panel {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-sm);
+    gap: var(--space-md);
   }
 }
 
 @media (max-width: 576px) {
   .page-content {
-    padding: var(--spacing-md);
+    padding: var(--space-lg);
   }
   .list-title {
     font-size: 1.8rem;

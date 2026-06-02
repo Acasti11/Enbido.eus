@@ -34,8 +34,8 @@
 
 .bg-card__rank {
   position: absolute;
-  top: var(--spacing-md);
-  left: var(--spacing-md);
+  top: var(--space-lg);
+  left: var(--space-lg);
   color: rgba(255, 255, 255, 0.1);
   font-family: var(--font-display);
   font-weight: 700;
@@ -45,7 +45,7 @@
 .bg-card__rank--bottom {
   top: auto;
   left: auto;
-  bottom: var(--spacing-md);
-  right: var(--spacing-md);
+  bottom: var(--space-lg);
+  right: var(--space-lg);
   transform: rotate(180deg);
 }
