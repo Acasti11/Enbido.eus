@@ -3,9 +3,9 @@ package com.mus.backend.service;
 import com.mus.backend.dto.UserLeaderboardDto;
 import com.mus.backend.model.Friendship;
 import com.mus.backend.model.UserGameProfile;
-import com.mus.backend.model.Usuario;
+import com.mus.backend.model.User;
 import com.mus.backend.repository.FriendshipRepository;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserRepository;
 import com.mus.backend.controller.FriendshipController.FriendResponse;
 import com.mus.backend.controller.FriendshipController.PendingRequestResponse;
 import com.mus.backend.event.FriendshipEvent;
@@ -28,7 +28,7 @@ public class FriendshipService {
     private FriendshipRepository friendshipRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private UserProfileService userProfileService;
@@ -72,12 +72,12 @@ public class FriendshipService {
             Long friendId = f.getUserId1().equals(userId) ? f.getUserId2() : f.getUserId1();
             res.id = friendId;
             
-            Usuario friendUser = f.getUserId1().equals(userId) ? f.getUser2() : f.getUser1();
+            User friendUser = f.getUserId1().equals(userId) ? f.getUser2() : f.getUser1();
             if (friendUser != null) {
                 res.username = friendUser.getUsername();
             } else {
-                res.username = usuarioRepository.findById(friendId)
-                        .map(Usuario::getUsername).orElse("Usuario");
+                res.username = userRepository.findById(friendId)
+                        .map(User::getUsername).orElse("Usuario");
             }
             
             UserGameProfile gp = userProfileService.getOrCreateUserProfile(friendId);
@@ -105,7 +105,7 @@ public class FriendshipService {
         for (Friendship f : received) {
             PendingRequestResponse res = new PendingRequestResponse();
             res.friendshipId = f.getFriendshipId();
-            Usuario sender = f.getUser1();
+            User sender = f.getUser1();
             res.username = sender != null ? sender.getUsername() : "Usuario";
             res.type = "received";
             response.add(res);
@@ -114,7 +114,7 @@ public class FriendshipService {
         for (Friendship f : sent) {
             PendingRequestResponse res = new PendingRequestResponse();
             res.friendshipId = f.getFriendshipId();
-            Usuario receiver = f.getUser2();
+            User receiver = f.getUser2();
             res.username = receiver != null ? receiver.getUsername() : "Usuario";
             res.type = "sent";
             response.add(res);
@@ -125,12 +125,12 @@ public class FriendshipService {
 
     @Transactional
     public Map<String, String> sendFriendRequest(Long currentUserId, String targetUsername) {
-        Optional<Usuario> targetOpt = usuarioRepository.findByUsername(targetUsername);
+        Optional<User> targetOpt = userRepository.findByUsername(targetUsername);
         if (targetOpt.isEmpty()) {
             throw new IllegalArgumentException("Usuario no encontrado");
         }
         
-        Usuario targetUser = targetOpt.get();
+        User targetUser = targetOpt.get();
         if (targetUser.getUserId().equals(currentUserId)) {
             throw new IllegalArgumentException("No puedes agregarte a ti mismo");
         }
@@ -157,7 +157,7 @@ public class FriendshipService {
                     existing.setStatus("accepted");
                     friendshipRepository.save(existing);
 
-                    Usuario currentUser = usuarioRepository.findById(currentUserId).orElse(null);
+                    User currentUser = userRepository.findById(currentUserId).orElse(null);
                     String currentUsername = currentUser != null ? currentUser.getUsername() : "Usuario";
 
                     // Notify original sender
@@ -181,7 +181,7 @@ public class FriendshipService {
         Friendship saved = friendshipRepository.save(newFriendship);
 
         // Notify target user of received request
-        Usuario currentUser = usuarioRepository.findById(currentUserId).orElse(null);
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
         String currentUsername = currentUser != null ? currentUser.getUsername() : "Usuario";
         eventPublisher.publishEvent(new FriendshipEvent(this, targetUser.getUserId(), Map.of(
             "type", "FRIEND_REQUEST_RECEIVED",
@@ -210,13 +210,13 @@ public class FriendshipService {
 
         // Notify both users in real-time
         Long friendId = saved.getUserId1();
-        Usuario currentUser = saved.getUser2();
+        User currentUser = saved.getUser2();
         if (currentUser == null) {
-            currentUser = usuarioRepository.findById(currentUserId).orElse(null);
+            currentUser = userRepository.findById(currentUserId).orElse(null);
         }
-        Usuario friendUser = saved.getUser1();
+        User friendUser = saved.getUser1();
         if (friendUser == null) {
-            friendUser = usuarioRepository.findById(friendId).orElse(null);
+            friendUser = userRepository.findById(friendId).orElse(null);
         }
         String currentUsername = currentUser != null ? currentUser.getUsername() : "Usuario";
         String friendUsername = friendUser != null ? friendUser.getUsername() : "Usuario";
@@ -299,7 +299,7 @@ public class FriendshipService {
         if (currentUserId.equals(targetUserId)) {
             throw new IllegalArgumentException("No puedes bloquearte a ti mismo");
         }
-        if (!usuarioRepository.existsById(targetUserId)) {
+        if (!userRepository.existsById(targetUserId)) {
             throw new IllegalArgumentException("Usuario no encontrado");
         }
 
@@ -365,12 +365,12 @@ public class FriendshipService {
             res.friendshipId = f.getFriendshipId();
             res.id = f.getUserId2();
             
-            Usuario blockedUser = f.getUser2();
+            User blockedUser = f.getUser2();
             if (blockedUser != null) {
                 res.username = blockedUser.getUsername();
             } else {
-                res.username = usuarioRepository.findById(f.getUserId2())
-                        .map(Usuario::getUsername).orElse("Usuario");
+                res.username = userRepository.findById(f.getUserId2())
+                        .map(User::getUsername).orElse("Usuario");
             }
             res.status = "offline";
             response.add(res);

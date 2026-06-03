@@ -28,9 +28,9 @@ public class DirectMessage {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sender_id", insertable = false, updatable = false)
-    private Usuario sender;
+    private User sender;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiver_id", insertable = false, updatable = false)
-    private Usuario receiver;
+    private User receiver;
 }

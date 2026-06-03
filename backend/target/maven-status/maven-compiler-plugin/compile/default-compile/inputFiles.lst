@@ -61,7 +61,6 @@
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserInventory.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserInventoryId.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserRegisterDto.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/Usuario.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/CategoryRepository.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/DirectMessageRepository.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/FriendshipRepository.java
@@ -81,7 +80,6 @@
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UserGameProfileRepository.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UserInventoryRepository.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UserRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UsuarioRepository.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/AuthService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/FriendshipService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/GameMatchService.java

@@ -24,9 +24,9 @@ public class Friendship {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id_1", insertable = false, updatable = false)
-    private Usuario user1;
+    private User user1;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id_2", insertable = false, updatable = false)
-    private Usuario user2;
+    private User user2;
 }

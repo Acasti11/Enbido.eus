@@ -2,10 +2,10 @@ package com.mus.backend.service;
 
 import com.mus.backend.dto.UserLeaderboardDto;
 import com.mus.backend.model.UserGameProfile;
-import com.mus.backend.model.Usuario;
+import com.mus.backend.model.User;
 import com.mus.backend.repository.ItemRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +20,14 @@ public class UserProfileService {
     private UserGameProfileRepository profileRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private ItemRepository itemRepository;
 
     @Transactional(readOnly = true)
     public boolean userExists(Long userId) {
-        return usuarioRepository.existsById(userId);
+        return userRepository.existsById(userId);
     }
 
     public UserGameProfile getOrCreateUserProfile(Long userId) {
@@ -66,8 +66,8 @@ public class UserProfileService {
     public List<UserLeaderboardDto> getLeaderboard() {
         List<UserGameProfile> profiles = profileRepository.findAllByOrderByEloDesc();
         return profiles.stream().map(profile -> {
-            String username = usuarioRepository.findById(profile.getUserId())
-                    .map(Usuario::getUsername)
+            String username = userRepository.findById(profile.getUserId())
+                    .map(User::getUsername)
                     .orElse("Usuario Desconocido");
 
             int total = profile.getTotalGamesPlayed() != null ? profile.getTotalGamesPlayed() : 0;

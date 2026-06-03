@@ -21,7 +21,6 @@ com/mus/backend/controller/ChatWebSocketHandler.class
 com/mus/backend/model/UserInventoryId.class
 com/mus/backend/model/OAuthAuth.class
 com/mus/backend/service/MailService.class
-com/mus/backend/repository/UsuarioRepository.class
 com/mus/backend/model/Friendship.class
 com/mus/backend/controller/FriendshipController.class
 com/mus/backend/model/UserGameProfile.class
@@ -37,7 +36,6 @@ com/mus/backend/engine/GamePlayer.class
 com/mus/backend/config/JwtEntryPoint.class
 com/mus/backend/model/MeetupParticipant.class
 com/mus/backend/validator/PostalCodeES.class
-com/mus/backend/model/Usuario.class
 com/mus/backend/engine/Deck.class
 com/mus/backend/service/UserProfileService.class
 com/mus/backend/engine/GameSessionManager.class

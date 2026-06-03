@@ -42,5 +42,5 @@ public class LocalMeetupAd {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creator_id", insertable = false, updatable = false)
-    private Usuario creator;
+    private User creator;
 }

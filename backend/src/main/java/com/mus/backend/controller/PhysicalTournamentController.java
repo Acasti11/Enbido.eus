@@ -9,7 +9,7 @@ import com.mus.backend.repository.PhysicalTournamentMatchRepository;
 import com.mus.backend.repository.PhysicalTournamentParticipantRepository;
 import com.mus.backend.repository.PhysicalTournamentRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class PhysicalTournamentController {
     private PhysicalTournamentMatchRepository matchRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private UserGameProfileRepository profileRepository;
@@ -70,8 +70,8 @@ public class PhysicalTournamentController {
         List<PhysicalTournamentParticipant> parts = participantRepository.findByTournamentId(id);
         List<TournamentDetailDto.ParticipantInfo> partInfos = new ArrayList<>();
         for (PhysicalTournamentParticipant p : parts) {
-            String uname = usuarioRepository.findById(p.getUserId())
-                    .map(com.mus.backend.model.Usuario::getUsername)
+            String uname = userRepository.findById(p.getUserId())
+                    .map(com.mus.backend.model.User::getUsername)
                     .orElse("Usuario-" + p.getUserId());
             partInfos.add(new TournamentDetailDto.ParticipantInfo(p.getUserId(), uname));
         }

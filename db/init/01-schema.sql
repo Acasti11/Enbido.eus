@@ -1,19 +1,59 @@
-CREATE TABLE IF NOT EXISTS user_login (
+-- ============================================================
+-- ENBIDO DB SCHEMA v2 — Tabla users (soporte email + Google OAuth)
+-- ============================================================
+
+-- ============================================================
+-- Tabla: users — identidad del usuario
+-- ============================================================
+CREATE TABLE IF NOT EXISTS users (
     user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     surname VARCHAR(100),
     email VARCHAR(150) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
     postal_code VARCHAR(20),
-    username VARCHAR(50) UNIQUE NOT NULL,
+    username VARCHAR(50) UNIQUE,
     role ENUM('user', 'admin') DEFAULT 'user',
     is_banned BOOLEAN DEFAULT FALSE,
-    birth_date DATE NOT NULL,
+    birth_date DATE,
+    profile_picture VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ============================================================
+-- Tabla: local_auth — login email/password
+-- Relación 1:1 opcional con users
+-- ============================================================
+CREATE TABLE IF NOT EXISTS local_auth (
+    auth_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    password VARCHAR(255) NOT NULL,
     two_factor_enabled TINYINT(1) DEFAULT 0,
-    two_factor_code VARCHAR(6) NULL,
-    two_factor_code_expires_at DATETIME NULL
+    two_factor_code VARCHAR(6),
+    two_factor_code_expires_at DATETIME,
+    reset_password_token VARCHAR(255),
+    reset_password_token_expires_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_local_auth_user (user_id)
+);
+
+-- ============================================================
+-- Tabla: oauth_auth — login Google y futuros proveedores
+-- Relación 1:N con users (un usuario puede tener varios OAuth)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS oauth_auth (
+    auth_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    provider VARCHAR(20) NOT NULL,
+    provider_user_id VARCHAR(100) NOT NULL,
+    provider_email VARCHAR(150) NOT NULL,
+    access_token VARCHAR(500),
+    refresh_token VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_provider_user (provider, provider_user_id)
 );
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -53,7 +93,7 @@ CREATE TABLE IF NOT EXISTS user_game_profile (
 );
 
 ALTER TABLE user_game_profile
-    ADD CONSTRAINT user_game_profile_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT user_game_profile_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT user_game_profile_avatar_item_FK FOREIGN KEY (equipped_avatar_item_id) REFERENCES items (item_id) ON DELETE SET NULL,
     ADD CONSTRAINT user_game_profile_deck_item_FK FOREIGN KEY (equipped_deck_item_id) REFERENCES items (item_id) ON DELETE SET NULL,
     ADD CONSTRAINT user_game_profile_title_item_FK FOREIGN KEY (equipped_title_item_id) REFERENCES items (item_id) ON DELETE SET NULL;
@@ -67,7 +107,7 @@ CREATE TABLE IF NOT EXISTS user_inventory (
 
 ALTER TABLE user_inventory
     ADD CONSTRAINT user_inventory_items_FK FOREIGN KEY (item_id) REFERENCES items (item_id) ON DELETE CASCADE,
-    ADD CONSTRAINT user_inventory_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT user_inventory_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS purchase_history (
@@ -79,7 +119,7 @@ CREATE TABLE IF NOT EXISTS purchase_history (
 );
 
 ALTER TABLE purchase_history 
-    ADD CONSTRAINT purchase_history_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id),
+    ADD CONSTRAINT purchase_history_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id),
     ADD CONSTRAINT purchase_history_items_FK FOREIGN KEY (item_id) REFERENCES items (item_id) ON DELETE SET NULL;
 
 
@@ -120,10 +160,10 @@ CREATE TABLE IF NOT EXISTS play_game (
 );
 
 ALTER TABLE play_game
-    ADD CONSTRAINT play_game1_user_login_FK FOREIGN KEY (player1) REFERENCES user_login (user_id),
-    ADD CONSTRAINT play_game2_user_login_FK FOREIGN KEY (player2) REFERENCES user_login (user_id),
-    ADD CONSTRAINT play_game3_user_login_FK FOREIGN KEY (player3) REFERENCES user_login (user_id),
-    ADD CONSTRAINT play_game4_user_login_FK FOREIGN KEY (player4) REFERENCES user_login (user_id),
+    ADD CONSTRAINT play_game1_users_FK FOREIGN KEY (player1) REFERENCES users (user_id),
+    ADD CONSTRAINT play_game2_users_FK FOREIGN KEY (player2) REFERENCES users (user_id),
+    ADD CONSTRAINT play_game3_users_FK FOREIGN KEY (player3) REFERENCES users (user_id),
+    ADD CONSTRAINT play_game4_users_FK FOREIGN KEY (player4) REFERENCES users (user_id),
     ADD CONSTRAINT play_game_game_states_FK FOREIGN KEY (game_state_id) REFERENCES game_states (game_state_id),
     ADD CONSTRAINT play_game_game_mode_FK FOREIGN KEY (game_mode_id) REFERENCES game_mode (game_mode_id),
     ADD CONSTRAINT play_game_tournaments_FK FOREIGN KEY (tournament_id) REFERENCES tournaments (tournament_id);
@@ -138,7 +178,7 @@ CREATE TABLE IF NOT EXISTS tournament_participant (
 ALTER TABLE tournament_participant
     ADD CONSTRAINT tournament_participant_PK PRIMARY KEY (tournament_id, user_id),
     ADD CONSTRAINT tournament_participant_tournaments_FK FOREIGN KEY (tournament_id) REFERENCES tournaments (tournament_id) ON DELETE CASCADE,
-    ADD CONSTRAINT tournament_participant_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_participant_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS chat (
@@ -151,7 +191,7 @@ CREATE TABLE IF NOT EXISTS chat (
 
 ALTER TABLE chat   
     ADD CONSTRAINT chat_play_game_FK FOREIGN KEY (game_id) REFERENCES play_game (game_id) ON DELETE CASCADE,
-    ADD CONSTRAINT chat_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT chat_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS matchmaking_queue (
@@ -164,7 +204,7 @@ CREATE TABLE IF NOT EXISTS matchmaking_queue (
 );
 
 ALTER TABLE matchmaking_queue
-    ADD CONSTRAINT matchmaking_queue_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT matchmaking_queue_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     ADD CONSTRAINT matchmaking_queue_game_mode_FK FOREIGN KEY (game_mode_id) REFERENCES game_mode (game_mode_id);
 
 
@@ -183,7 +223,7 @@ CREATE TABLE IF NOT EXISTS physical_tournament (
 );
 
 ALTER TABLE physical_tournament
-    ADD CONSTRAINT physical_tournament_user_login_FK FOREIGN KEY (organizer_id) REFERENCES user_login (user_id) ON DELETE SET NULL;
+    ADD CONSTRAINT physical_tournament_users_FK FOREIGN KEY (organizer_id) REFERENCES users (user_id) ON DELETE SET NULL;
 
 
 CREATE TABLE IF NOT EXISTS physical_tournament_participant (
@@ -192,7 +232,7 @@ CREATE TABLE IF NOT EXISTS physical_tournament_participant (
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tournament_id, user_id),
     FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
 
@@ -206,9 +246,9 @@ CREATE TABLE IF NOT EXISTS physical_tournament_match (
     winner_id BIGINT NULL,
     score VARCHAR(20) DEFAULT '',
     FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
-    FOREIGN KEY (player1_id) REFERENCES user_login (user_id) ON DELETE SET NULL,
-    FOREIGN KEY (player2_id) REFERENCES user_login (user_id) ON DELETE SET NULL,
-    FOREIGN KEY (winner_id) REFERENCES user_login (user_id) ON DELETE SET NULL
+    FOREIGN KEY (player1_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    FOREIGN KEY (player2_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    FOREIGN KEY (winner_id) REFERENCES users (user_id) ON DELETE SET NULL
 );
 
 
@@ -224,8 +264,8 @@ CREATE TABLE IF NOT EXISTS physical_tournament_team (
 
 ALTER TABLE physical_tournament_team
     ADD CONSTRAINT physical_tournament_team_physical_tournament_FK FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
-    ADD CONSTRAINT physical_tournament_team_user_login_1_FK FOREIGN KEY (player_1_id) REFERENCES user_login (user_id) ON DELETE CASCADE,
-    ADD CONSTRAINT physical_tournament_team_user_login_2_FK FOREIGN KEY (player_2_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT physical_tournament_team_users_1_FK FOREIGN KEY (player_1_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT physical_tournament_team_users_2_FK FOREIGN KEY (player_2_id) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS local_meetup_ad (
@@ -242,7 +282,7 @@ CREATE TABLE IF NOT EXISTS local_meetup_ad (
 );
 
 ALTER TABLE local_meetup_ad
-    ADD CONSTRAINT local_meetup_ad_user_login_FK FOREIGN KEY (creator_id) REFERENCES user_login (user_id);
+    ADD CONSTRAINT local_meetup_ad_users_FK FOREIGN KEY (creator_id) REFERENCES users (user_id);
 
 
 CREATE TABLE IF NOT EXISTS meetup_request (
@@ -255,7 +295,7 @@ CREATE TABLE IF NOT EXISTS meetup_request (
 
 ALTER TABLE meetup_request
     ADD CONSTRAINT meetup_request_local_meetup_ad_FK FOREIGN KEY (ad_id) REFERENCES local_meetup_ad (ad_id) ON DELETE CASCADE,
-    ADD CONSTRAINT meetup_request_user_login_FK FOREIGN KEY (applicant_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT meetup_request_users_FK FOREIGN KEY (applicant_id) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS game_action_log (
@@ -268,7 +308,7 @@ CREATE TABLE IF NOT EXISTS game_action_log (
 
 ALTER TABLE game_action_log
     ADD CONSTRAINT game_action_log_play_game_FK FOREIGN KEY (game_id) REFERENCES play_game(game_id) ON DELETE CASCADE,
-    ADD CONSTRAINT game_action_log_user_login_FK FOREIGN KEY (user_id) REFERENCES user_login (user_id) ON DELETE CASCADE;
+    ADD CONSTRAINT game_action_log_users_FK FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS friendships (
@@ -280,11 +320,8 @@ CREATE TABLE IF NOT EXISTS friendships (
 );
 
 ALTER TABLE friendships
-    ADD CONSTRAINT friendships_user_login_1_FK FOREIGN KEY (user_id_1) REFERENCES user_login (user_id) ON DELETE CASCADE,
-    ADD CONSTRAINT friendships_user_login_2_FK FOREIGN KEY (user_id_2) REFERENCES user_login (user_id) ON DELETE CASCADE;
-
-
-INSERT INTO user_login (name, email, password, username, birth_date) VALUES ('Juan', 'juan@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'juanito', '1990-01-01');
+    ADD CONSTRAINT friendships_users_1_FK FOREIGN KEY (user_id_1) REFERENCES users (user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT friendships_users_2_FK FOREIGN KEY (user_id_2) REFERENCES users (user_id) ON DELETE CASCADE;
 
 
 CREATE TABLE IF NOT EXISTS game_matches (
@@ -293,7 +330,7 @@ CREATE TABLE IF NOT EXISTS game_matches (
     score_us INT DEFAULT 0,
     score_them INT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'IN_PROGRESS',
-    FOREIGN KEY (user_id) REFERENCES user_login(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 
@@ -302,7 +339,7 @@ CREATE TABLE IF NOT EXISTS meetup_participants (
     ad_id BIGINT,
     user_id BIGINT,
     FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 
@@ -313,7 +350,7 @@ CREATE TABLE IF NOT EXISTS meetup_messages (
     content TEXT,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ad_id) REFERENCES local_meetup_ad(ad_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user_login(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 
@@ -323,8 +360,8 @@ CREATE TABLE IF NOT EXISTS direct_messages (
     receiver_id BIGINT NOT NULL,
     content TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id) REFERENCES user_login(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES user_login(user_id) ON DELETE CASCADE
+    FOREIGN KEY (sender_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 
@@ -356,16 +393,26 @@ INSERT IGNORE INTO items (item_id, category_id, name, price) VALUES
 (12, 3, 'Musolari', 400),
 (13, 3, 'Zazpi eta Erdi', 300);
 
--- Insertar usuarios de prueba
-INSERT IGNORE INTO user_login (user_id, name, email, password, username, birth_date) VALUES 
-(100, 'Mikel', 'mikel@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'mikel', '1995-05-12'), 
-(101, 'Ane', 'ane@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'ane', '1997-08-22'), 
-(102, 'Jon', 'jon@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'jon', '1994-03-15'), 
-(103, 'Gorka', 'gorka@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'gorka', '1996-11-02'), 
-(104, 'Amaia', 'amaia@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'amaia', '1998-02-14'), 
-(105, 'Ander', 'ander@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'ander', '1993-07-19'), 
-(106, 'Irati', 'irati@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'irati', '1995-09-30'), 
-(107, 'Koldo', 'koldo@email.com', '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK', 'koldo', '1992-12-05');
+-- Insertar usuarios de prueba en la nueva tabla users + local_auth
+INSERT IGNORE INTO users (user_id, name, email, username, role, is_banned) VALUES 
+(100, 'Mikel', 'mikel@email.com', 'mikel', 'user', FALSE), 
+(101, 'Ane', 'ane@email.com', 'ane', 'user', FALSE), 
+(102, 'Jon', 'jon@email.com', 'jon', 'user', FALSE), 
+(103, 'Gorka', 'gorka@email.com', 'gorka', 'user', FALSE), 
+(104, 'Amaia', 'amaia@email.com', 'amaia', 'user', FALSE), 
+(105, 'Ander', 'ander@email.com', 'ander', 'user', FALSE), 
+(106, 'Irati', 'irati@email.com', 'irati', 'user', FALSE), 
+(107, 'Koldo', 'koldo@email.com', 'koldo', 'user', FALSE);
+
+INSERT IGNORE INTO local_auth (user_id, password) VALUES
+(100, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(101, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(102, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(103, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(104, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(105, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(106, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK'),
+(107, '$2b$10$4WLoSlqBiTzVKAKCuIIxGeyExhpZwqQRay8NoHRfttWWYzT.IR5zK');
 
 -- Insertar perfiles de juego para los usuarios
 INSERT IGNORE INTO user_game_profile (user_id, elo, coins, total_games_played, total_games_won) VALUES 
@@ -489,12 +536,12 @@ DELIMITER ;
 -- ==========================================
 -- PROCEDIMIENTOS DE EJECUCIÓN AUTOMÁTICA (TRIGGERS)
 -- ==========================================
-DROP TRIGGER IF EXISTS after_user_login_insert;
+DROP TRIGGER IF EXISTS after_users_insert;
 
 DELIMITER //
 
-CREATE TRIGGER after_user_login_insert
-AFTER INSERT ON user_login
+CREATE TRIGGER after_users_insert
+AFTER INSERT ON users
 FOR EACH ROW
 BEGIN
     -- Inicializar perfil de juego de forma automática para el nuevo usuario

@@ -1,9 +1,8 @@
 package com.mus.backend.config;
 
-import com.mus.backend.model.Usuario;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.model.User;
+import com.mus.backend.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,25 +13,25 @@ import java.util.Collections;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     
-    private final UsuarioRepository usuarioRepository;
+    private final UserRepository userRepository;
     
-    public UserDetailsServiceImpl(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
+    public UserDetailsServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
     
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
         
-        return new User(
-            usuario.getUsername(),
-            usuario.getPassword(),
-            usuario.getIsBanned() ? false : true,  // enabled
+        return new org.springframework.security.core.userdetails.User(
+            user.getUsername(),
+            "",  // Password not stored in User entity; handled separately via LocalAuth
+            user.getIsBanned() ? false : true,  // enabled
             true,  // accountNonExpired
             true,  // credentialsNonExpired
-            usuario.getIsBanned() ? false : true,  // accountNonLocked
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + usuario.getRole()))
+            user.getIsBanned() ? false : true,  // accountNonLocked
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }
 }

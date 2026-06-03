@@ -1,7 +1,7 @@
 package com.mus.backend.controller;
 
-import com.mus.backend.model.Usuario;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.model.User;
+import com.mus.backend.repository.UserRepository;
 import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
 import com.mus.backend.dto.UserRegisterDto;
@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,7 @@ import java.util.Map;
 public class UserController {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
     
     @Autowired
     private UserService userService;
@@ -90,30 +89,28 @@ public class UserController {
     public ResponseEntity<?> getMyProfile(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         
-        Usuario usuario = usuarioRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
-        usuario.setPassword(null);
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(user);
     }
 
     // ============================================
     // PROTEGIDO: Actualizar MI perfil (del token)
     // ============================================
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyProfile(@RequestBody Usuario datos, HttpServletRequest request) {
+    public ResponseEntity<?> updateMyProfile(@RequestBody User datos, HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         
-        Usuario usuario = usuarioRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        usuario.setName(datos.getName());
-        usuario.setSurname(datos.getSurname());
-        usuario.setPhoneNumber(datos.getPhoneNumber());
-        usuario.setPostalCode(datos.getPostalCode());
+        user.setName(datos.getName());
+        user.setSurname(datos.getSurname());
+        user.setPhoneNumber(datos.getPhoneNumber());
+        user.setPostalCode(datos.getPostalCode());
         
-        Usuario updated = usuarioRepository.save(usuario);
-        updated.setPassword(null);
+        User updated = userRepository.save(user);
         return ResponseEntity.ok(updated);
     }
 
@@ -123,7 +120,7 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteMyAccount(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
-        usuarioRepository.deleteById(userId);
+        userRepository.deleteById(userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -132,8 +129,7 @@ public class UserController {
     // ============================================
     @GetMapping
     public ResponseEntity<?> getAllUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        usuarios.forEach(u -> u.setPassword(null));
+        List<User> usuarios = userRepository.findAll();
         return ResponseEntity.ok(usuarios);
     }
 
