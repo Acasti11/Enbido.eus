@@ -103,6 +103,37 @@ public class FriendshipController {
         }
     }
 
+    @PostMapping("/block/{targetUserId}")
+    public ResponseEntity<?> blockUser(@PathVariable Long targetUserId, HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        try {
+            friendshipService.blockUser(currentUserId, targetUserId);
+            return ResponseEntity.ok(Map.of("message", "Usuario bloqueado con éxito"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/unblock/{targetUserId}")
+    public ResponseEntity<?> unblockUser(@PathVariable Long targetUserId, HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        try {
+            friendshipService.unblockUser(currentUserId, targetUserId);
+            return ResponseEntity.ok(Map.of("message", "Usuario desbloqueado con éxito"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/blocked")
+    public ResponseEntity<?> getBlockedUsers(HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        List<FriendResponse> blocked = friendshipService.getBlockedUsers(currentUserId);
+        return ResponseEntity.ok(blocked);
+    }
+
     private Long getCurrentUserId(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         if (userId == null) {

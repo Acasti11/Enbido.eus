@@ -545,6 +545,44 @@
   color: #000;
 }
 
+.btn-delete-mini {
+  background: rgba(230, 57, 70, 0.15);
+  border: 1px solid rgba(230, 57, 70, 0.4);
+  color: #e63946;
+}
+
+.btn-delete-mini:hover {
+  background: #e63946;
+  color: #fff;
+}
+
+.btn-block-mini {
+  background: rgba(243, 156, 18, 0.15);
+  border: 1px solid rgba(243, 156, 18, 0.4);
+  color: #f39c12;
+}
+
+.btn-block-mini:hover {
+  background: #f39c12;
+  color: #fff;
+}
+
+.btn-unblock-mini {
+  background: rgba(46, 196, 182, 0.15);
+  border: 1px solid rgba(46, 196, 182, 0.4);
+  color: #2ec4b6;
+}
+
+.btn-unblock-mini:hover {
+  background: #2ec4b6;
+  color: #000;
+}
+
+.friend-avatar-circle--blocked {
+  background: rgba(230, 57, 70, 0.2) !important;
+  border-color: rgba(230, 57, 70, 0.5) !important;
+}
+
 /* SEARCH LIST & REQUESTS */
 .social-search-row {
   display: flex;

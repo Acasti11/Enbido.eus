@@ -624,7 +624,15 @@
     "reportError": "Errorea jakinaraztean.",
     "rulesTitle": "Mus Jokoaren Arauak",
     "rulesSubtitle": "Musean jokatzeko arau ofizialak eta ikasteko gida",
-    "waitingEllipsis": "itxoiten"
+    "waitingEllipsis": "itxoiten",
+    "blockedCount": "Blokeatuak ({{count}})",
+    "noBlocked": "Ez duzu erabiltzaile blokeaturik.",
+    "confirmDelete": "Ziur zaude {{username}} zure lagunetatik kendu nahi duzula?",
+    "confirmBlock": "Ziur zaude {{username}} blokeatu nahi duzula? Ezingo diozue elkarri mezurik bidali.",
+    "deleteFriend": "Kendu laguna",
+    "blockUser": "Blokeatu",
+    "unblockUser": "Desblokeatu",
+    "blockedTab": "Blokeatuta"
   },
   "seo": {
     "gameTitle": "Jokatu Musean Online - Partidak eta Parekatzeak | Enbido",
