@@ -59,7 +59,8 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
         if ("POST".equalsIgnoreCase(method)) {
             if (path.equals("/api/usuarios") || 
-                path.startsWith("/api/usuarios/login")) {
+                path.startsWith("/api/usuarios/login") ||
+                path.startsWith("/api/auth")) {
                 return true;
             }
         }

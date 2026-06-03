@@ -132,6 +132,32 @@ public class AuthService {
     }
 
     // ============================================================
+    // LINK GOOGLE: vincular cuenta Google a usuario existente
+    // ============================================================
+    @Transactional
+    public void linkGoogleAccount(Long userId, String idToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        GoogleIdToken.Payload payload = googleAuthService.verifyGoogleToken(idToken);
+
+        String email = payload.getEmail();
+        Boolean emailVerified = payload.getEmailVerified();
+        if (email == null || !Boolean.TRUE.equals(emailVerified)) {
+            throw new RuntimeException("Google email not verified");
+        }
+
+        String googleUserId = payload.getSubject();
+
+        // Check if this Google account is already linked to another user
+        if (oauthAuthRepository.existsByProviderAndProviderUserId("google", googleUserId)) {
+            throw new RuntimeException("This Google account is already linked to another user");
+        }
+
+        createOAuthAuth(user, "google", googleUserId, email, null, null);
+    }
+
+    // ============================================================
     // HELPERS
     // ============================================================
     private User createUserFromGoogle(String name, String surname, String email, String picture) {
