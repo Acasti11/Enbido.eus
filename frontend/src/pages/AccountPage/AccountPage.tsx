@@ -37,24 +37,23 @@ const AccountPage: React.FC = (): React.JSX.Element => {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const fetchUserData = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get('/usuarios/me');
-      setUserData(res.data);
-      setName(res.data.name || '');
-      setSurname(res.data.surname || '');
-    } catch (err) {
-      console.error('Error fetching user data:', err);
-      setErrorMsg(t('account.updateError'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get('/usuarios/me');
+        setUserData(res.data);
+        setName(res.data.name || '');
+        setSurname(res.data.surname || '');
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setErrorMsg(t('account.updateError'));
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchUserData();
-  }, []);
+  }, [t]);
 
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,9 +97,10 @@ const AccountPage: React.FC = (): React.JSX.Element => {
       setUserData(prev => prev ? { ...prev, twoFactorEnabled: res.data.twoFactorEnabled } : null);
       setSuccessMsg(enabled ? t('profile.twoFactorEnabled') : t('profile.twoFactorDisabled'));
       setTimeout(() => setSuccessMsg(''), 4000);
-    } catch (err: any) {
+    } catch (err) {
+      const apiError = err as { response?: { data?: { error?: string } } };
       console.error('Error updating 2FA:', err);
-      setErrorMsg(err.response?.data?.error || t('profile.twoFactorError'));
+      setErrorMsg(apiError.response?.data?.error || t('profile.twoFactorError'));
       setTimeout(() => setErrorMsg(''), 4000);
     } finally {
       setUpdating2Fa(false);
@@ -125,9 +125,10 @@ const AccountPage: React.FC = (): React.JSX.Element => {
       });
       setSuccessMsg(res.data.message || t('account.resetSuccess'));
       setTimeout(() => setSuccessMsg(''), 5000);
-    } catch (err: any) {
+    } catch (err) {
+      const apiError = err as { response?: { data?: { error?: string } } };
       console.error('Error triggering password reset:', err);
-      setErrorMsg(err.response?.data?.error || t('account.resetError'));
+      setErrorMsg(apiError.response?.data?.error || t('account.resetError'));
       setTimeout(() => setErrorMsg(''), 4000);
     } finally {
       setSendingReset(false);
@@ -145,7 +146,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
     );
   }
 
-  const initials = userData?.username ? userData.username.slice(0, 2).toUpperCase() : 'US';
+
 
   return (
     <div className="account-page">

@@ -91,12 +91,17 @@ const Navbar: React.FC = (): React.JSX.Element => {
     const storedUsername = localStorage.getItem('username');
 
     if (token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoggedIn(true);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUsername(storedUsername || '');
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoggedIn(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUsername('');
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
