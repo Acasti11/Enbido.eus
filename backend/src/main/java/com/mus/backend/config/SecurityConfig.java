@@ -37,10 +37,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
+        config.setAllowedOriginPatterns(List.of(
             "https://enbido.eus",
             "https://www.enbido.eus",
-            "http://localhost:5173"
+            "http://localhost:*"  // Cualquier puerto localhost
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
