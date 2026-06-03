@@ -40,6 +40,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
