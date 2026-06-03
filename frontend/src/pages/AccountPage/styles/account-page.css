@@ -32,6 +32,11 @@
   animation: spin 1s linear infinite;
 }
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* ========== ACCOUNT GRID LAYOUT ========== */
 .account-layout {
   display: grid;
@@ -74,40 +79,11 @@
 }
 
 /* Summary Card Items */
-.account-profile-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  width: 100%;
-}
-
-.account-avatar-wrapper {
-  width: 90px;
-  height: 90px;
-  border-radius: var(--radius-circle);
-  background: var(--color-gold-alpha-10);
-  border: 2px solid var(--color-accent-yellow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-accent-yellow);
-  box-shadow: 0 0 15px var(--color-gold-alpha-20);
-  margin-bottom: var(--space-sm);
-}
-
-.account-profile-username {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: 800;
-  color: var(--color-text-white);
-  letter-spacing: -0.5px;
-}
-
 .account-profile-email {
   margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
 .account-badge-container {
@@ -120,15 +96,15 @@
   border-radius: var(--radius-pill);
   font-size: var(--font-size-xs);
   font-weight: 700;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--color-danger);
 }
 
 .account-badge--secure {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: var(--color-success);
 }
 
 /* Details Card Header */
@@ -139,7 +115,7 @@
 .account-card__title {
   margin: 0;
   font-size: var(--font-size-2xl);
-  color: var(--color-text-white);
+  color: var(--color-brand-dark);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
@@ -147,7 +123,8 @@
 .account-card__subtitle {
   margin: var(--space-xs) 0 0 0;
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  color: var(--color-brand-light);
+  font-weight: 500;
 }
 
 /* ========== FORM STYLES ========== */
@@ -166,9 +143,9 @@
 .account-form-section-title {
   margin: 0;
   font-size: var(--font-size-md);
-  color: var(--color-accent-yellow);
+  color: var(--color-brand-light);
   font-weight: 700;
-  border-bottom: 1px solid var(--color-gold-alpha-15);
+  border-bottom: 1px solid rgba(45, 107, 69, 0.1);
   padding-bottom: var(--space-xs);
 }
 
@@ -193,31 +170,34 @@
 .account-form-label {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-brand-dark);
 }
 
 .account-form-input {
-  background: rgba(0, 0, 0, 0.2);
+  background-color: var(--color-text-white);
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-md);
   padding: var(--space-md);
-  color: var(--color-text-white);
+  color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-input);
 }
 
 .account-form-input:focus {
   outline: none;
-  border-color: var(--color-accent-yellow);
-  box-shadow: 0 0 8px var(--color-gold-alpha-15);
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px rgba(45, 107, 69, 0.15);
 }
 
 .account-form-input--readonly {
-  background: rgba(255, 255, 255, 0.03);
-  border-style: dashed;
+  background-color: #f5f3eb;
+  border-style: solid;
+  border-color: var(--color-card-border);
   cursor: not-allowed;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+  box-shadow: none;
 }
 
 .account-form-input--readonly:focus {
@@ -234,7 +214,7 @@
 
 .account-divider {
   height: 1px;
-  background: var(--color-gold-alpha-15);
+  background: rgba(26, 71, 49, 0.1);
   margin: var(--space-lg) 0;
 }
 
@@ -243,6 +223,16 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-xl);
+  background: rgba(26, 71, 49, 0.03);
+  border: 1px solid rgba(26, 71, 49, 0.08);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.account-action-section:hover {
+  background: rgba(26, 71, 49, 0.05);
+  border-color: rgba(26, 71, 49, 0.12);
 }
 
 .account-action-content {
@@ -252,56 +242,15 @@
 .account-action-title {
   margin: 0 0 var(--space-xs) 0;
   font-size: var(--font-size-md);
-  color: var(--color-text-white);
+  color: var(--color-brand-dark);
   font-weight: 700;
 }
 
 .account-action-desc {
   margin: 0;
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   line-height: 1.4;
-}
-
-/* ========== BUTTONS ========== */
-.account-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: none;
-}
-
-.account-btn--primary {
-  background: linear-gradient(135deg, #d4af37 0%, #aa8410 100%);
-  color: #1a1a1a;
-  box-shadow: 0 4px 12px var(--color-gold-alpha-20);
-}
-
-.account-btn--primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 15px var(--color-gold-alpha-30);
-}
-
-.account-btn--secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--color-card-border);
-  color: var(--color-text-white);
-}
-
-.account-btn--secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.account-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* ========== ALERTS ========== */
@@ -318,16 +267,16 @@
 .account-alert--success {
   background: rgba(16, 185, 129, 0.1);
   border: 1px solid rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  color: var(--color-success);
 }
 
 .account-alert--error {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  color: var(--color-danger);
 }
 
-/* ========== SWITCH STYLES (MATCHES PROFILE CARD) ========== */
+/* ========== SWITCH STYLES ========== */
 .account-switch-container {
   display: flex;
   align-items: center;
@@ -337,7 +286,7 @@
   width: 50px;
   height: 26px;
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(26, 71, 49, 0.05);
   opacity: 0.5;
 }
 
@@ -359,13 +308,13 @@
   inset: 0;
   border-radius: 34px;
   transition: 0.4s;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(26, 71, 49, 0.1);
   cursor: pointer;
 }
 
 .slider--active {
-  background-color: var(--color-accent-yellow);
-  box-shadow: 0 0 10px var(--color-gold-alpha-30);
+  background-color: var(--color-brand-light);
+  box-shadow: 0 0 8px rgba(45, 107, 69, 0.3);
 }
 
 .slider-knob {
@@ -381,4 +330,9 @@
 
 .slider-knob--active {
   transform: translateX(24px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
