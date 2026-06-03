@@ -110,6 +110,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('role');
+    console.log("logged out");
     setIsLoggedIn(false);
     navigate('/login');
   }, [navigate]);
