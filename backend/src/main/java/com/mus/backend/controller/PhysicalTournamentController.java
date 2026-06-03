@@ -42,6 +42,7 @@ public class PhysicalTournamentController {
     private UserGameProfileRepository profileRepository;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<List<PhysicalTournament>> getAllTournaments() {
         return ResponseEntity.ok(tournamentRepository.findAll());
     }
@@ -60,6 +61,7 @@ public class PhysicalTournamentController {
     }
 
     @GetMapping("/{id}/details")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getTournamentDetails(@PathVariable Long id) {
         PhysicalTournament tournament = tournamentRepository.findById(id).orElse(null);
         if (tournament == null) {
