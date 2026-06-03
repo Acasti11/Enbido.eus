@@ -492,3 +492,41 @@
     padding: 0.8rem 1.2rem;
   }
 }
+
+/* =========================================
+   LOADING ANIMATIONS & SKELETONS
+   ========================================= */
+.elo-loading {
+  background: rgba(255, 255, 255, 0.03);
+  color: #94a3b8;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.stats-loading {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.loading-placeholder {
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.animate-pulse {
+  animation: pulse-effect 1.5s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin-effect 2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes pulse-effect {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes spin-effect {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

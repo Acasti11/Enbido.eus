@@ -271,6 +271,7 @@ const MusGamePage: React.FC = () => {
   const [winningProfiles, setWinningProfiles] = useState<{ [userId: number]: any }>({});
   const [initialProfile, setInitialProfile] = useState<any>(null);
   const [finalMatchData, setFinalMatchData] = useState<any>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -316,47 +317,66 @@ const MusGamePage: React.FC = () => {
     if (prevIsPlaying.current === true && isPlaying === false && roomId !== '') {
       const handleGameFinished = async () => {
         // Freeze final match stats so they persist on modal regardless of lobby resets
+        const currentSeats = [...seats];
+        const currentRoundsUs = score.roundsUs || 0;
+        const currentRoundsThem = score.roundsThem || 0;
+
         setFinalMatchData({
-          roundsWonUs: score.roundsUs || 0,
-          roundsWonThem: score.roundsThem || 0,
+          roundsWonUs: currentRoundsUs,
+          roundsWonThem: currentRoundsThem,
           maxRounds: maxRounds,
           scoreUs: score.us,
           scoreThem: score.them,
-          seats: [...seats]
+          seats: currentSeats
         });
 
-        // Fetch updated profile to calculate ELO diff
-        try {
-          const meRes = await api.get('/usuarios/me/profile');
-          const finalProfile = meRes.data;
-          
-          const beforeElo = initialProfile ? initialProfile.elo : profile?.elo;
-          if (beforeElo !== undefined && finalProfile.elo !== undefined) {
-            setEloChange(finalProfile.elo - beforeElo);
-          }
-          setProfile(finalProfile);
-        } catch (err) {
-          console.error('Error fetching final player profile:', err);
-        }
-
-        // Fetch profiles of the winning couple
-        const isUsWinner = (score.roundsUs || 0) > (score.roundsThem || 0);
-        const winningChairs = isUsWinner ? [0, 2] : [1, 3];
-        const winners = seats.filter(s => winningChairs.includes(s.chair));
-
-        const profilesMap: { [userId: number]: any } = {};
-        for (const w of winners) {
-          if (w.userId && !w.isBot) {
-            try {
-              const wRes = await api.get(`/usuarios/${w.userId}/profile`);
-              profilesMap[w.userId] = wRes.data;
-            } catch (err) {
-              console.error(`Error fetching winner ${w.username} profile:`, err);
-            }
-          }
-        }
-        setWinningProfiles(profilesMap);
+        // Open modal immediately to prevent delays
         setIsGameOverOpen(true);
+        setIsProfileLoading(true);
+
+        try {
+          // Determine winning couple
+          const isUsWinner = currentRoundsUs > currentRoundsThem;
+          const winningChairs = isUsWinner ? [0, 2] : [1, 3];
+          const winners = currentSeats.filter(s => winningChairs.includes(s.chair));
+
+          // Run all requests in parallel
+          const profilePromises: Promise<any>[] = [];
+
+          // 1. Fetch our own updated profile for ELO change
+          const mePromise = api.get('/usuarios/me/profile').then(res => {
+            const finalProfile = res.data;
+            const beforeElo = initialProfile ? initialProfile.elo : profile?.elo;
+            if (beforeElo !== undefined && finalProfile.elo !== undefined) {
+              setEloChange(finalProfile.elo - beforeElo);
+            }
+            setProfile(finalProfile);
+          }).catch(err => {
+            console.error('Error fetching final player profile:', err);
+          });
+          profilePromises.push(mePromise);
+
+          // 2. Fetch profiles of non-bot winners
+          const profilesMap: { [userId: number]: any } = {};
+          winners.forEach(w => {
+            if (w.userId && !w.isBot) {
+              const winnerPromise = api.get(`/usuarios/${w.userId}/profile`).then(res => {
+                profilesMap[w.userId!] = res.data;
+              }).catch(err => {
+                console.error(`Error fetching winner ${w.username} profile:`, err);
+              });
+              profilePromises.push(winnerPromise);
+            }
+          });
+
+          // Wait for all fetches to resolve in parallel
+          await Promise.all(profilePromises);
+          setWinningProfiles(profilesMap);
+        } catch (err) {
+          console.error('Error handling post-game profile loading:', err);
+        } finally {
+          setIsProfileLoading(false);
+        }
       };
 
       handleGameFinished();
@@ -428,6 +448,7 @@ const MusGamePage: React.FC = () => {
           setFinalMatchData(null);
           setEloChange(null);
           setInitialProfile(null);
+          setIsProfileLoading(false);
         }}
         onLeave={() => {
           onLeaveRoom();
@@ -435,6 +456,7 @@ const MusGamePage: React.FC = () => {
           setFinalMatchData(null);
           setEloChange(null);
           setInitialProfile(null);
+          setIsProfileLoading(false);
         }}
         roundsWonUs={finalMatchData.roundsWonUs}
         roundsWonThem={finalMatchData.roundsWonThem}
@@ -444,6 +466,7 @@ const MusGamePage: React.FC = () => {
         seats={finalMatchData.seats}
         eloChange={eloChange}
         winningProfiles={winningProfiles}
+        isLoading={isProfileLoading}
       />
     );
   };
