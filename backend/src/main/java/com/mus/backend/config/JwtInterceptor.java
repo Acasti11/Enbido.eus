@@ -35,6 +35,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                 if (jwtService.isTokenValid(token)) {
                     Long userId = jwtService.extractUserId(token);
                     request.setAttribute("userId", userId);
+                    com.mus.backend.service.FriendshipService.updateSessionActivity(userId);
                     return true;
                 }
             } catch (Exception e) {

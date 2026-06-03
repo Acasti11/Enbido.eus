@@ -278,9 +278,10 @@ const NormalLoginForm: React.FC<NormalLoginFormProps> = ({
 
 interface LoginFormProps {
   onSwitchToRecover: () => void;
+  on2FaStatusChange?: (isActive: boolean) => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover, on2FaStatusChange }) => {
   const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -293,6 +294,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover }) => {
   const [tempUserId, setTempUserId] = useState<number | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [countdown, setCountdown] = useState(300);
+
+  useEffect(() => {
+    if (on2FaStatusChange) {
+      on2FaStatusChange(twoFactorRequired);
+    }
+  }, [twoFactorRequired, on2FaStatusChange]);
 
   // Handle expiration timer
   useEffect(() => {

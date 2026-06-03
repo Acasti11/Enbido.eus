@@ -1,21 +1,14 @@
 package com.mus.backend.controller;
 
-import com.mus.backend.model.Friendship;
-import com.mus.backend.model.Usuario;
-import com.mus.backend.model.UserGameProfile;
-import com.mus.backend.repository.FriendshipRepository;
-import com.mus.backend.repository.UsuarioRepository;
-import com.mus.backend.service.UserProfileService;
+import com.mus.backend.service.FriendshipService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/friendships")
@@ -23,22 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FriendshipController {
 
     @Autowired
-    private FriendshipRepository friendshipRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private UserProfileService userProfileService;
-
-    // Registry of user presence: userId -> lastActiveTimestamp in milliseconds
-    private static final Map<Long, Long> activeSessions = new ConcurrentHashMap<>();
-
-    private void updateSessionActivity(Long userId) {
-        if (userId != null) {
-            activeSessions.put(userId, System.currentTimeMillis());
-        }
-    }
+    private FriendshipService friendshipService;
 
     // Response Dto inside Controller for simplicity
     public static class FriendResponse {
@@ -60,161 +38,100 @@ public class FriendshipController {
     @GetMapping
     public ResponseEntity<?> getFriends(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
-        List<Friendship> friendships = friendshipRepository.findByUserId1AndStatusOrUserId2AndStatus(userId, "accepted", userId, "accepted");
-        List<FriendResponse> response = new ArrayList<>();
-
-        for (Friendship f : friendships) {
-            FriendResponse res = new FriendResponse();
-            res.friendshipId = f.getFriendshipId();
-            
-            // Determine who is the friend
-            Long friendId = f.getUserId1().equals(userId) ? f.getUserId2() : f.getUserId1();
-            res.id = friendId;
-            
-            Usuario friendUser = f.getUserId1().equals(userId) ? f.getUser2() : f.getUser1();
-            if (friendUser != null) {
-                res.username = friendUser.getUsername();
-            } else {
-                res.username = usuarioRepository.findById(friendId)
-                        .map(Usuario::getUsername).orElse("Usuario");
-            }
-            
-            UserGameProfile gp = userProfileService.getOrCreateUserProfile(friendId);
-            res.elo = gp.getElo() != null ? gp.getElo() : 200;
-            res.totalGamesPlayed = gp.getTotalGamesPlayed() != null ? gp.getTotalGamesPlayed() : 0;
-            res.totalGamesWon = gp.getTotalGamesWon() != null ? gp.getTotalGamesWon() : 0;
-            
-            // Check real-time presence (active in the last 20 seconds)
-            long lastActive = activeSessions.getOrDefault(friendId, 0L);
-            res.status = (System.currentTimeMillis() - lastActive) < 20000 ? "online" : "offline";
-            
-            response.add(res);
-        }
-
+        List<FriendResponse> response = friendshipService.getFriends(userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingRequests(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
-        List<Friendship> received = friendshipRepository.findByUserId2AndStatus(userId, "pending");
-        List<Friendship> sent = friendshipRepository.findByUserId1AndStatus(userId, "pending");
-        List<PendingRequestResponse> response = new ArrayList<>();
-
-        for (Friendship f : received) {
-            PendingRequestResponse res = new PendingRequestResponse();
-            res.friendshipId = f.getFriendshipId();
-            Usuario sender = f.getUser1();
-            res.username = sender != null ? sender.getUsername() : "Usuario";
-            res.type = "received";
-            response.add(res);
-        }
-
-        for (Friendship f : sent) {
-            PendingRequestResponse res = new PendingRequestResponse();
-            res.friendshipId = f.getFriendshipId();
-            Usuario receiver = f.getUser2();
-            res.username = receiver != null ? receiver.getUsername() : "Usuario";
-            res.type = "sent";
-            response.add(res);
-        }
-
+        List<PendingRequestResponse> response = friendshipService.getPendingRequests(userId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/request/{username}")
     public ResponseEntity<?> sendFriendRequest(@PathVariable String username, HttpServletRequest request) {
         Long currentUserId = getCurrentUserId(request);
-        
-        Optional<Usuario> targetOpt = usuarioRepository.findByUsername(username);
-        if (targetOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
-        }
-        
-        Usuario targetUser = targetOpt.get();
-        if (targetUser.getUserId().equals(currentUserId)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No puedes agregarte a ti mismo"));
-        }
-        
-        Optional<Friendship> existingOpt = friendshipRepository.findByUserId1AndUserId2OrUserId2AndUserId1(currentUserId, targetUser.getUserId(), currentUserId, targetUser.getUserId());
-        if (existingOpt.isPresent()) {
-            Friendship existing = existingOpt.get();
-            if (existing.getStatus().equals("accepted")) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Ya eres amigo de este usuario"));
-            } else if (existing.getStatus().equals("pending")) {
-                if (existing.getUserId1().equals(currentUserId)) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "Solicitud ya enviada y pendiente"));
-                } else {
-                    // Auto-accept request if other user already sent it to us
-                    existing.setStatus("accepted");
-                    friendshipRepository.save(existing);
-                    return ResponseEntity.ok(Map.of("message", "Solicitud de amistad aceptada automáticamente"));
-                }
+        try {
+            Map<String, String> response = friendshipService.sendFriendRequest(currentUserId, username);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg.contains("no encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", errorMsg));
             }
+            return ResponseEntity.badRequest().body(Map.of("error", errorMsg));
         }
-        
-        Friendship newFriendship = new Friendship();
-        newFriendship.setUserId1(currentUserId);
-        newFriendship.setUserId2(targetUser.getUserId());
-        newFriendship.setStatus("pending");
-        
-        friendshipRepository.save(newFriendship);
-        return ResponseEntity.ok(Map.of("message", "Solicitud de amistad enviada con éxito"));
     }
 
     @PostMapping("/accept/{friendshipId}")
     public ResponseEntity<?> acceptFriendRequest(@PathVariable Long friendshipId, HttpServletRequest request) {
         Long currentUserId = getCurrentUserId(request);
-        
-        Optional<Friendship> fOpt = friendshipRepository.findById(friendshipId);
-        if (fOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Solicitud no encontrada"));
+        try {
+            friendshipService.acceptFriendRequest(friendshipId, currentUserId);
+            return ResponseEntity.ok(Map.of("message", "Solicitud de amistad aceptada"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         }
-        
-        Friendship f = fOpt.get();
-        if (!f.getUserId2().equals(currentUserId)) {
-            return ResponseEntity.status(403).body(Map.of("error", "No puedes aceptar una solicitud destinada a otro usuario"));
-        }
-        
-        f.setStatus("accepted");
-        friendshipRepository.save(f);
-        return ResponseEntity.ok(Map.of("message", "Solicitud de amistad aceptada"));
     }
 
     @PostMapping("/decline/{friendshipId}")
     public ResponseEntity<?> declineFriendRequest(@PathVariable Long friendshipId, HttpServletRequest request) {
         Long currentUserId = getCurrentUserId(request);
-        
-        Optional<Friendship> fOpt = friendshipRepository.findById(friendshipId);
-        if (fOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Solicitud no encontrada"));
+        try {
+            friendshipService.declineFriendRequest(friendshipId, currentUserId);
+            return ResponseEntity.ok(Map.of("message", "Solicitud de amistad rechazada/cancelada con éxito"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         }
-        
-        Friendship f = fOpt.get();
-        if (!f.getUserId2().equals(currentUserId) && !f.getUserId1().equals(currentUserId)) {
-            return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
-        }
-        
-        friendshipRepository.delete(f);
-        return ResponseEntity.ok(Map.of("message", "Solicitud rechazada/cancelada con éxito"));
     }
 
     @DeleteMapping("/{friendshipId}")
     public ResponseEntity<?> deleteFriend(@PathVariable Long friendshipId, HttpServletRequest request) {
         Long currentUserId = getCurrentUserId(request);
-        
-        Optional<Friendship> fOpt = friendshipRepository.findById(friendshipId);
-        if (fOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Amistad no encontrada"));
+        try {
+            friendshipService.deleteFriend(friendshipId, currentUserId);
+            return ResponseEntity.ok(Map.of("message", "Amigo eliminado de tu lista"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         }
-        
-        Friendship f = fOpt.get();
-        if (!f.getUserId1().equals(currentUserId) && !f.getUserId2().equals(currentUserId)) {
-            return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
+    }
+
+    @PostMapping("/block/{targetUserId}")
+    public ResponseEntity<?> blockUser(@PathVariable Long targetUserId, HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        try {
+            friendshipService.blockUser(currentUserId, targetUserId);
+            return ResponseEntity.ok(Map.of("message", "Usuario bloqueado con éxito"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-        
-        friendshipRepository.delete(f);
-        return ResponseEntity.ok(Map.of("message", "Amigo eliminado de tu lista"));
+    }
+
+    @PostMapping("/unblock/{targetUserId}")
+    public ResponseEntity<?> unblockUser(@PathVariable Long targetUserId, HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        try {
+            friendshipService.unblockUser(currentUserId, targetUserId);
+            return ResponseEntity.ok(Map.of("message", "Usuario desbloqueado con éxito"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/blocked")
+    public ResponseEntity<?> getBlockedUsers(HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        List<FriendResponse> blocked = friendshipService.getBlockedUsers(currentUserId);
+        return ResponseEntity.ok(blocked);
     }
 
     private Long getCurrentUserId(HttpServletRequest request) {

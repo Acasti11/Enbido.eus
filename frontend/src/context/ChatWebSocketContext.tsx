@@ -11,6 +11,8 @@ interface ChatWebSocketContextType {
   unregisterDmCallback: () => void;
   registerMeetupCallback: (callback: (msg: any) => void) => void;
   unregisterMeetupCallback: () => void;
+  registerFriendshipCallback: (callback: (event: any) => void) => void;
+  unregisterFriendshipCallback: () => void;
 }
 
 const ChatWebSocketContext = createContext<ChatWebSocketContextType | undefined>(undefined);
@@ -31,6 +33,7 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   // Callbacks para los componentes activos
   const dmCallbackRef = useRef<((msg: any) => void) | null>(null);
   const meetupCallbackRef = useRef<((msg: any) => void) | null>(null);
+  const friendshipCallbackRef = useRef<((event: any) => void) | null>(null);
 
   // Settings para poder reproducir efectos y notificaciones emergentes en background
   const settingsContext = useSettings();
@@ -54,6 +57,14 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const unregisterMeetupCallback = useCallback(() => {
     meetupCallbackRef.current = null;
+  }, []);
+
+  const registerFriendshipCallback = useCallback((callback: (event: any) => void) => {
+    friendshipCallbackRef.current = callback;
+  }, []);
+
+  const unregisterFriendshipCallback = useCallback(() => {
+    friendshipCallbackRef.current = null;
   }, []);
 
   // --- MÉTODOS DE ENVÍO Y CONTROL ---
@@ -179,6 +190,18 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             meetupCallbackRef.current(message);
           }
         }
+        else if (
+          type === 'FRIEND_REQUEST_RECEIVED' ||
+          type === 'FRIEND_REQUEST_ACCEPTED' ||
+          type === 'FRIEND_DELETED' ||
+          type === 'FRIEND_BLOCKED' ||
+          type === 'FRIEND_UNBLOCKED' ||
+          type === 'PRESENCE_CHANGE'
+        ) {
+          if (friendshipCallbackRef.current) {
+            friendshipCallbackRef.current(data);
+          }
+        }
         else if (type === 'ERROR') {
           console.error('Mensaje de error del socket de chat:', data.message);
         }
@@ -241,7 +264,9 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         registerDmCallback,
         unregisterDmCallback,
         registerMeetupCallback,
-        unregisterMeetupCallback
+        unregisterMeetupCallback,
+        registerFriendshipCallback,
+        unregisterFriendshipCallback
       }}
     >
       {children}

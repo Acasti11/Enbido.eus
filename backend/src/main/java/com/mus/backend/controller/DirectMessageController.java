@@ -24,6 +24,9 @@ public class DirectMessageController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private com.mus.backend.service.FriendshipService friendshipService;
+
     // Request DTO for sending message
     public static class MessageRequest {
         public String content;
@@ -36,6 +39,11 @@ public class DirectMessageController {
         // Verify receiver exists
         if (!usuarioRepository.existsById(friendId)) {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario amigo no encontrado"));
+        }
+
+        // Verify no block relationship exists
+        if (friendshipService.hasBlockRelationship(currentUserId, friendId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "No puedes chatear con un usuario bloqueado"));
         }
         
         List<DirectMessage> history = directMessageRepository.findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderBySentAtAsc(currentUserId, friendId, friendId, currentUserId);
@@ -58,6 +66,11 @@ public class DirectMessageController {
         Optional<Usuario> receiverOpt = usuarioRepository.findById(friendId);
         if (receiverOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario receptor no encontrado"));
+        }
+
+        // Verify no block relationship exists
+        if (friendshipService.hasBlockRelationship(currentUserId, friendId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "No puedes chatear con un usuario bloqueado"));
         }
 
         DirectMessage dm = new DirectMessage();

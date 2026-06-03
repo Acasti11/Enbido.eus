@@ -10,6 +10,7 @@ import { useMusGame } from './hooks/useMusGame';
 import api from '../../services/api';
 import './styles/mus-game.css';
 import { useSeo } from '../../hooks/useSeo';
+import GameOverModal from '../../components/layout/GameOverModal';
 
 const getSignEmojiOnly = (signKey: string): string => {
   const mapping: { [key: string]: string } = {
@@ -164,6 +165,11 @@ const PlayerPosition: React.FC<{
   const isSelf = position === 'south';
   const displayName = isSelf ? `${username} (${t('musGame.you')})` : username;
 
+  const absChair = seats[index]?.chair;
+  const isTurnActive = absChair !== undefined && activeTurnIdx === absChair;
+  const signType = absChair !== undefined ? activeSigns[absChair] : undefined;
+  const isDealer = absChair !== undefined && dealerIdx === absChair;
+
   let avatarSkinClass = '';
   if (profile?.equippedAvatarItemId === 1) avatarSkinClass = 'avatar-ring-gold';
   else if (profile?.equippedAvatarItemId === 2) avatarSkinClass = 'avatar-ring-green';
@@ -171,20 +177,20 @@ const PlayerPosition: React.FC<{
   else if (profile?.equippedAvatarItemId === 8) avatarSkinClass = 'avatar-ring-karta';
 
   const avatarClass = isSelf
-    ? `player-theme ${activeSigns[index] ? 'has-active-sign' : ''} ${avatarSkinClass}`
+    ? `player-theme ${signType ? 'has-active-sign' : ''} ${avatarSkinClass}`
     : position === 'north'
-    ? `partner-theme ${activeSigns[index] ? 'has-active-sign' : ''}`
-    : `rival-theme ${activeSigns[index] ? 'has-active-sign' : ''}`;
+    ? `partner-theme ${signType ? 'has-active-sign' : ''}`
+    : `rival-theme ${signType ? 'has-active-sign' : ''}`;
 
   return (
-    <div className={`player-position position-${position} ${activeTurnIdx === index ? 'active-zone' : ''}`}>
+    <div className={`player-position position-${position} ${isTurnActive ? 'active-zone' : ''}`}>
       <div className="player-avatar-card">
         <div className="player-avatar-wrapper">
-          <TimerCircle timeLeft={timeLeft} isActive={activeTurnIdx === index} />
+          <TimerCircle timeLeft={timeLeft} isActive={isTurnActive} />
           <div className={`player-avatar-circle ${avatarClass}`}>
             {username.slice(0, 2).toUpperCase()}
           </div>
-          {activeTurnIdx === index && timeLeft > 0 && (
+          {isTurnActive && timeLeft > 0 && (
             <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
               {timeLeft}s
             </div>
@@ -213,17 +219,17 @@ const PlayerPosition: React.FC<{
           equippedDeckItemId={profile?.equippedDeckItemId}
         />
       </div>
-      {dealerIdx === index && (
+      {isDealer && (
         <div className="dealer-baraja-token" title={t('musGame.dealerTooltip')}>
           <MiniDeckToken />
         </div>
       )}
       {speechBubbles[index] && <div className="speech-bubble show">{speechBubbles[index]}</div>}
-      {activeSigns[index] && (
+      {signType && (
         <div className="mus-sign-badge pop-in">
           <div className="mus-sign-badge-glow"></div>
           <span className="mus-sign-badge-text">
-            {getSignEmojiOnly(activeSigns[index])}
+            {getSignEmojiOnly(signType)}
           </span>
         </div>
       )}
@@ -259,6 +265,14 @@ const MusGamePage: React.FC = () => {
   const currentUserId = Number(localStorage.getItem('userId') || '1');
   const [profile, setProfile] = useState<any>(null);
 
+  // New states for Game Over Pop-up summary
+  const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const [eloChange, setEloChange] = useState<number | null>(null);
+  const [winningProfiles, setWinningProfiles] = useState<{ [userId: number]: any }>({});
+  const [initialProfile, setInitialProfile] = useState<any>(null);
+  const [finalMatchData, setFinalMatchData] = useState<any>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -275,10 +289,100 @@ const MusGamePage: React.FC = () => {
     isPlaying, phase, stage, score, logs, chatMessages, selectedCards, speechBubbles, playerHand, botHands,
     roomId, seats, isSearching, queueSize, username, isMyTurn, betState,
     handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
-    onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
+    onAddBot, onRemoveBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
     reyesOption, maxRounds, updateRoomConfig, sendChatMessage, sendSign,
-    activeSigns, turnDeadline, activeTurnIdx, dealerIdx
+    activeSigns, turnDeadline, activeTurnIdx, dealerIdx,
+    leaveVotes, sendLeaveVote
   } = useMusGame(currentUserId);
+
+  // Fetch initial profile when match starts
+  useEffect(() => {
+    if (isPlaying && initialProfile === null) {
+      const fetchInitial = async () => {
+        try {
+          const res = await api.get('/usuarios/me/profile');
+          setInitialProfile(res.data);
+        } catch (err) {
+          console.error('Error fetching initial profile:', err);
+        }
+      };
+      fetchInitial();
+    }
+  }, [isPlaying, initialProfile]);
+
+  const prevIsPlaying = useRef(isPlaying);
+
+  // Detect match completion
+  useEffect(() => {
+    if (prevIsPlaying.current === true && isPlaying === false && roomId !== '') {
+      const handleGameFinished = async () => {
+        // Freeze final match stats so they persist on modal regardless of lobby resets
+        const currentSeats = [...seats];
+        const currentRoundsUs = score.roundsUs || 0;
+        const currentRoundsThem = score.roundsThem || 0;
+
+        setFinalMatchData({
+          roundsWonUs: currentRoundsUs,
+          roundsWonThem: currentRoundsThem,
+          maxRounds: maxRounds,
+          scoreUs: score.us,
+          scoreThem: score.them,
+          seats: currentSeats
+        });
+
+        // Open modal immediately to prevent delays
+        setIsGameOverOpen(true);
+        setIsProfileLoading(true);
+
+        try {
+          // Determine winning couple
+          const isUsWinner = currentRoundsUs > currentRoundsThem;
+          const winningChairs = isUsWinner ? [0, 2] : [1, 3];
+          const winners = currentSeats.filter(s => winningChairs.includes(s.chair));
+
+          // Run all requests in parallel
+          const profilePromises: Promise<any>[] = [];
+
+          // 1. Fetch our own updated profile for ELO change
+          const mePromise = api.get('/usuarios/me/profile').then(res => {
+            const finalProfile = res.data;
+            const beforeElo = initialProfile ? initialProfile.elo : profile?.elo;
+            if (beforeElo !== undefined && finalProfile.elo !== undefined) {
+              setEloChange(finalProfile.elo - beforeElo);
+            }
+            setProfile(finalProfile);
+          }).catch(err => {
+            console.error('Error fetching final player profile:', err);
+          });
+          profilePromises.push(mePromise);
+
+          // 2. Fetch profiles of non-bot winners
+          const profilesMap: { [userId: number]: any } = {};
+          winners.forEach(w => {
+            if (w.userId && !w.isBot) {
+              const winnerPromise = api.get(`/usuarios/${w.userId}/profile`).then(res => {
+                profilesMap[w.userId!] = res.data;
+              }).catch(err => {
+                console.error(`Error fetching winner ${w.username} profile:`, err);
+              });
+              profilePromises.push(winnerPromise);
+            }
+          });
+
+          // Wait for all fetches to resolve in parallel
+          await Promise.all(profilePromises);
+          setWinningProfiles(profilesMap);
+        } catch (err) {
+          console.error('Error handling post-game profile loading:', err);
+        } finally {
+          setIsProfileLoading(false);
+        }
+      };
+
+      handleGameFinished();
+    }
+    prevIsPlaying.current = isPlaying;
+  }, [isPlaying, roomId, score, maxRounds, seats, initialProfile, profile]);
 
   const [activeTab, setActiveTab] = useState<'logs' | 'chat'>('logs');
   const [chatInput, setChatInput] = useState('');
@@ -334,6 +438,39 @@ const MusGamePage: React.FC = () => {
     return () => clearInterval(interval);
   }, [turnDeadline, isMyTurn, isMuted]);
 
+  const renderGameOverModal = () => {
+    if (!finalMatchData) return null;
+    return (
+      <GameOverModal
+        isOpen={isGameOverOpen}
+        onClose={() => {
+          setIsGameOverOpen(false);
+          setFinalMatchData(null);
+          setEloChange(null);
+          setInitialProfile(null);
+          setIsProfileLoading(false);
+        }}
+        onLeave={() => {
+          onLeaveRoom();
+          setIsGameOverOpen(false);
+          setFinalMatchData(null);
+          setEloChange(null);
+          setInitialProfile(null);
+          setIsProfileLoading(false);
+        }}
+        roundsWonUs={finalMatchData.roundsWonUs}
+        roundsWonThem={finalMatchData.roundsWonThem}
+        maxRounds={finalMatchData.maxRounds}
+        scoreUs={finalMatchData.scoreUs}
+        scoreThem={finalMatchData.scoreThem}
+        seats={finalMatchData.seats}
+        eloChange={eloChange}
+        winningProfiles={winningProfiles}
+        isLoading={isProfileLoading}
+      />
+    );
+  };
+
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
@@ -378,33 +515,61 @@ const MusGamePage: React.FC = () => {
     handleBetAction(action);
   };
 
+  const mySeat = seats.find(s => s.userId === currentUserId);
+  const myChair = mySeat ? mySeat.chair : -1;
+  const hasVotedToLeave = myChair !== -1 && leaveVotes.includes(myChair);
+
+  const handleExitRequest = () => {
+    if (!isPlaying) {
+      onLeaveRoom();
+      return;
+    }
+
+    if (hasVotedToLeave) {
+      if (window.confirm(t('musGame.cancelExitVoteConfirm') || '¿Quieres retirar tu voto de salida?')) {
+        sendLeaveVote(false);
+      }
+    } else {
+      if (window.confirm(t('musGame.voteExitConfirm') || 'Si sales de la partida en curso serás penalizado, a menos que ambas parejas decidan salir amistosamente de mutuo acuerdo. ¿Quieres proponer una salida amistosa?')) {
+        sendLeaveVote(true);
+      }
+    }
+  };
+
   if (roomId === '') {
     return (
-      <PremiumLobby
-        username={username}
-        isSearching={isSearching}
-        queueSize={queueSize}
-        onJoinRoom={onJoinRoom}
-        onCreateRoom={onCreateRoom}
-        onStartMatchmaking={onStartMatchmaking}
-        onCancelMatchmaking={onCancelMatchmaking}
-      />
+      <>
+        <PremiumLobby
+          username={username}
+          isSearching={isSearching}
+          queueSize={queueSize}
+          onJoinRoom={onJoinRoom}
+          onCreateRoom={onCreateRoom}
+          onStartMatchmaking={onStartMatchmaking}
+          onCancelMatchmaking={onCancelMatchmaking}
+        />
+        {renderGameOverModal()}
+      </>
     );
   }
 
   if (!isPlaying) {
     return (
-      <LobbyWaitingRoom
-        roomId={roomId}
-        seats={seats}
-        currentUserId={currentUserId}
-        onAddBot={onAddBot}
-        onStartGame={handleStartMatch}
-        onLeaveRoom={onLeaveRoom}
-        reyesOption={reyesOption}
-        maxRounds={maxRounds}
-        onUpdateConfig={updateRoomConfig}
-      />
+      <>
+        <LobbyWaitingRoom
+          roomId={roomId}
+          seats={seats}
+          currentUserId={currentUserId}
+          onAddBot={onAddBot}
+          onRemoveBot={onRemoveBot}
+          onStartGame={handleStartMatch}
+          onLeaveRoom={onLeaveRoom}
+          reyesOption={reyesOption}
+          maxRounds={maxRounds}
+          onUpdateConfig={updateRoomConfig}
+        />
+        {renderGameOverModal()}
+      </>
     );
   }
 
@@ -420,6 +585,20 @@ const MusGamePage: React.FC = () => {
         )}
 
         <div className="felt-layout-pane">
+
+          {isPlaying && leaveVotes.length > 0 && (
+            <div className="friendly-exit-banner">
+              <span>{t('musGame.friendlyExitBanner', { count: leaveVotes.length })}</span>
+              <button
+                className={`friendly-exit-btn-action ${hasVotedToLeave ? 'friendly-exit-btn-action--cancel' : ''}`}
+                onClick={handleExitRequest}
+              >
+                {hasVotedToLeave
+                  ? t('musGame.cancelExitVote')
+                  : t('musGame.voteExit')}
+              </button>
+            </div>
+          )}
 
           {isMobile && (
             <div className="mobile-score-container" onClick={() => setIsSidebarOpen(true)}>
@@ -449,7 +628,7 @@ const MusGamePage: React.FC = () => {
               {!isMobile && (
                 <button
                   className="leave-felt-btn"
-                  onClick={onLeaveRoom}
+                  onClick={handleExitRequest}
                 >
                   {t('musGame.leaveTableShort')}
                 </button>
@@ -542,7 +721,7 @@ const MusGamePage: React.FC = () => {
               </button>
               <button
                 className="leave-felt-btn leave-felt-btn--mobile"
-                onClick={onLeaveRoom}
+                onClick={handleExitRequest}
               >
                 {t('musGame.leaveShort')}
               </button>
@@ -593,7 +772,7 @@ const MusGamePage: React.FC = () => {
                       const parts = msg.split(': ');
                       const sender = parts[0];
                       const content = parts.slice(1).join(': ');
-                      const isMe = sender === username;
+                      const isMe = sender.trim().toLowerCase() === username.trim().toLowerCase();
 
                       return (
                         <div key={idx} className={`game-chat-message ${isMe ? 'game-chat-message--me' : 'game-chat-message--other'}`}>
@@ -639,6 +818,8 @@ const MusGamePage: React.FC = () => {
         </aside>
 
       </div>
+
+      {renderGameOverModal()}
     </>
   );
 };

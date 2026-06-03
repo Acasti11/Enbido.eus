@@ -47,6 +47,7 @@ export const useMusGame = (userId: number) => {
   const [maxRounds, setMaxRounds] = useState<number>(3);
   const [roundsWonUs, setRoundsWonUs] = useState<number>(0);
   const [roundsWonThem, setRoundsWonThem] = useState<number>(0);
+  const [leaveVotes, setLeaveVotes] = useState<number[]>([]);
 
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -56,6 +57,11 @@ export const useMusGame = (userId: number) => {
   const appendLog = useCallback((message: string) => {
     setLogs((prev) => [{ id: Math.random().toString(), message }, ...prev]);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('isGameActive', roomId !== '' ? 'true' : 'false');
+    window.dispatchEvent(new Event('game_state_changed'));
+  }, [roomId]);
 
   // --- WEBSOCKET CONNECTION ---
 
@@ -114,7 +120,12 @@ export const useMusGame = (userId: number) => {
           const betStage = data.stage ? data.stage.toLowerCase() : 'grande';
           setStage(betStage as BettingStage);
           
-          setScore({ us: data.score.us, them: data.score.them });
+          setScore({
+            us: data.score.us,
+            them: data.score.them,
+            roundsUs: data.score.roundsUs,
+            roundsThem: data.score.roundsThem
+          });
           
           // Format logs for UI
           if (data.logs) {
@@ -140,8 +151,14 @@ export const useMusGame = (userId: number) => {
           setRoundsWonThem(data.roundsWonThem || 0);
           setTurnDeadline(data.turnDeadline || 0);
           setDealerIdx(data.dealerIdx !== undefined ? data.dealerIdx : -1);
+          setLeaveVotes(data.leaveVotes || []);
           setIsSearching(false);
         } 
+        else if (type === 'GAME_CANCELLED') {
+          appendLog(t('musGame.friendlyExitSuccess') || 'La partida ha sido cancelada de mutuo acuerdo.');
+          alert(t('musGame.friendlyExitSuccess') || 'La partida ha sido cancelada de mutuo acuerdo.');
+          onLeaveRoom();
+        }
         else if (type === 'QUEUEING') {
           setIsSearching(true);
           setQueueSize(data.queueSize);
@@ -167,8 +184,19 @@ export const useMusGame = (userId: number) => {
           appendLog(t('musGame.matchFound', { roomId: data.roomId }));
           setRoomId(data.roomId);
           setIsSearching(false);
-          // Reconnect to the real room
-          connectWebSocket(data.roomId);
+          // Send a JOIN on the same socket so the server confirms our seat
+          // and broadcasts the full ROOM_STATE to us (handles edge cases
+          // where the initial broadcast might not reach us).
+          const token = localStorage.getItem('token');
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+              type: 'JOIN',
+              roomId: data.roomId,
+              token,
+              userId,
+              username
+            }));
+          }
         }
         else if (type === 'ERROR') {
           appendLog(t('musGame.serverError', { message: data.message }));
@@ -250,6 +278,15 @@ export const useMusGame = (userId: number) => {
     }
   };
 
+  const onRemoveBot = (chair: number) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'REMOVE_BOT',
+        chair
+      }));
+    }
+  };
+
   const onJoinRoom = (roomCode: string) => {
     connectWebSocket(roomCode);
   };
@@ -314,6 +351,15 @@ export const useMusGame = (userId: number) => {
     }
   };
 
+  const sendLeaveVote = (vote: boolean) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'LEAVE_VOTE',
+        vote
+      }));
+    }
+  };
+
   const sendSign = (signType: string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
@@ -365,6 +411,7 @@ export const useMusGame = (userId: number) => {
     handleBetAction,
     toggleCardSelection,
     onAddBot,
+    onRemoveBot,
     onJoinRoom,
     onCreateRoom,
     onStartMatchmaking,
@@ -374,5 +421,7 @@ export const useMusGame = (userId: number) => {
     sendChatMessage,
     sendSpeechBubble,
     sendSign,
+    leaveVotes,
+    sendLeaveVote,
   };
 };

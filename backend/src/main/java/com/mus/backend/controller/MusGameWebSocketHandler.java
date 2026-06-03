@@ -47,6 +47,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         String username;
         String roomId;
         int chair; // -1 if not seated yet
+        String reyesOption; // null if not in matchmaking queue
     }
 
     @Override
@@ -79,6 +80,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             else if ("ADD_BOT".equals(type)) {
                 handleAddBot(conn, data);
             } 
+            else if ("REMOVE_BOT".equals(type)) {
+                handleRemoveBot(conn, data);
+            }
             else if ("START_GAME".equals(type)) {
                 handleStartGame(conn);
             } 
@@ -103,6 +107,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             else if ("SEND_SIGN".equals(type)) {
                 handleSendSign(conn, data);
             }
+            else if ("LEAVE_VOTE".equals(type)) {
+                handleLeaveVote(conn, data);
+            }
 
         } catch (Exception e) {
             System.err.println("Error handling websocket message: " + e.getMessage());
@@ -115,7 +122,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         UserConnection conn = activeConnections.remove(session.getId());
         if (conn != null) {
             // Salir de matchmaking si estaba buscando
-            sessionManager.removeFromMatchmaking(conn.userId);
+            if (conn.userId != null) {
+                sessionManager.removeFromMatchmaking(conn.userId);
+                if (conn.reyesOption != null) {
+                    broadcastQueueSize(conn.reyesOption);
+                }
+            }
 
             if (conn.roomId != null) {
                 GameSession room = sessionManager.getRoom(conn.roomId);
@@ -238,14 +250,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         
         conn.userId = userId;
         conn.username = username;
+        conn.reyesOption = reyesOption;
 
         try {
             sessionManager.addToMatchmaking(userId, username, reyesOption);
-            // Confirmamos que está en cola
-            Map<String, Object> queueEvent = new HashMap<>();
-            queueEvent.put("type", "QUEUEING");
-            queueEvent.put("queueSize", sessionManager.getMatchmakingQueueSize(reyesOption));
-            sendJsonMessage(conn.session, queueEvent);
+            // Confirmamos que está en cola a todos los miembros de esa cola
+            broadcastQueueSize(reyesOption);
         } catch (Exception e) {
             sendErrorMessage(conn.session, e.getMessage());
         }
@@ -276,6 +286,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             Map<String, Object> leaveEvent = new HashMap<>();
             leaveEvent.put("type", "LEAVED_QUEUE");
             sendJsonMessage(conn.session, leaveEvent);
+            
+            if (conn.reyesOption != null) {
+                String reyes = conn.reyesOption;
+                conn.reyesOption = null;
+                broadcastQueueSize(reyes);
+            }
         }
     }
 
@@ -287,6 +303,19 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         int chair = Integer.parseInt(data.get("chair").toString());
         room.addBot(chair);
         broadcastRoomState(room);
+    }
+
+    private void handleRemoveBot(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null || room.isPlaying()) return;
+
+        int chair = Integer.parseInt(data.get("chair").toString());
+        GamePlayer gp = room.getPlayers().get(chair);
+        if (gp != null && gp.isBot()) {
+            room.removePlayer(chair);
+            broadcastRoomState(room);
+        }
     }
 
     private void handleStartGame(UserConnection conn) {
@@ -428,10 +457,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     state.put("type", "ROOM_STATE");
                     
                     String json = mapper.writeValueAsString(state);
-                    if (conn.session.isOpen()) {
-                        conn.session.sendMessage(new TextMessage(json));
+                    synchronized (conn.session) {
+                        if (conn.session.isOpen()) {
+                            conn.session.sendMessage(new TextMessage(json));
+                        }
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.err.println("Error broadcasting state to " + conn.username + ": " + e.getMessage());
                 }
             }
@@ -441,10 +472,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     private void sendJsonMessage(WebSocketSession session, Map<String, Object> data) {
         try {
             String json = mapper.writeValueAsString(data);
-            if (session.isOpen()) {
-                session.sendMessage(new TextMessage(json));
+            synchronized (session) {
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(json));
+                }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -454,8 +487,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             Map<String, Object> errorMap = new HashMap<>();
             errorMap.put("type", "ERROR");
             errorMap.put("message", errorMsg);
-            session.sendMessage(new TextMessage(mapper.writeValueAsString(errorMap)));
-        } catch (IOException e) {
+            synchronized (session) {
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(errorMap)));
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -580,12 +617,62 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private void handleLeaveVote(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null || conn.chair == -1) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null || !room.isPlaying()) return;
+
+        boolean vote = (Boolean) data.get("vote");
+        if (vote) {
+            room.addLeaveVote(conn.chair);
+            room.appendLog(conn.username + " ha votado para salir de la partida de mutuo acuerdo.");
+        } else {
+            room.removeLeaveVote(conn.chair);
+            room.appendLog(conn.username + " ha retirado su voto de salida.");
+        }
+
+        if (room.hasBothTeamsVotedToLeave()) {
+            room.setPlaying(false);
+            room.appendLog("Partida cancelada de mutuo acuerdo.");
+            sessionManager.cancelGameInDb(room);
+
+            Map<String, Object> cancelEvent = new HashMap<>();
+            cancelEvent.put("type", "GAME_CANCELLED");
+            broadcastToRoom(room, cancelEvent);
+
+            ScheduledFuture<?> future = activeTimers.remove(conn.roomId);
+            if (future != null) {
+                future.cancel(false);
+            }
+            
+            // Clean up the room after a delay
+            timerScheduler.schedule(() -> {
+                sessionManager.removeRoom(conn.roomId);
+            }, 3, TimeUnit.SECONDS);
+        } else {
+            broadcastRoomState(room);
+        }
+    }
+
     // --- GESTIÓN DE ABANDONO Y SCHEDULER DE MATCHMAKING ---
 
     private void broadcastToRoom(GameSession room, Map<String, Object> data) {
         for (UserConnection conn : activeConnections.values()) {
             if (room.getRoomId().equalsIgnoreCase(conn.roomId)) {
                 sendJsonMessage(conn.session, data);
+            }
+        }
+    }
+
+    private void broadcastQueueSize(String reyesOption) {
+        List<Long> queueUserIds = sessionManager.getMatchmakingUserIds(reyesOption);
+        Map<String, Object> queueEvent = new HashMap<>();
+        queueEvent.put("type", "QUEUEING");
+        queueEvent.put("queueSize", queueUserIds.size());
+
+        for (UserConnection conn : activeConnections.values()) {
+            if (conn.userId != null && queueUserIds.contains(conn.userId)) {
+                sendJsonMessage(conn.session, queueEvent);
             }
         }
     }
@@ -619,6 +706,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 room.setScoreUs(30);
                 room.setScoreThem(Math.min(room.getScoreThem(), 29));
             }
+            room.setPlaying(false);
             
             // Aplicar penalización por abandono en base de datos
             try {
@@ -706,6 +794,10 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
            if (matches == null || matches.isEmpty()) {
                return;
            }
+
+           // Broadcast the new queue sizes to remaining players since some got matched and removed
+           broadcastQueueSize("8");
+           broadcastQueueSize("4");
            
            for (Map<String, Object> match : matches) {
                String roomId = (String) match.get("roomId");
@@ -714,6 +806,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                GameSession room = sessionManager.getRoom(roomId);
                if (room == null) continue;
                
+               // Assign WebSocket connections to their chairs in the room
                for (UserConnection otherConn : activeConnections.values()) {
                    if (otherConn.roomId == null && otherConn.userId != null) {
                        if (playerIds.contains(otherConn.userId)) {
@@ -729,6 +822,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                            if (chair != -1) {
                                otherConn.roomId = roomId;
                                otherConn.chair = chair;
+                               otherConn.reyesOption = null;
                                
                                Map<String, Object> matchEvent = new HashMap<>();
                                matchEvent.put("type", "MATCHED");
@@ -740,6 +834,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                        }
                    }
                }
+               
+               // Start the match now that all players are assigned
+               room.startMatch();
+               broadcastRoomState(room);
+               triggerBotTurnsRecursively(room);
+               startTurnTimer(room);
            }
        }
    }

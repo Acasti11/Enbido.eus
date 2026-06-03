@@ -177,7 +177,6 @@ public class GameSessionManager {
                     session.addPlayer(3, p3.userId, p3.username);
                     
                     saveNewGameToDb(session);
-                    session.startMatch();
                     
                     Map<String, Object> matchInfo = new HashMap<>();
                     matchInfo.put("roomId", autoRoomId);
@@ -201,6 +200,15 @@ public class GameSessionManager {
     public synchronized void removeFromMatchmaking(Long userId) {
         matchmakingQueue4.removeIf(entry -> entry.userId.equals(userId));
         matchmakingQueue8.removeIf(entry -> entry.userId.equals(userId));
+    }
+
+    public synchronized List<Long> getMatchmakingUserIds(String reyesOption) {
+        List<MatchmakerEntry> queue = "4".equals(reyesOption) ? matchmakingQueue4 : matchmakingQueue8;
+        List<Long> userIds = new ArrayList<>();
+        for (MatchmakerEntry entry : queue) {
+            userIds.add(entry.userId);
+        }
+        return userIds;
     }
 
     public synchronized int getMatchmakingQueueSize() {
@@ -255,10 +263,10 @@ public class GameSessionManager {
         if (session.getGameDatabaseId() == null) return;
         try {
             playGameRepository.findById(session.getGameDatabaseId()).ifPresent(pg -> {
-                pg.setPointsTeam12(session.getScoreUs());
-                pg.setPointsTeam34(session.getScoreThem());
+                pg.setPointsTeam12(session.getRoundsWonUs());
+                pg.setPointsTeam34(session.getRoundsWonThem());
                 
-                boolean isOver = session.getScoreUs() >= 30 || session.getScoreThem() >= 30;
+                boolean isOver = !session.isPlaying();
                 if (isOver) {
                     pg.setGameStateId(2); // 2 = Finalizada
                     // Actualizar las estadísticas de los perfiles de los jugadores reales
@@ -271,8 +279,28 @@ public class GameSessionManager {
         }
     }
 
+    public void cancelGameInDb(GameSession session) {
+        if (session.getGameDatabaseId() == null) return;
+        try {
+            playGameRepository.findById(session.getGameDatabaseId()).ifPresent(pg -> {
+                pg.setGameStateId(3); // 3 = Cancelada
+                playGameRepository.save(pg);
+            });
+        } catch (Exception e) {
+            System.err.println("Error cancelling game in DB: " + e.getMessage());
+        }
+    }
+
     private void syncUserStatsPostGame(GameSession session) {
-        boolean team1Won = session.getScoreUs() >= 30;
+        boolean team1Won;
+        if (session.getRoundsWonUs() >= session.getConfig().getMaxRounds()) {
+            team1Won = true;
+        } else if (session.getRoundsWonThem() >= session.getConfig().getMaxRounds()) {
+            team1Won = false;
+        } else {
+            // Fallback for early abandonment
+            team1Won = session.getScoreUs() >= 30;
+        }
         
         // Resolver ELOs y RDs actuales para los 4 asientos
         double ratingA0 = 1500.0;

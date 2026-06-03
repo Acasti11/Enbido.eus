@@ -47,6 +47,16 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     // Mapea meetupId -> Set de sesiones activas en esa sala de quedada
     private final Map<Long, Set<WebSocketSession>> meetupRooms = new ConcurrentHashMap<>();
 
+    @Autowired
+    private com.mus.backend.service.FriendshipService friendshipService;
+
+    // Registry of user presence
+    private static final Set<Long> onlineUsers = ConcurrentHashMap.newKeySet();
+
+    public static boolean isUserOnline(Long userId) {
+        return userId != null && onlineUsers.contains(userId);
+    }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         System.out.println(">>> [WS-CHAT] Conexión establecida desde la sesión: " + session.getId());
@@ -92,6 +102,26 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Long userId = sessionToUser.remove(session.getId());
         if (userId != null) {
             userSessions.remove(userId);
+            onlineUsers.remove(userId);
+
+            // Notify friends that this user is offline
+            try {
+                String username = usuarioRepository.findById(userId).map(Usuario::getUsername).orElse("Usuario");
+                List<com.mus.backend.controller.FriendshipController.FriendResponse> friends = friendshipService.getFriends(userId);
+                for (com.mus.backend.controller.FriendshipController.FriendResponse f : friends) {
+                    WebSocketSession friendSession = userSessions.get(f.id);
+                    if (friendSession != null && friendSession.isOpen()) {
+                        Map<String, Object> presenceEvent = new HashMap<>();
+                        presenceEvent.put("type", "PRESENCE_CHANGE");
+                        presenceEvent.put("userId", userId);
+                        presenceEvent.put("username", username);
+                        presenceEvent.put("status", "offline");
+                        sendJsonMessage(friendSession, presenceEvent);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error broadcasting offline presence: " + e.getMessage());
+            }
         }
 
         // Limpiar subscripciones en salas de quedadas
@@ -117,12 +147,31 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         userSessions.put(userId, session);
         sessionToUser.put(session.getId(), userId);
+        onlineUsers.add(userId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("type", "IDENTIFIED");
         response.put("userId", userId);
         response.put("username", username);
         sendJsonMessage(session, response);
+
+        // Notify friends that this user is online
+        try {
+            List<com.mus.backend.controller.FriendshipController.FriendResponse> friends = friendshipService.getFriends(userId);
+            for (com.mus.backend.controller.FriendshipController.FriendResponse f : friends) {
+                WebSocketSession friendSession = userSessions.get(f.id);
+                if (friendSession != null && friendSession.isOpen()) {
+                    Map<String, Object> presenceEvent = new HashMap<>();
+                    presenceEvent.put("type", "PRESENCE_CHANGE");
+                    presenceEvent.put("userId", userId);
+                    presenceEvent.put("username", username);
+                    presenceEvent.put("status", "online");
+                    sendJsonMessage(friendSession, presenceEvent);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error broadcasting online presence: " + e.getMessage());
+        }
     }
 
     private void handleSendDm(Long senderId, WebSocketSession session, Map<String, Object> data) {
@@ -143,6 +192,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Optional<Usuario> senderOpt = usuarioRepository.findById(senderId);
         if (senderOpt.isEmpty()) {
             sendErrorMessage(session, "Usuario emisor no encontrado.");
+            return;
+        }
+
+        // Verify no block relationship exists
+        if (friendshipService.hasBlockRelationship(senderId, receiverId)) {
+            sendErrorMessage(session, "No puedes chatear con un usuario bloqueado.");
             return;
         }
 
@@ -263,6 +318,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             session.sendMessage(new TextMessage(mapper.writeValueAsString(errorMap)));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @org.springframework.transaction.event.TransactionalEventListener(fallbackExecution = true)
+    public void handleFriendshipEvent(com.mus.backend.event.FriendshipEvent event) {
+        WebSocketSession session = userSessions.get(event.getUserId());
+        if (session != null && session.isOpen()) {
+            sendJsonMessage(session, event.getData());
         }
     }
 }

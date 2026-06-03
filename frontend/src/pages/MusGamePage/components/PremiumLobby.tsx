@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../../../services/api';
 import '../styles/premium-lobby.css';
 import { useTranslation } from 'react-i18next';
@@ -71,6 +71,7 @@ interface Friend {
   totalGamesWon: number;
   status: 'online' | 'offline';
   isBot?: boolean;
+  friendshipId?: number;
 }
 
 interface ChatMessage {
@@ -90,6 +91,12 @@ interface UserLeaderboardDto {
   equippedTitle: string;
 }
 
+const defaultBots: Friend[] = [
+  { id: -1, username: 'MusLar-99', elo: 1420, totalGamesPlayed: 120, totalGamesWon: 74, status: 'online', isBot: true },
+  { id: -2, username: 'AnderMus', elo: 1100, totalGamesPlayed: 45, totalGamesWon: 20, status: 'online', isBot: true },
+  { id: -3, username: 'AmaiaTxapeldun', elo: 1650, totalGamesPlayed: 250, totalGamesWon: 160, status: 'offline', isBot: true }
+];
+
 const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   username,
   isSearching,
@@ -104,7 +111,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const activeUsername = localStorage.getItem('username') || t('shop.defaultUsername');
 
   // WebSocket Chat Context Methods
-  const { registerDmCallback, unregisterDmCallback, sendDirectMessage } = useChatWebSocket();
+  const {
+    registerDmCallback,
+    unregisterDmCallback,
+    sendDirectMessage,
+    registerFriendshipCallback,
+    unregisterFriendshipCallback
+  } = useChatWebSocket();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roomCode, setRoomCode] = useState('');
@@ -130,10 +143,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
 
-  // Two-Factor Authentication (2FA) states
-  const [show2FaModal, setShow2FaModal] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [updating2Fa, setUpdating2Fa] = useState(false);
+
 
   const fetchOnlineTournaments = async () => {
     try {
@@ -261,17 +271,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     username: string;
     elo?: number;
   }
-
-  interface SearchUserDto {
-    user_id: number;
-    username: string;
-    elo?: number;
-  }
-  const [socialTab, setSocialTab] = useState<'friends' | 'search' | 'requests'>('friends');
+  const [socialTab, setSocialTab] = useState<'friends' | 'search' | 'requests' | 'blocked'>('friends');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUserDto[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<PendingRequest[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<Friend[]>([]);
 
   // Chat & Profile overlays
   const [activeChatUser, setActiveChatUser] = useState<Friend | null>(null);
@@ -294,13 +299,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     }
   };
 
-  const defaultBots: Friend[] = [
-    { id: -1, username: 'MusLar-99', elo: 1420, totalGamesPlayed: 120, totalGamesWon: 74, status: 'online', isBot: true },
-    { id: -2, username: 'AnderMus', elo: 1100, totalGamesPlayed: 45, totalGamesWon: 20, status: 'online', isBot: true },
-    { id: -3, username: 'AmaiaTxapeldun', elo: 1650, totalGamesPlayed: 250, totalGamesWon: 160, status: 'offline', isBot: true }
-  ];
-
-  const fetchFriends = async () => {
+  const fetchFriends = useCallback(async () => {
     try {
       const res = await api.get('/friendships');
       setFriends([...defaultBots, ...res.data]);
@@ -308,16 +307,25 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       console.error('Error fetching friends:', err);
       setFriends(defaultBots);
     }
-  };
+  }, []);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       const res = await api.get('/friendships/pending');
       setRequests(res.data);
     } catch (err) {
       console.error('Error fetching pending requests:', err);
     }
-  };
+  }, []);
+
+  const fetchBlockedUsers = useCallback(async () => {
+    try {
+      const res = await api.get('/friendships/blocked');
+      setBlockedUsers(res.data);
+    } catch (err) {
+      console.error('Error fetching blocked users:', err);
+    }
+  }, []);
 
   const fetchProfileData = async () => {
     try {
@@ -333,28 +341,110 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   // ---------- INITIALIZE PROFILE & SOCIAL & POLLING ----------
   useEffect(() => {
     fetchProfileData();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFriends();
     fetchRequests();
     fetchOnlineTournaments();
 
-    // Load 2FA status
-    api.get('/usuarios/me')
-      .then(res => setTwoFactorEnabled(res.data.twoFactorEnabled || false))
-      .catch(err => console.error('Error fetching 2FA status in lobby:', err));
-  }, [currentUserId]);
+  }, [currentUserId, fetchFriends, fetchRequests]);
 
-  const handleToggle2Fa = async (enabled: boolean) => {
-    setUpdating2Fa(true);
+  // Load blocked users when blocked tab is active
+  useEffect(() => {
+    if (socialTab === 'blocked') {
+      fetchBlockedUsers();
+    }
+  }, [socialTab, fetchBlockedUsers]);
+
+  // Handle friendship and presence WebSocket events in real-time
+  useEffect(() => {
+    registerFriendshipCallback((event: any) => {
+      const { type } = event;
+      if (type === 'PRESENCE_CHANGE') {
+        const { userId, status } = event;
+        setFriends(prev => prev.map(f => {
+          if (f.id === userId) {
+            return { ...f, status };
+          }
+          return f;
+        }));
+      }
+      else if (type === 'FRIEND_REQUEST_RECEIVED') {
+        fetchRequests();
+      }
+      else if (type === 'FRIEND_REQUEST_ACCEPTED') {
+        fetchFriends();
+        fetchRequests();
+      }
+      else if (type === 'FRIEND_DELETED') {
+        const { friendId } = event;
+        fetchFriends();
+        fetchRequests();
+        if (activeChatUser && activeChatUser.id === friendId) {
+          setActiveChatUser(null);
+        }
+      }
+      else if (type === 'FRIEND_BLOCKED') {
+        const { friendId } = event;
+        fetchFriends();
+        fetchRequests();
+        fetchBlockedUsers();
+        if (activeChatUser && activeChatUser.id === friendId) {
+          setActiveChatUser(null);
+        }
+      }
+      else if (type === 'FRIEND_UNBLOCKED') {
+        fetchFriends();
+        fetchBlockedUsers();
+      }
+    });
+
+    return () => {
+      unregisterFriendshipCallback();
+    };
+  }, [
+    registerFriendshipCallback,
+    unregisterFriendshipCallback,
+    activeChatUser,
+    fetchFriends,
+    fetchRequests,
+    fetchBlockedUsers
+  ]);
+
+  const handleDeleteFriend = async (friend: Friend) => {
+    const confirmMsg = t('premiumLobby.confirmDelete', { username: friend.username });
+    if (!window.confirm(confirmMsg)) return;
+
     try {
-      const res = await api.post('/usuarios/me/2fa/toggle', { enabled });
-      setTwoFactorEnabled(res.data.twoFactorEnabled);
-      alert(enabled ? t('premiumLobby.twoFaEnabledSuccess') : t('premiumLobby.twoFaDisabledSuccess'));
+      await api.delete(`/friendships/${friend.friendshipId}`);
+      fetchFriends();
     } catch (err: any) {
-      console.error('Error updating 2FA in lobby:', err);
-      alert(err.response?.data?.error || t('premiumLobby.twoFaUpdateError'));
-    } finally {
-      setUpdating2Fa(false);
+      console.error('Error deleting friend:', err);
+      alert(err.response?.data?.error || t('premiumLobby.errorDeleteFriend'));
+    }
+  };
+
+  const handleBlockUser = async (friend: Friend) => {
+    const confirmMsg = t('premiumLobby.confirmBlock', { username: friend.username });
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await api.post(`/friendships/block/${friend.id}`);
+      fetchFriends();
+      if (activeChatUser && activeChatUser.id === friend.id) {
+        setActiveChatUser(null);
+      }
+    } catch (err: any) {
+      console.error('Error blocking user:', err);
+      alert(err.response?.data?.error || t('premiumLobby.errorBlockUser'));
+    }
+  };
+
+  const handleUnblockUser = async (blockedUser: Friend) => {
+    try {
+      await api.post(`/friendships/unblock/${blockedUser.id}`);
+      fetchBlockedUsers();
+    } catch (err: any) {
+      console.error('Error unblocking user:', err);
+      alert(err.response?.data?.error || t('premiumLobby.errorUnblockUser'));
     }
   };
 
@@ -657,26 +747,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span className="badge-lbl">{t('premiumLobby.gameGuide')}</span>
                 </div>
               </button>
-
-              <button
-                className={`lobby-badge security-2fa-badge-btn ${twoFactorEnabled
-                  ? 'security-2fa-badge-btn--enabled'
-                  : 'security-2fa-badge-btn--disabled'
-                  }`}
-                onClick={() => setShow2FaModal(true)}
-                title={t("premiumLobby.accountSecurity")}
-              >
-                <span className="badge-icon">🔑</span>
-                <div className="badge-details">
-                  <span className={`badge-val ${twoFactorEnabled
-                        ? 'security-2fa-badge-value--enabled'
-                        : 'security-2fa-badge-value--disabled'
-                      }`}>
-                  {twoFactorEnabled ? t('premiumLobby.twoFaActive') : t('premiumLobby.twoFaActivate')}
-                  </span>
-                  <span className="badge-lbl">{t('premiumLobby.security')}</span>
-                </div>
-              </button>
             </div>
           )}
         </header>
@@ -791,6 +861,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               >
                 {t('premiumLobby.requestsCount', { count: requests.length })}
               </button>
+              <button
+                className={`social-tab-btn ${socialTab === 'blocked' ? 'social-tab-btn--active' : ''}`}
+                onClick={() => setSocialTab('blocked')}
+              >
+                {t('premiumLobby.blockedCount', { count: blockedUsers.length })}
+              </button>
             </div>
 
             {/* TAB CONTENT */}
@@ -833,6 +909,24 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         >
                           👁️
                         </button>
+                        {!friend.isBot && (
+                          <>
+                            <button
+                              className="btn-social-mini btn-delete-mini"
+                              onClick={() => handleDeleteFriend(friend)}
+                              title={t("premiumLobby.deleteFriend")}
+                            >
+                              ❌
+                            </button>
+                            <button
+                              className="btn-social-mini btn-block-mini"
+                              onClick={() => handleBlockUser(friend)}
+                              title={t("premiumLobby.blockUser")}
+                            >
+                              🚫
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))
@@ -919,6 +1013,37 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                           {t('premiumLobby.cancelRequest')}
                         </button>
                       )}
+                    </div>
+                  ))
+                )
+              )}
+
+              {/* TAB 4: BLOCKED USERS */}
+              {socialTab === 'blocked' && (
+                blockedUsers.length === 0 ? (
+                  <div className="social-empty-state social-empty-state--large">
+                    {t('premiumLobby.noBlocked')}
+                  </div>
+                ) : (
+                  blockedUsers.map(blocked => (
+                    <div key={blocked.id} className="friend-item">
+                      <div className="friend-info-block">
+                        <div className="friend-avatar-circle friend-avatar-circle--blocked">
+                          🚫
+                        </div>
+                        <div className="friend-details">
+                          <span className="friend-name">{blocked.username}</span>
+                          <span className="friend-meta-status">{t('premiumLobby.blockedTab')}</span>
+                        </div>
+                      </div>
+                      <div className="friend-actions-btns">
+                        <button
+                          className="btn-social-mini btn-unblock-mini"
+                          onClick={() => handleUnblockUser(blocked)}
+                        >
+                          {t('premiumLobby.unblockUser')}
+                        </button>
+                      </div>
                     </div>
                   ))
                 )
@@ -1454,13 +1579,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   </div>
                   <div className="tourney-metric-card">
                     <span className="tourney-metric-label">{t('premiumLobby.status')}</span>
-                    <span className={`tourney-metric-value--status ${
-                      tourneyDetails.tournament.status === 'finished'
+                    <span className={`tourney-metric-value--status ${tourneyDetails.tournament.status === 'finished'
                         ? 'tourney-metric-value--status-finished'
                         : tourneyDetails.tournament.status === 'playing'
-                        ? 'tourney-metric-value--status-playing'
-                        : 'tourney-metric-value--status-open'
-                    }`}>
+                          ? 'tourney-metric-value--status-playing'
+                          : 'tourney-metric-value--status-open'
+                      }`}>
                       {tourneyDetails.tournament.status === 'open' ? t('premiumLobby.open') : tourneyDetails.tournament.status === 'playing' ? t('premiumLobby.inGame') : t('premiumLobby.finished')}
                     </span>
                   </div>
@@ -1514,7 +1638,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <div>
                     <h3 className="tourney-bracket-heading">{t('premiumLobby.tournamentBracket')}</h3>
 
-                      <div className="tourney-bracket-tree">
+                    <div className="tourney-bracket-tree">
 
                       {/* ROUND 1: QUARTERFINALS */}
                       {tourneyDetails.matches.some((m: any) => m.roundNumber === 1) && (
@@ -1619,7 +1743,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         })}
                       </div>
 
-                      </div>
+                    </div>
 
                     {/* ---------- FLOATING REPORT SCORE PANEL ---------- */}
                     {reportingMatchId && (
@@ -1671,8 +1795,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       </form>
                     )}
 
-                    </div>
-                  )}
+                  </div>
+                )}
               </>
             )}
 
@@ -1680,70 +1804,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </div>
       )}
 
-      {/* ---------- 2FA CONFIGURATION MODAL ---------- */}
-      {show2FaModal && (
-        <div className="leaderboard-modal-overlay" onClick={() => setShow2FaModal(false)}>
-          <div className="leaderboard-modal leaderboard-modal--2fa" onClick={(e) => e.stopPropagation()} >
-            <header className="leaderboard-modal-header">
-              <div className="leaderboard-title-group">
-                <span className="security-modal-icon">🔑</span>
-                <div>
-                  <h2 className="leaderboard-modal-title">{t('premiumLobby.accountSecurity')}</h2>
-                  <span className="leaderboard-modal-subtitle">{t('premiumLobby.secureAccessConfig')}</span>
-                </div>
-              </div>
-              <button className="leaderboard-close-x" onClick={() => setShow2FaModal(false)}>
-                &times;
-              </button>
-            </header>
-
-            <div className="security-modal-body">
-              <div className="security-card">
-                <div className="security-card-content">
-                  <h4 className="security-card-title">
-                      {t('premiumLobby.emailTwoFactor')}
-                  </h4>
-                  <p className="security-card-description">
-                    {t('premiumLobby.twoFaDescription')}
-                  </p>
-                </div>
-
-                <div className="security-switch-container">
-                  <label className="switch">
-
-                    <input
-                      type="checkbox"
-                      checked={twoFactorEnabled}
-                      disabled={updating2Fa}
-                      onChange={(e) => handleToggle2Fa(e.target.checked)}
-                      className="switch-input"
-                    />
-                    <span
-                      className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
-                        } ${updating2Fa ? 'slider--disabled' : ''
-                        }`}
-                    >
-                      <span
-                        className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
-                          }`}
-                      />
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="security-modal-actions">
-                <button
-                  className="btn-action security-modal-close-btn"
-                  onClick={() => setShow2FaModal(false)}
-                >
-                  {t('common.close')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

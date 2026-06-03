@@ -232,6 +232,25 @@
   transform: scale(1.05);
 }
 
+.remove-bot-btn {
+  background: rgba(230, 57, 70, 0.2);
+  color: #e63946;
+  border: 1px solid rgba(230, 57, 70, 0.4);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+
+.remove-bot-btn:hover {
+  background: #e63946;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
 .occupied-chair-inner {
   display: flex;
   flex-direction: column;

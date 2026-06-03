@@ -39,6 +39,7 @@ public class GameSession {
     
     private Map<String, LanceBet> apuestas = new HashMap<>();
     private GameConfig config = new GameConfig(); // Dynamic game settings
+    private final Set<Integer> leaveVotes = new HashSet<>();
 
     public GameSession(String roomId) {
         this.roomId = roomId;
@@ -90,6 +91,7 @@ public class GameSession {
             players.set(chair, null);
             isPlaying = false;
             phase = "init";
+            clearLeaveVotes();
         }
     }
 
@@ -106,6 +108,28 @@ public class GameSession {
             if (p != null) c++;
         }
         return c;
+    }
+
+    public synchronized void addLeaveVote(int chair) {
+        leaveVotes.add(chair);
+    }
+
+    public synchronized void removeLeaveVote(int chair) {
+        leaveVotes.remove(chair);
+    }
+
+    public synchronized boolean hasBothTeamsVotedToLeave() {
+        boolean team1 = leaveVotes.contains(0) || leaveVotes.contains(2);
+        boolean team2 = leaveVotes.contains(1) || leaveVotes.contains(3);
+        return team1 && team2;
+    }
+
+    public synchronized Set<Integer> getLeaveVotes() {
+        return new HashSet<>(leaveVotes);
+    }
+
+    public synchronized void clearLeaveVotes() {
+        leaveVotes.clear();
     }
 
     // --- DELEGACIÓN DE ACCIONES ---
@@ -135,6 +159,7 @@ public class GameSession {
         roundsWonThem = 0;
         isPlaying = true;
         dealerIdx = 0;
+        clearLeaveVotes();
         appendLog("--- COMIENZA LA PARTIDA ---");
         appendLog("Configuración: Mus a " + (config.getReyesOption().equals("8") ? "8 Reyes" : "4 Reyes") + " | Ganar a " + config.getMaxRounds() + " chicos.");
         startNewHand();
@@ -416,11 +441,8 @@ public class GameSession {
                 int firstClose = rawMsg.indexOf("] ");
                 if (firstClose > 7) {
                     try {
-                        int senderChair = Integer.parseInt(rawMsg.substring(7, firstClose));
                         String cleanMsg = rawMsg.substring(firstClose + 2);
-                        if (senderChair == playerIdx || (senderChair % 2) != (playerIdx % 2)) {
-                            clientChat.add(cleanMsg);
-                        }
+                        clientChat.add(cleanMsg);
                     } catch (NumberFormatException e) {
                         clientChat.add(rawMsg);
                     }
@@ -506,6 +528,7 @@ public class GameSession {
         state.put("seats", seats);
         
         state.put("isMyTurn", activeTurnIdx == playerIdx);
+        state.put("leaveVotes", new ArrayList<>(getLeaveVotes()));
 
         return state;
     }

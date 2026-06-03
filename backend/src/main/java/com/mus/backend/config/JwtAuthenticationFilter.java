@@ -47,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     
                     // Guardar userId como atributo del request para que los controllers lo lean
                     request.setAttribute("userId", userId);
+                    com.mus.backend.service.FriendshipService.updateSessionActivity(userId);
                     // ==================================
                     
                     UsernamePasswordAuthenticationToken auth = 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -59,18 +59,49 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const [username, setUsername] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isDropdownOpen]);
+
+  useEffect(() => {
+    const checkGameState = () => {
+      setIsGameActive(localStorage.getItem('isGameActive') === 'true');
+    };
+    checkGameState();
+    window.addEventListener('game_state_changed', checkGameState);
+    return () => window.removeEventListener('game_state_changed', checkGameState);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUsername = localStorage.getItem('username');
 
     if (token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoggedIn(true);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUsername(storedUsername || '');
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoggedIn(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUsername('');
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
@@ -147,6 +178,10 @@ const Navbar: React.FC = (): React.JSX.Element => {
     });
   };
 
+  if (isGameActive && location.pathname === '/jugar') {
+    return <></>;
+  }
+
   return (
     <header className="navbar">
       <button
@@ -187,23 +222,87 @@ const Navbar: React.FC = (): React.JSX.Element => {
         <LanguageSwitcher />
 
         {isLoggedIn ? (
-          <div className="navbar__profile">
-            <Link to="/perfil" className="navbar__profile-link" title={username} onClick={() => playSfx('click')}>
+          <div className="navbar__profile" ref={dropdownRef}>
+            <button
+              className="navbar__profile-trigger"
+              onClick={() => {
+                playSfx('click');
+                setIsDropdownOpen(prev => !prev);
+              }}
+              title={username}
+            >
               <div className="navbar__profile-avatar">
                 <UserAvatarIcon />
               </div>
               <span className="navbar__profile-name">{username || t('nav.profile')}</span>
-            </Link>
-            <button
-              className="navbar__logout-btn"
-              onClick={() => {
-                playSfx('click');
-                handleLogout();
-              }}
-              title={t('nav.logout')}
-            >
-              <LogoutIcon />
+              <svg
+                className={`navbar__profile-caret ${isDropdownOpen ? 'navbar__profile-caret--open' : ''}`}
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </button>
+
+            {isDropdownOpen && (
+              <div className="navbar__dropdown">
+                <button
+                  className="navbar__dropdown-item"
+                  onClick={() => {
+                    playSfx('click');
+                    setIsDropdownOpen(false);
+                    setShowSettingsModal(true);
+                  }}
+                >
+                  <span className="navbar__dropdown-icon">⚙️</span>
+                  <span className="navbar__dropdown-text">{t('nav.settings')}</span>
+                </button>
+
+                <Link
+                  to="/perfil"
+                  className="navbar__dropdown-item"
+                  onClick={() => {
+                    playSfx('click');
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  <span className="navbar__dropdown-icon">🃏</span>
+                  <span className="navbar__dropdown-text">{t('nav.gameProfile')}</span>
+                </Link>
+
+                <Link
+                  to="/cuenta"
+                  className="navbar__dropdown-item"
+                  onClick={() => {
+                    playSfx('click');
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  <span className="navbar__dropdown-icon">👤</span>
+                  <span className="navbar__dropdown-text">{t('nav.accountProfile')}</span>
+                </Link>
+
+                <div className="navbar__dropdown-divider" />
+
+                <button
+                  className="navbar__dropdown-item navbar__dropdown-item--logout"
+                  onClick={() => {
+                    playSfx('click');
+                    setIsDropdownOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  <span className="navbar__dropdown-icon">
+                    <LogoutIcon />
+                  </span>
+                  <span className="navbar__dropdown-text">{t('nav.logout')}</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Link to="/login" className="navbar__login-btn" onClick={() => playSfx('click')}>
