@@ -30,6 +30,7 @@ public class UserProfileService {
         return userRepository.existsById(userId);
     }
 
+    @Transactional
     public UserGameProfile getOrCreateUserProfile(Long userId) {
         return profileRepository.findById(userId)
                 .orElseGet(() -> {
@@ -38,6 +39,7 @@ public class UserProfileService {
                 });
     }
 
+    @Transactional
     public UserGameProfile updateUserProfile(Long userId, UserGameProfile updatedDetails) {
         return profileRepository.findById(userId).map(profile -> {
             profile.setElo(updatedDetails.getElo());
