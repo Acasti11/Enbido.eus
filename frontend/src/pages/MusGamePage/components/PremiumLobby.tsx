@@ -111,9 +111,9 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const activeUsername = localStorage.getItem('username') || t('shop.defaultUsername');
 
   // WebSocket Chat Context Methods
-  const { 
-    registerDmCallback, 
-    unregisterDmCallback, 
+  const {
+    registerDmCallback,
+    unregisterDmCallback,
     sendDirectMessage,
     registerFriendshipCallback,
     unregisterFriendshipCallback
@@ -1579,13 +1579,12 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   </div>
                   <div className="tourney-metric-card">
                     <span className="tourney-metric-label">{t('premiumLobby.status')}</span>
-                    <span className={`tourney-metric-value--status ${
-                      tourneyDetails.tournament.status === 'finished'
+                    <span className={`tourney-metric-value--status ${tourneyDetails.tournament.status === 'finished'
                         ? 'tourney-metric-value--status-finished'
                         : tourneyDetails.tournament.status === 'playing'
-                        ? 'tourney-metric-value--status-playing'
-                        : 'tourney-metric-value--status-open'
-                    }`}>
+                          ? 'tourney-metric-value--status-playing'
+                          : 'tourney-metric-value--status-open'
+                      }`}>
                       {tourneyDetails.tournament.status === 'open' ? t('premiumLobby.open') : tourneyDetails.tournament.status === 'playing' ? t('premiumLobby.inGame') : t('premiumLobby.finished')}
                     </span>
                   </div>
@@ -1639,7 +1638,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <div>
                     <h3 className="tourney-bracket-heading">{t('premiumLobby.tournamentBracket')}</h3>
 
-                      <div className="tourney-bracket-tree">
+                    <div className="tourney-bracket-tree">
 
                       {/* ROUND 1: QUARTERFINALS */}
                       {tourneyDetails.matches.some((m: any) => m.roundNumber === 1) && (
@@ -1744,7 +1743,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         })}
                       </div>
 
-                      </div>
+                    </div>
 
                     {/* ---------- FLOATING REPORT SCORE PANEL ---------- */}
                     {reportingMatchId && (
@@ -1796,8 +1795,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       </form>
                     )}
 
-                    </div>
-                  )}
+                  </div>
+                )}
               </>
             )}
 

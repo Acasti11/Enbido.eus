@@ -657,6 +657,27 @@
     "twoFactorTitle": "Faktore Bikoitza (2FA Posta Bidez)",
     "twoFactorDesc": "Gehitu segurtasun-geruza estra bat saioa hastean zure postara bidalitako erabilera bakarreko kodea eskatuz."
   },
+  "account": {
+    "title": "Kontuaren Profila",
+    "subtitle": "Kudeatu zure xehetasun pertsonalak, hobespenak eta segurtasuna",
+    "personalDetails": "Xehetasun Pertsonalak",
+    "name": "Izena",
+    "surname": "Abizenak",
+    "accountDetails": "Sarbide Xehetasunak",
+    "username": "Erabiltzaile Izena",
+    "email": "Posta Elektronikoa",
+    "saveChanges": "Gorde Aldaketak",
+    "saving": "Gordetzen...",
+    "updateSuccess": "Profila ondo eguneratu da!",
+    "updateError": "Errorea profila eguneratzean.",
+    "passwordReset": "Pasahitza Berrezarri",
+    "passwordResetDesc": "Bidali berreskuratze esteka seguru bat zure posta elektronikora pasahitza aldatzeko.",
+    "sendResetBtn": "Bidali Berreskuratze Esteka",
+    "resetSuccess": "Berreskuratze esteka bidali da! Egiaztatu zure sarrera-ontzia.",
+    "resetError": "Errorea berreskuratze esteka bidaltzean.",
+    "twoFactorTitle": "Faktore Bikoitza (2FA Posta Bidez)",
+    "twoFactorDesc": "Gehitu segurtasun-geruza estra bat saioa hastean zure postara bidalitako erabilera bakarreko kodea eskatuz."
+  },
   "seo": {
     "gameTitle": "Jokatu Musean Online - Partidak eta Parekatzeak | Enbido",
     "gameDescription": "Bat egin Enbidorekin doan musean jokatzeko. ELO parekatzeak, gela pribatuak eta boten aurkako joko aurreratua.",
