@@ -89,7 +89,14 @@
     "codeExpired": "El código ha expirado. Regresa para generar otro.",
     "verifyAndEnter": "Verificar y Entrar",
     "invalidCode": "Introduce un código de 6 dígitos",
-    "wrongCode": "Código de seguridad incorrecto"
+    "wrongCode": "Código de seguridad incorrecto",
+    "passwordMinLength": "Debe tener al menos 8 caracteres",
+    "passwordUppercase": "Debe contener una letra mayúscula",
+    "passwordLowercase": "Debe contener una letra minúscula",
+    "passwordNumber": "Debe contener un número",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "confirmPassword": "Confirmar contraseña",
+    "placeholderConfirmPassword": "Repite la contraseña"
   },
   "meetup": {
     "title": "Encontrar Partida Física",

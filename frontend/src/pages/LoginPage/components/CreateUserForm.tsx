@@ -65,6 +65,31 @@ const REQUIRED_FIELDS: FormField[] = ['name', 'email', 'password', 'username', '
 type UserFormData = Omit<User, 'user_id' | 'role' | 'is_banned' | 'created_at'>;
 
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+const getPasswordErrors = (
+  password: string,
+  t: TranslateFn
+): string[] => {
+  const errors: string[] = [];
+
+  if (password.length < 8) {
+    errors.push(t('login.passwordMinLength'));
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push(t('login.passwordUppercase'));
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push(t('login.passwordLowercase'));
+  }
+
+  if (!/\d/.test(password)) {
+    errors.push(t('login.passwordNumber'));
+  }
+
+  return errors;
+};
+
 
 const createHandleChange = (
   setFormData: React.Dispatch<React.SetStateAction<UserFormData>>,
@@ -105,6 +130,19 @@ const validateUserField = (
     setErrors(prev => ({ ...prev, [fieldName]: t('login.invalidEmail') }));
     return false;
   }
+
+  if (fieldName === 'password' && value) {
+    const passwordErrors = getPasswordErrors(value, t);
+
+    if (passwordErrors.length > 0) {
+      setErrors(prev => ({
+        ...prev,
+        password: `Falta: ${passwordErrors.join(', ')}`
+      }));
+      return false;
+    }
+  }
+
   if (fieldName === 'birthDate' && value) {
     const birthDate = new Date(value);
     const today = new Date();
@@ -135,6 +173,14 @@ const validateAllFields = (
     nextErrors.email = t('login.invalidEmail');
     isValid = false;
   }
+
+  const passwordErrors = getPasswordErrors(formData.password, t);
+
+  if (passwordErrors.length > 0) {
+    nextErrors.password = `Falta: ${passwordErrors.join(', ')}`;
+    isValid = false;
+  }
+
   setErrors(nextErrors);
   setTouched(REQUIRED_FIELDS.reduce((acc, field) => ({ ...acc, [field]: true }), {} as Record<FormField, boolean>));
   return isValid;
@@ -142,6 +188,7 @@ const validateAllFields = (
 
 const submitCreateUserForm = async (
   formData: UserFormData,
+  confirmPassword: string,
   setErrors: React.Dispatch<React.SetStateAction<FormErrors>>,
   setTouched: React.Dispatch<React.SetStateAction<FormTouched>>,
   setSuccess: React.Dispatch<React.SetStateAction<string>>,
@@ -150,6 +197,12 @@ const submitCreateUserForm = async (
   t: TranslateFn
 ) => {
   setSuccess('');
+  if (formData.password !== confirmPassword) {
+    setErrors({
+      general: 'Las contraseñas no coinciden'
+    });
+    return;
+  }
   if (!validateAllFields(formData, setErrors, setTouched, t)) return;
   setLoading(true);
   try {
@@ -230,19 +283,59 @@ const getFieldError = (
 
 interface CreateUserFieldsProps {
   formData: UserFormData;
+  confirmPassword: string;
+  setConfirmPassword: React.Dispatch<React.SetStateAction<string>>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   fieldError: (field: FormField) => string | undefined;
   t: TranslateFn;
 }
 
-const CreateUserFields: React.FC<CreateUserFieldsProps> = ({ formData, handleChange, handleBlur, fieldError, t }): React.JSX.Element => (
+
+const CreateUserFields: React.FC<CreateUserFieldsProps> = ({
+  formData,
+  confirmPassword,
+  setConfirmPassword,
+  handleChange,
+  handleBlur,
+  fieldError,
+  t
+}): React.JSX.Element => (
   <>
     <FormInput name="name" label={t('login.name')} placeholder={t('login.placeholderName')} value={formData.name} onChange={handleChange} onBlur={handleBlur} icon={<UserIcon />} error={fieldError('name')} required />
     <FormInput name="surname" label={t('login.surname')} placeholder={t('login.placeholderSurname')} value={formData.surname as string} onChange={handleChange} icon={<UserIcon />} />
     <FormInput name="email" type="email" label={t('login.email')} placeholder={t('login.placeholderEmail')} value={formData.email} onChange={handleChange} onBlur={handleBlur} icon={<MailIcon />} error={fieldError('email')} required />
     <FormInput name="username" label={t('login.username')} placeholder={t('login.placeholderUsername')} value={formData.username} onChange={handleChange} onBlur={handleBlur} icon={<UserIcon />} error={fieldError('username')} required />
-    <FormInput name="password" type="password" label={t('login.password')} placeholder={t('login.placeholderPassword')} value={formData.password} onChange={handleChange} onBlur={handleBlur} icon={<LockIcon />} error={fieldError('password')} required />
+
+    <FormInput
+      name="password"
+      type="password"
+      label={t('login.password')}
+      placeholder={t('login.placeholderPassword')}
+      value={formData.password}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      icon={<LockIcon />}
+      error={fieldError('password')}
+      required
+    />
+
+    <FormInput
+      name="confirmPassword"
+      type="password"
+      label={t('login.confirmPassword')}
+      placeholder={t('login.placeholderConfirmPassword')}
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      icon={<LockIcon />}
+      error={
+        confirmPassword && confirmPassword !== formData.password
+          ? t('login.passwordMismatch')
+          : undefined
+      }
+      required
+    />
+
     <FormInput name="birthDate" type="date" label={t('login.birthDate')} placeholder="" value={formData.birthDate} onChange={handleChange} onBlur={handleBlur} icon={<CalendarIcon />} error={fieldError('birthDate')} required />
     <FormInput name="phone_number" label={t('login.phone')} placeholder={t('login.placeholderPhone')} value={formData.phone_number as string} onChange={handleChange} icon={<PhoneIcon />} />
     <FormInput name="postal_code" label={t('login.postalCode')} placeholder={t('login.placeholderPostalCode')} value={formData.postal_code as string} onChange={handleChange} icon={<MapPinIcon />} />
@@ -265,17 +358,34 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ onSwitchToLogin }): Rea
   const [touched, setTouched] = useState<FormTouched>({});
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const handleChange = createHandleChange(setFormData, setErrors);
   const handleBlur = createHandleBlur(setTouched, formData, setErrors, t);
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitCreateUserForm(formData, setErrors, setTouched, setSuccess, setLoading, onSwitchToLogin, t);
+    submitCreateUserForm(
+      formData,
+      confirmPassword,
+      setErrors,
+      setTouched,
+      setSuccess,
+      setLoading,
+      onSwitchToLogin,
+      t
+    );
   };
   const fieldError = (field: FormField) => getFieldError(field, touched, errors);
   return (
     <form className="login-form" onSubmit={onSubmit} noValidate>
-      <CreateUserFields formData={formData} handleChange={handleChange} handleBlur={handleBlur} fieldError={fieldError} t={t} />
-      {errors.general && <p className="login-form__error">{errors.general}</p>}
+      <CreateUserFields
+        formData={formData}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        handleChange={handleChange}
+        handleBlur={handleBlur}
+        fieldError={fieldError}
+        t={t}
+      />      {errors.general && <p className="login-form__error">{errors.general}</p>}
       {success && <p className="login-form__success">{success}</p>}
       <button type="submit" className="login-form__submit" disabled={loading}>
         {loading ? t('login.creating') : t('login.createAccount')}
