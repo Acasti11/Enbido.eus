@@ -80,6 +80,9 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             else if ("ADD_BOT".equals(type)) {
                 handleAddBot(conn, data);
             } 
+            else if ("REMOVE_BOT".equals(type)) {
+                handleRemoveBot(conn, data);
+            }
             else if ("START_GAME".equals(type)) {
                 handleStartGame(conn);
             } 
@@ -300,6 +303,19 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         int chair = Integer.parseInt(data.get("chair").toString());
         room.addBot(chair);
         broadcastRoomState(room);
+    }
+
+    private void handleRemoveBot(UserConnection conn, Map<String, Object> data) {
+        if (conn.roomId == null) return;
+        GameSession room = sessionManager.getRoom(conn.roomId);
+        if (room == null || room.isPlaying()) return;
+
+        int chair = Integer.parseInt(data.get("chair").toString());
+        GamePlayer gp = room.getPlayers().get(chair);
+        if (gp != null && gp.isBot()) {
+            room.removePlayer(chair);
+            broadcastRoomState(room);
+        }
     }
 
     private void handleStartGame(UserConnection conn) {

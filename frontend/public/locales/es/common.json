@@ -493,6 +493,7 @@
     "empty": "Vacío",
     "emptySeat": "Vacío",
     "addBot": "🤖 Añadir Bot",
+    "removeBot": "🤖 Quitar Bot",
     "botComputer": "BOT COMPUTADOR",
     "activePlayer": "JUGADOR ACTIVO",
     "tableFull": "¡La mesa está completa! Todo listo para jugar.",

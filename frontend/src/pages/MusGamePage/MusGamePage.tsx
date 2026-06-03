@@ -289,7 +289,7 @@ const MusGamePage: React.FC = () => {
     isPlaying, phase, stage, score, logs, chatMessages, selectedCards, speechBubbles, playerHand, botHands,
     roomId, seats, isSearching, queueSize, username, isMyTurn, betState,
     handleStartMatch, startNewHand, handleUserMusDecision, handleExecuteDiscards, handleBetAction, toggleCardSelection,
-    onAddBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
+    onAddBot, onRemoveBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
     reyesOption, maxRounds, updateRoomConfig, sendChatMessage, sendSign,
     activeSigns, turnDeadline, activeTurnIdx, dealerIdx,
     leaveVotes, sendLeaveVote
@@ -561,6 +561,7 @@ const MusGamePage: React.FC = () => {
           seats={seats}
           currentUserId={currentUserId}
           onAddBot={onAddBot}
+          onRemoveBot={onRemoveBot}
           onStartGame={handleStartMatch}
           onLeaveRoom={onLeaveRoom}
           reyesOption={reyesOption}

@@ -14,6 +14,7 @@ interface LobbyWaitingRoomProps {
   seats: SeatInfo[];
   currentUserId: number;
   onAddBot: (chair: number) => void;
+  onRemoveBot: (chair: number) => void;
   onStartGame: () => void;
   onLeaveRoom: () => void;
   reyesOption: '4' | '8';
@@ -39,6 +40,7 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
   seats,
   currentUserId,
   onAddBot,
+  onRemoveBot,
   onStartGame,
   onLeaveRoom,
   reyesOption,
@@ -151,6 +153,14 @@ const LobbyWaitingRoom: React.FC<LobbyWaitingRoomProps> = ({
                     <span className="player-role">
                       {seat.isBot ? t('lobby.botComputer') : t('lobby.activePlayer')}
                     </span>
+                    {isHost && seat.isBot && (
+                      <button
+                        className="remove-bot-btn"
+                        onClick={() => onRemoveBot(seat.chair)}
+                      >
+                        {t('lobby.removeBot')}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

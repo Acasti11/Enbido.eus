@@ -278,6 +278,15 @@ export const useMusGame = (userId: number) => {
     }
   };
 
+  const onRemoveBot = (chair: number) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'REMOVE_BOT',
+        chair
+      }));
+    }
+  };
+
   const onJoinRoom = (roomCode: string) => {
     connectWebSocket(roomCode);
   };
@@ -402,6 +411,7 @@ export const useMusGame = (userId: number) => {
     handleBetAction,
     toggleCardSelection,
     onAddBot,
+    onRemoveBot,
     onJoinRoom,
     onCreateRoom,
     onStartMatchmaking,
