@@ -42,38 +42,46 @@ public class UserService {
     // ============================================
     @Transactional
     public String registrarUsuario(UserRegisterDto dto) {
+        // Validaciones de negocio
         if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new IllegalArgumentException("Username ya existe");
+            throw new IllegalArgumentException("Username already exists");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email ya existe");
+            throw new IllegalArgumentException("Email already exists");
         }
 
-        User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setName(dto.getName());
-        user.setSurname(dto.getSurname());
-        user.setEmail(dto.getEmail());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setBirthDate(dto.getBirthDate());
-        user.setPostalCode(dto.getPostalCode());
-        user.setRole(User.Role.user);
-        user.setIsBanned(false);
-        user.setCreatedAt(LocalDateTime.now());
+        try {
+            User user = new User();
+            user.setUsername(dto.getUsername());
+            user.setName(dto.getName());
+            user.setSurname(dto.getSurname());
+            user.setEmail(dto.getEmail());
+            user.setPhoneNumber(dto.getPhoneNumber());
+            user.setBirthDate(dto.getBirthDate());
+            user.setPostalCode(dto.getPostalCode());
+            user.setRole(User.Role.user);
+            user.setIsBanned(false);
+            user.setCreatedAt(LocalDateTime.now());
 
-        User savedUser = userRepository.save(user);
+            User savedUser = userRepository.save(user);
 
-        // Crear local_auth con password
-        LocalAuth localAuth = new LocalAuth();
-        localAuth.setUser(savedUser);
-        localAuth.setPassword(passwordEncoder.encode(dto.getPassword()));
-        localAuthRepository.save(localAuth);
+            // Crear local_auth con password
+            LocalAuth localAuth = new LocalAuth();
+            localAuth.setUser(savedUser);
+            localAuth.setPassword(passwordEncoder.encode(dto.getPassword()));
+            localAuthRepository.save(localAuth);
 
-        // Crear perfil de juego con monedas iniciales
-        UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
-        userGameProfileRepository.save(profile);
+            // Crear perfil de juego con monedas iniciales
+            UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
+            userGameProfileRepository.save(profile);
 
-        return "Usuario registrado correctamente";
+            return "Usuario registrado correctamente";
+            
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Username or email already exists");
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating user: " + e.getMessage(), e);
+        }
     }
 
     // ============================================
