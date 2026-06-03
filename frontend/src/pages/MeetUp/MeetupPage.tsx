@@ -163,11 +163,15 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
       const centerLat = 43.2630;
       const centerLng = -2.9350;
 
-      const map = L.map('meetup-map', {
+      const isMobile = window.innerWidth < 768;
+      const mapOptions: L.MapOptions & { tap?: boolean } = {
         center: [centerLat, centerLng],
         zoom: 12,
         zoomControl: true,
-      });
+        dragging: !isMobile,
+        tap: !isMobile,
+      };
+      const map = L.map('meetup-map', mapOptions);
       mapRef.current = map;
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

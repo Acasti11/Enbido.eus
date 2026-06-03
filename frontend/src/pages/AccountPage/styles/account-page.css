@@ -240,9 +240,17 @@
 
 .account-action-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-xl);
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .account-action-section {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-xl);
+  }
 }
 
 .account-action-content {

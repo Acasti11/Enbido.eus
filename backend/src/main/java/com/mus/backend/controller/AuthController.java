@@ -2,7 +2,7 @@ package com.mus.backend.controller;
 
 import com.mus.backend.dto.AuthResponse;
 import com.mus.backend.dto.GoogleLoginRequest;
-import com.mus.backend.dto.LoginRequest;
+import com.mus.backend.model.LoginRequest;
 import com.mus.backend.service.AuthService;
 import com.mus.backend.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;

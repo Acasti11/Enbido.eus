@@ -1245,20 +1245,29 @@
     height: 68px !important;
   }
 
-  .card-rank {
-    font-size: 1.15rem !important;
-    margin-top: 4px !important;
+  .card-rank-text {
+    font-size: 0.95rem !important;
   }
 
-  .card-suit-corner {
-    font-size: 0.75rem !important;
-    top: 2px !important;
-    left: 4px !important;
+  .card-index-corner {
+    top: 3px !important;
+    left: 3px !important;
   }
 
-  .card-suit-emblem {
-    font-size: 0.6rem !important;
+  .card-suit-tiny {
+    width: 9px !important;
+    height: 9px !important;
+  }
+
+  .card-emblem-center {
+    width: 24px !important;
+    height: 24px !important;
     margin-top: 2px !important;
+  }
+
+  .card-emblem-center svg {
+    width: 24px !important;
+    height: 24px !important;
   }
 
   /* Bocadillos */
@@ -1358,16 +1367,16 @@
 }
 
 /* =========================================
-   SEÑAS DROPDOWN MENU
+   SENAS DROPDOWN MENU
    ========================================= */
-.señas-dropdown-container {
+.senas-dropdown-container {
   position: absolute;
   bottom: 24px;
   left: 24px;
   z-index: 100;
 }
 
-.btn-señas-toggle {
+.btn-senas-toggle {
   background: rgba(18, 17, 15, 0.92);
   color: #fbbf24;
   /* Warm Gold */
@@ -1382,14 +1391,14 @@
   backdrop-filter: blur(8px);
 }
 
-.btn-señas-toggle:hover {
+.btn-senas-toggle:hover {
   background: #fbbf24;
   color: #000;
   border-color: #fbbf24;
   transform: scale(1.05);
 }
 
-.señas-popup-menu {
+.senas-popup-menu {
   position: absolute;
   bottom: 45px;
   left: 0;
@@ -1418,7 +1427,7 @@
   }
 }
 
-.señas-menu-title {
+.senas-menu-title {
   font-size: 0.65rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -1427,7 +1436,7 @@
   letter-spacing: 0.5px;
 }
 
-.btn-señas-menu-item {
+.btn-senas-menu-item {
   background: var(--color-surface-elevated);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-xs);
@@ -1440,7 +1449,7 @@
   transition: all var(--transition-fast);
 }
 
-.btn-señas-menu-item:hover {
+.btn-senas-menu-item:hover {
   background: var(--color-gold-alpha-15);
   border-color: var(--color-gold);
   color: var(--color-gold);
@@ -2115,4 +2124,230 @@ btn-primary-action btn-action-bet {
 
 .friendly-exit-btn-action--cancel:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+/* =========================================
+   ORIENTATION ROTATION PROMPT OVERLAY
+   ========================================= */
+.rotate-device-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg-base, #0a0a0a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 2rem;
+  text-align: center;
+}
+
+.rotate-device-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 320px;
+}
+
+.rotate-phone-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-gold, #d4af37);
+  animation: rotate-animation 2s ease-in-out infinite;
+}
+
+.rotate-device-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-white, #ffffff);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@keyframes rotate-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* =========================================
+   LANDSCAPE MOBILE SUPPORT & LAYOUT ADJUSTMENTS
+   ========================================= */
+@media (max-width: 992px) and (orientation: landscape) {
+  .mus-view-container {
+    flex-direction: row !important;
+    height: calc(100vh - 4rem) !important;
+  }
+
+  .felt-layout-pane {
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding: 0.5rem 1rem !important;
+  }
+
+  .mobile-score-container {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    width: auto !important;
+    margin-bottom: 0 !important;
+    z-index: 100;
+  }
+
+  .mobile-score-container .scoreboard-widget {
+    padding: 4px 10px !important;
+  }
+
+  .mobile-drawer-toggle-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    z-index: 100;
+  }
+
+  .game-felt-board {
+    height: 250px !important;
+    width: 490px !important;
+    border-width: 6px !important;
+    border-radius: 40px !important;
+    margin: 0 !important;
+  }
+
+  .felt-logo {
+    font-size: 1.5rem !important;
+    letter-spacing: 3px !important;
+  }
+
+  .felt-sub {
+    font-size: 0.6rem !important;
+    letter-spacing: 2px !important;
+  }
+
+  .card,
+  .card-placeholder {
+    width: 34px !important;
+    height: 50px !important;
+  }
+
+  .card-rank-text {
+    font-size: 0.75rem !important;
+  }
+
+  .card-index-corner {
+    top: 2px !important;
+    left: 2px !important;
+  }
+
+  .card-suit-tiny {
+    width: 7px !important;
+    height: 7px !important;
+  }
+
+  .card-emblem-center {
+    width: 18px !important;
+    height: 18px !important;
+    margin-top: 1px !important;
+  }
+
+  .card-emblem-center svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .player-avatar-card {
+    padding: 3px 6px !important;
+    min-width: 75px !important;
+    gap: 2px !important;
+  }
+
+  .player-avatar-circle,
+  .player-avatar-wrapper {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .player-avatar-circle {
+    font-size: 0.8rem !important;
+    border-width: 1.5px !important;
+  }
+
+  .avatar-countdown-badge {
+    font-size: 0.55rem !important;
+    padding: 1px 4px !important;
+  }
+
+  .player-name-label {
+    font-size: 0.62rem !important;
+    max-width: 65px !important;
+  }
+
+  .position-north {
+    top: 4px !important;
+  }
+
+  .position-south {
+    bottom: 4px !important;
+  }
+
+  .position-west {
+    left: 4px !important;
+  }
+
+  .position-east {
+    right: 4px !important;
+  }
+
+  /* Unfix the action panel so it stays in flow on the right side */
+  .mobile-action-panel-container {
+    width: 200px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    margin-left: 10px !important;
+    z-index: 100 !important;
+  }
+
+  .action-panel-bar {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-top: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+  }
+
+  .action-panel-bar .btn-primary-action {
+    padding: 8px !important;
+    font-size: 0.75rem !important;
+    border-radius: 4px !important;
+  }
+
+  .action-panel-betting-buttons {
+    gap: 4px !important;
+  }
+
+  .action-panel-phase {
+    margin-bottom: 4px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .signs-control-bar {
+    position: absolute !important;
+    bottom: 5px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    z-index: 110 !important;
+  }
 }

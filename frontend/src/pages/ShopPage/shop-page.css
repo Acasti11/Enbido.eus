@@ -15,7 +15,7 @@
 }
 
 .shop-page__content {
-  width: min(100% - 3rem, 1180px);
+  width: min(100% - 2rem, 1180px); /* Mobile first default */
   margin: 0 auto;
   padding: var(--space-3xl) 0;
   position: relative;
@@ -24,7 +24,7 @@
 
 .shop-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  grid-template-columns: 1fr; /* Mobile first default */
   align-items: end;
   gap: var(--space-3xl);
   margin-bottom: var(--space-3xl);
@@ -44,7 +44,7 @@
 
 .shop-hero h1 {
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.6rem, 6vw, 5.2rem);
+  font-size: 2.2rem; /* Mobile first default */
   line-height: 1;
   margin-bottom: var(--space-lg);
 }
@@ -95,7 +95,7 @@
 
 .shop-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr; /* Mobile first default */
   gap: var(--space-lg);
   margin-bottom: var(--space-3xl);
 }
@@ -120,8 +120,8 @@
 
 .shop-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch; /* Mobile first default */
+  flex-direction: column; /* Mobile first default */
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
 }
@@ -130,6 +130,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
+  width: 100%; /* Mobile first default */
 }
 
 .shop-toolbar__tab,
@@ -144,6 +145,7 @@
   color: var(--color-text-white-70);
   background-color: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  flex: 1 1 12rem; /* Mobile first default */
 }
 
 .shop-toolbar__tab--active {
@@ -155,16 +157,17 @@
 .shop-toolbar__sort {
   color: var(--color-brand-dark);
   background-color: var(--color-card-bg);
+  width: 100%; /* Mobile first default */
 }
 
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr; /* Mobile first default */
   gap: var(--space-3xl);
 }
 
 .shop-card {
-  min-height: 26rem;
+  min-height: auto; /* Mobile first default */
   overflow: hidden;
   border-radius: var(--radius-xl);
   background-color: var(--color-card-bg);
@@ -174,7 +177,7 @@
 }
 
 .shop-card__media {
-  height: 12.5rem;
+  height: 10rem; /* Mobile first default */
   padding: var(--space-lg);
   display: flex;
   flex-direction: column;
@@ -224,15 +227,15 @@
 }
 
 .shop-card__avatar {
-  width: 5.2rem;
-  height: 5.2rem;
+  width: 4.2rem; /* Mobile first default */
+  height: 4.2rem; /* Mobile first default */
   display: grid;
   place-items: center;
   border-radius: var(--radius-circle);
   background-color: var(--color-card-bg);
   color: var(--color-brand-dark);
   font-weight: 900;
-  border: 5px solid var(--color-gold);
+  border: 3px solid var(--color-gold); /* Mobile first default */
   box-shadow: 0 14px 24px rgba(0, 0, 0, 0.28);
   z-index: 1;
 }
@@ -265,16 +268,16 @@
 }
 
 .shop-card__deck {
-  width: 9rem;
-  height: 7rem;
+  width: 7rem; /* Mobile first default */
+  height: 5.5rem; /* Mobile first default */
   position: relative;
 }
 
 .shop-card__playing-card {
   position: absolute;
   top: 0.5rem;
-  width: 4.2rem;
-  height: 6.2rem;
+  width: 3.2rem; /* Mobile first default */
+  height: 4.8rem; /* Mobile first default */
   padding: 0.45rem;
   display: flex;
   flex-direction: column;
@@ -299,20 +302,20 @@
 }
 
 .shop-card__alias {
-  min-width: 11rem;
-  padding: var(--space-lg) var(--space-2xl);
+  min-width: 8rem; /* Mobile first default */
+  padding: var(--space-md); /* Mobile first default */
   border-radius: var(--radius-md);
   background-color: rgba(252, 251, 247, 0.94);
   color: var(--color-brand-dark);
   text-align: center;
   font-family: var(--font-display), sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.1rem; /* Mobile first default */
   font-weight: 900;
   box-shadow: 0 16px 26px rgba(0, 0, 0, 0.24);
 }
 
 .shop-card__body {
-  padding: var(--space-2xl);
+  padding: var(--space-lg); /* Mobile first default */
 }
 
 .shop-card__title-row {
@@ -325,7 +328,7 @@
 
 .shop-card h2 {
   font-family: var(--font-display), sans-serif;
-  font-size: 1.32rem;
+  font-size: 1.1rem; /* Mobile first default */
   line-height: 1.12;
 }
 
@@ -339,10 +342,11 @@
 }
 
 .shop-card p {
-  min-height: 3.4rem;
+  min-height: auto; /* Mobile first default */
   color: var(--color-text-secondary);
   line-height: 1.5;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-lg); /* Mobile first default */
+  font-size: var(--font-size-sm); /* Mobile first default */
 }
 
 .shop-card__footer {
@@ -361,12 +365,13 @@
 
 .shop-card__button {
   min-width: 6.8rem;
-  min-height: 2.6rem;
+  min-height: 2.2rem; /* Mobile first default */
   padding: 0 var(--space-lg);
   border-radius: var(--radius-md);
   background-color: var(--color-brand-main);
   color: var(--color-text-white);
   font-weight: 900;
+  font-size: var(--font-size-xs); /* Mobile first default */
   transition:
     transform var(--transition-fast),
     background-color var(--transition-fast);
@@ -383,102 +388,109 @@
   background-color: rgba(15, 41, 30, 0.12);
 }
 
-@media (max-width: 980px) {
-  .shop-hero,
+/* =========================================
+   PROGRESSIVE ENHANCEMENT (TABLET/DESKTOP)
+   ========================================= */
+@media (min-width: 480px) {
+  .shop-hero h1 {
+    font-size: clamp(2.6rem, 6vw, 5.2rem);
+  }
+
+  .shop-card__media {
+    height: 12.5rem;
+  }
+
+  .shop-card__avatar {
+    width: 5.2rem;
+    height: 5.2rem;
+    border-width: 5px;
+  }
+
+  .shop-card__deck {
+    width: 9rem;
+    height: 7rem;
+  }
+
+  .shop-card__playing-card {
+    width: 4.2rem;
+    height: 6.2rem;
+  }
+
+  .shop-card__alias {
+    min-width: 11rem;
+    font-size: 1.35rem;
+    padding: var(--space-lg) var(--space-2xl);
+  }
+
+  .shop-card__body {
+    padding: var(--space-2xl);
+  }
+
+  .shop-card h2 {
+    font-size: 1.32rem;
+  }
+
+  .shop-card p {
+    min-height: 3.4rem;
+    margin-bottom: var(--space-2xl);
+    font-size: inherit;
+  }
+
+  .shop-card__button {
+    min-height: 2.6rem;
+    font-size: inherit;
+  }
+}
+
+@media (min-width: 720px) {
+  .shop-page__content {
+    width: min(100% - 3rem, 1180px);
+    padding: var(--space-3xl) 0;
+  }
+
+  .shop-hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .shop-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .shop-hero__copy {
-    grid-column: 1 / -1;
-  }
-
-  .shop-summary {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 720px) {
-  .shop-page__content {
-    width: min(100% - 2rem, 1180px);
-    padding: var(--space-3xl) 0;
-  }
-
-  .shop-hero,
-  .shop-grid {
-    grid-template-columns: 1fr;
-  }
-
   .shop-toolbar {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   .shop-toolbar__tabs,
   .shop-toolbar__sort {
-    width: 100%;
+    width: auto;
   }
 
   .shop-toolbar__tab {
-    flex: 1 1 12rem;
+    flex: none;
   }
 
   .shop-card {
-    min-height: auto;
+    min-height: 26rem;
   }
 }
 
-/* =========================================
-   EXTRA COMPACT SMARTPHONE OPTIMIZATIONS
-   ========================================= */
-@media (max-width: 480px) {
-  .shop-hero h1 {
-    font-size: 2.2rem !important;
+@media (min-width: 980px) {
+  .shop-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
   }
 
-  .shop-card__media {
-    height: 10rem !important;
+  .shop-hero__copy {
+    grid-column: auto;
   }
 
-  .shop-card__avatar {
-    width: 4.2rem !important;
-    height: 4.2rem !important;
-    border-width: 3px !important;
+  .shop-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .shop-card__deck {
-    width: 7rem !important;
-    height: 5.5rem !important;
-  }
-
-  .shop-card__playing-card {
-    width: 3.2rem !important;
-    height: 4.8rem !important;
-  }
-
-  .shop-card__alias {
-    min-width: 8rem !important;
-    font-size: 1.1rem !important;
-    padding: var(--space-md) !important;
-  }
-
-  .shop-card__body {
-    padding: var(--space-lg) !important;
-  }
-
-  .shop-card h2 {
-    font-size: 1.1rem !important;
-  }
-
-  .shop-card p {
-    font-size: var(--font-size-sm) !important;
-    min-height: auto !important;
-    margin-bottom: var(--space-lg) !important;
-  }
-
-  .shop-card__button {
-    min-height: 2.2rem !important;
-    font-size: var(--font-size-xs) !important;
+  .shop-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

@@ -331,6 +331,7 @@
     "4reyesDesc": "Hirukoak eta Biakoak zenbakizko karta arruntak dira, 3 eta 2 puntuko balioarekin, hurrenez hurren. Aldaera honetan pare handiak eta 31ko eskuak askoz arraroagoak dira, mus joko taktikoago eta kontrolatuago bat behartuz."
   },
   "musGame": {
+    "rotateDevice": "Mesedez, biratu pantaila horizontalki jokatzeko!",
     "quiero": "Nahi dut",
     "noQuiero": "Ez dut nahi",
     "envido": "Enbido",

@@ -14,7 +14,7 @@ import java.util.Collections;
 @Service
 public class GoogleAuthService {
 
-    @Value("${GOOGLE_CLIENT_ID:}")
+    @Value("${google.client-id:}")
     private String googleClientId;
 
     private GoogleIdTokenVerifier verifier;

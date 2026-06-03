@@ -472,12 +472,18 @@ const MusGamePage: React.FC = () => {
   };
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+  const [isPortraitMobile, setIsPortraitMobile] = useState(
+    window.innerWidth < 768 && window.innerHeight > window.innerWidth
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 992);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 992);
+      setIsPortraitMobile(window.innerWidth < 768 && window.innerHeight > window.innerWidth);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -535,6 +541,22 @@ const MusGamePage: React.FC = () => {
       }
     }
   };
+
+  if (isPortraitMobile) {
+    return (
+      <div className="rotate-device-overlay">
+        <div className="rotate-device-content">
+          <div className="rotate-phone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}>
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+              <line x1="12" y1="18" x2="12.01" y2="18" />
+            </svg>
+          </div>
+          <p className="rotate-device-text">{t('musGame.rotateDevice')}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (roomId === '') {
     return (

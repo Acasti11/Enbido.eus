@@ -331,6 +331,7 @@
     "4reyesDesc": "Threes and Twos are normal numerical cards with their value of 3 and 2 points respectively. In this variant high pairs and 31 hands are much rarer, forcing a more tactical and controlled game of mus."
   },
   "musGame": {
+    "rotateDevice": "Please rotate your screen to landscape to play!",
     "quiero": "I Accept",
     "noQuiero": "No, thanks",
     "envido": "Envido (Bet)",

@@ -324,6 +324,7 @@
     "4reyesDesc": "Les Trois et Deux sont des cartes numériques normales avec leur valeur de 3 et 2 points respectivement. Dans cette variante, les paires hautes et les mains de 31 sont beaucoup plus rares, obligeant à jouer un mus plus tactique et contrôlé."
   },
   "musGame": {
+    "rotateDevice": "S'il vous plaît, tournez votre écran à l'horizontale pour jouer!",
     "quiero": "Je Veux",
     "noQuiero": "Pas d'Accord",
     "envido": "Envido",

@@ -74,12 +74,12 @@ body {
   max-width: 100%;
 }
 
-@media (max-width: 576px) {
+@media (min-width: 576px) {
   :root {
-    --spacing-md: 0.75rem;
-    --spacing-lg: 1rem;
-    --spacing-xl: 1.25rem;
-    --spacing-2xl: 1.5rem;
-    --spacing-3xl: 1.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 2.5rem;
+    --spacing-3xl: 3rem;
   }
 }

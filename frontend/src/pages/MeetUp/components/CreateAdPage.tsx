@@ -49,11 +49,15 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
 
   useEffect(() => {
     // Inicializar mapa de selección
-    const map = L.map('create-map', {
+    const isMobile = window.innerWidth < 768;
+    const mapOptions: L.MapOptions & { tap?: boolean } = {
       center: [43.2630, -2.9350],
       zoom: 12,
       zoomControl: true,
-    });
+      dragging: !isMobile,
+      tap: !isMobile,
+    };
+    const map = L.map('create-map', mapOptions);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'

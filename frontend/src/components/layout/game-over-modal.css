@@ -11,7 +11,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1.5rem;
+  padding: 1rem; /* Mobile default */
   font-family: 'Outfit', 'Inter', sans-serif;
 }
 
@@ -19,13 +19,13 @@
   position: relative;
   background: rgba(18, 17, 15, 0.95);
   border: 2px solid rgba(212, 175, 55, 0.25);
-  border-radius: 24px;
+  border-radius: 20px; /* Mobile default */
   width: 100%;
-  max-width: 580px;
+  max-height: calc(100vh - 2rem); /* Mobile default */
+  overflow-y: auto; /* Mobile default */
   box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.8),
     0 0 30px rgba(212, 175, 55, 0.1);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -49,10 +49,10 @@
 /* Decorative Crown */
 .modal-decorative-crown {
   position: absolute;
-  top: -24px;
+  top: -18px; /* Mobile default */
   left: 50%;
   transform: translateX(-50%);
-  font-size: 3rem;
+  font-size: 2.2rem; /* Mobile default */
   z-index: 10;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
   animation: float-crown 3s ease-in-out infinite;
@@ -67,7 +67,7 @@
    HEADER BANNER (VICTORY / DEFEAT)
    ========================================= */
 .modal-header-banner {
-  padding: 3rem 1.5rem 1.5rem 1.5rem;
+  padding: 2.5rem 1rem 1.2rem 1rem; /* Mobile default */
   text-align: center;
   position: relative;
 }
@@ -83,7 +83,7 @@
 }
 
 .banner-title {
-  font-size: 2.5rem;
+  font-size: 1.9rem; /* Mobile default */
   font-weight: 900;
   margin: 0;
   letter-spacing: 2px;
@@ -108,10 +108,10 @@
    CONTENT BODY
    ========================================= */
 .modal-content-body {
-  padding: 2rem 2.2rem;
+  padding: 1.2rem 1.2rem; /* Mobile default */
   display: flex;
   flex-direction: column;
-  gap: 1.8rem;
+  gap: 1.2rem; /* Mobile default */
 }
 
 /* Score Summary */
@@ -147,7 +147,7 @@
 }
 
 .chicas-count {
-  font-size: 2.8rem;
+  font-size: 2.2rem; /* Mobile default */
   font-weight: 900;
   color: #ffffff;
   line-height: 1;
@@ -169,7 +169,7 @@
 }
 
 .score-separator {
-  font-size: 2.5rem;
+  font-size: 2rem; /* Mobile default */
   font-weight: 800;
   color: rgba(255, 255, 255, 0.15);
   line-height: 1;
@@ -245,7 +245,8 @@
 
 .winners-cards-container {
   display: flex;
-  gap: 1.2rem;
+  flex-direction: column; /* Mobile default */
+  gap: 0.8rem; /* Mobile default */
 }
 
 .winner-profile-card {
@@ -253,7 +254,7 @@
   background: rgba(30, 30, 28, 0.7);
   border: 1.5px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  padding: 1.2rem 1rem;
+  padding: 1rem; /* Mobile default */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -383,16 +384,17 @@
    FOOTER ACTIONS
    ========================================= */
 .modal-actions-footer {
-  padding: 1.2rem 2.2rem 2rem 2.2rem;
+  padding: 1rem 1.2rem 1.2rem 1.2rem; /* Mobile default */
   display: flex;
-  gap: 1rem;
+  flex-direction: column; /* Mobile default */
+  gap: 0.75rem; /* Mobile default */
   background: rgba(12, 12, 11, 0.5);
   border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .btn-modal-action {
   flex: 1;
-  padding: 0.9rem 1.5rem;
+  padding: 0.8rem 1.2rem; /* Mobile default */
   border-radius: 12px;
   font-weight: 800;
   font-size: 0.95rem;
@@ -434,62 +436,63 @@
 }
 
 /* =========================================
-   RESPONSIVE DESIGN (MOBILE ADAPTABILITY)
+   PROGRESSIVE ENHANCEMENT (TABLET/DESKTOP)
    ========================================= */
-@media (max-width: 600px) {
+@media (min-width: 600px) {
   .game-over-modal-overlay {
-    padding: 1rem;
+    padding: 1.5rem;
   }
   
   .game-over-modal-container {
-    border-radius: 20px;
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
+    border-radius: 24px;
+    max-width: 580px;
+    max-height: none;
+    overflow: hidden;
   }
 
   .modal-decorative-crown {
-    font-size: 2.2rem;
-    top: -18px;
+    font-size: 3rem;
+    top: -24px;
   }
 
   .modal-header-banner {
-    padding: 2.5rem 1rem 1.2rem 1rem;
+    padding: 3rem 1.5rem 1.5rem 1.5rem;
   }
 
   .banner-title {
-    font-size: 1.9rem;
+    font-size: 2.5rem;
   }
 
   .modal-content-body {
-    padding: 1.2rem 1.2rem;
-    gap: 1.2rem;
+    padding: 2rem 2.2rem;
+    gap: 1.8rem;
   }
 
   .chicas-count {
-    font-size: 2.2rem;
+    font-size: 2.8rem;
   }
 
   .score-separator {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   .winners-cards-container {
-    flex-direction: column;
-    gap: 0.8rem;
+    flex-direction: row;
+    gap: 1.2rem;
   }
 
   .winner-profile-card {
-    padding: 1rem;
+    padding: 1.2rem 1rem;
   }
 
   .modal-actions-footer {
-    padding: 1rem 1.2rem 1.2rem 1.2rem;
-    flex-direction: column;
-    gap: 0.75rem;
+    padding: 1.2rem 2.2rem 2rem 2.2rem;
+    flex-direction: row;
+    gap: 1rem;
   }
 
   .btn-modal-action {
-    padding: 0.8rem 1.2rem;
+    padding: 0.9rem 1.5rem;
   }
 }
 
