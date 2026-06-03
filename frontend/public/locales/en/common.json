@@ -12,7 +12,9 @@
     "rules": "Rules",
     "language": "Language",
     "selectLanguage": "Select language",
-    "availableLanguages": "Available languages"
+    "availableLanguages": "Available languages",
+    "gameProfile": "Game Profile",
+    "accountProfile": "Account Profile"
   },
   "home": {
     "tagline": "🏆 HOUSE OF THE ENBIDO MASTER 🏆",
@@ -680,6 +682,27 @@
   "usersList": {
     "title": "Users",
     "empty": "No registered users"
+  },
+  "account": {
+    "title": "Account Profile",
+    "subtitle": "Manage your personal details, preferences and security",
+    "personalDetails": "Personal Details",
+    "name": "Name",
+    "surname": "Surname",
+    "accountDetails": "Account Credentials",
+    "username": "Username",
+    "email": "Email Address",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "updateSuccess": "Profile updated successfully!",
+    "updateError": "Error updating profile.",
+    "passwordReset": "Reset Password",
+    "passwordResetDesc": "Send a secure reset link to your email to change your access password.",
+    "sendResetBtn": "Send Recovery Link",
+    "resetSuccess": "Recovery link sent! Please check your inbox.",
+    "resetError": "Error sending recovery link.",
+    "twoFactorTitle": "Two-Factor Authentication (Email 2FA)",
+    "twoFactorDesc": "Add an extra layer of security by requiring a one-time code sent to your email."
   },
   "seo": {
     "gameTitle": "Play Mus Online - Matches and Matchmaking | Enbido",

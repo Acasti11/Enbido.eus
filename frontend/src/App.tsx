@@ -11,6 +11,7 @@ import ShopPage from './pages/ShopPage/ShopPage';
 import HomePage from './pages/HomePage/HomePage';
 import RulesPage from './pages/RulesPage/RulesPage';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage'; // <- Import añadido
+import AccountPage from './pages/AccountPage/AccountPage';
 
 const NotFound: React.FC = () => {
   const { t } = useTranslation();
@@ -36,6 +37,7 @@ const App: React.FC = (): React.JSX.Element => {
             <Route path="/recuperar-password" element={<ResetPasswordPage />} /> {/* Route añadida */}
             <Route path="/tienda" element={<ShopPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/cuenta" element={<AccountPage />} />
             <Route path="/reglas" element={<RulesPage />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<Navigate to="/404" replace />} />

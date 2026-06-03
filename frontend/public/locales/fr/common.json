@@ -12,7 +12,9 @@
     "rules": "Règles",
     "language": "Langue",
     "selectLanguage": "Choisir la langue",
-    "availableLanguages": "Langues disponibles"
+    "availableLanguages": "Langues disponibles",
+    "gameProfile": "Profil de Jeu",
+    "accountProfile": "Profil du Compte"
   },
   "home": {
     "tagline": "🏆 MAISON DU MAÎTRE ENBIDO 🏆",
@@ -673,6 +675,27 @@
   "usersList": {
     "title": "Utilisateurs",
     "empty": "Aucun utilisateur enregistré"
+  },
+  "account": {
+    "title": "Profil du Compte",
+    "subtitle": "Gérez vos informations personnelles, vos préférences et votre sécurité",
+    "personalDetails": "Informations Personnelles",
+    "name": "Prénom",
+    "surname": "Nom",
+    "accountDetails": "Identifiants de Connexion",
+    "username": "Nom d'utilisateur",
+    "email": "Adresse E-mail",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "updateSuccess": "Profil mis à jour avec succès !",
+    "updateError": "Erreur lors de la mise à jour du profil.",
+    "passwordReset": "Réinitialiser le mot de passe",
+    "passwordResetDesc": "Envoyez un lien sécurisé à votre adresse e-mail pour modifier votre mot de passe.",
+    "sendResetBtn": "Envoyer le lien de récupération",
+    "resetSuccess": "Lien de récupération envoyé ! Veuillez vérifier votre boîte de réception.",
+    "resetError": "Erreur lors de l'envoi du lien de récupération.",
+    "twoFactorTitle": "Double Facteur (2FA par E-mail)",
+    "twoFactorDesc": "Ajoutez une couche de sécurité supplémentaire en exigeant un code unique envoyé à votre e-mail."
   },
   "seo": {
     "gameTitle": "Jouer au Mus en Ligne - Parties et Matchmaking | Enbido",
