@@ -1,98 +1,98 @@
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/BackendApplication.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/DataSourceConfig.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/JwtAuthenticationFilter.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/JwtEntryPoint.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/JwtInterceptor.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/SecurityConfig.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/UserDetailsServiceImpl.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/WebConfig.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/WebSocketConfig.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/AuthController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/ChatWebSocketHandler.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/DirectMessageController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/FriendshipController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/GameMatchController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/LocalMeetupAdController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/MusGameWebSocketHandler.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/PhysicalTournamentController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/ShopController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/UserController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/controller/UserProfileController.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/AuthResponse.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/GoogleLoginRequest.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/LoginRequest.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/LoginResponseDto.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/TournamentDetailDto.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/UserDTO.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/dto/UserLeaderboardDto.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/BettingHandler.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/Card.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/Deck.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/DiscardHandler.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/GameConfig.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/GamePlayer.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/GameSession.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/GameSessionManager.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/Glicko2Calculator.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/LanceBet.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/engine/RulesEvaluator.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/event/FriendshipEvent.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/exception/GlobalExceptionHandler.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/Category.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/DirectMessage.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/Friendship.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/GameActionLog.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/GameMatch.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/Item.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/LocalAuth.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/LocalMeetupAd.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/LoginRequest.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/MeetupMessage.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/MeetupParticipant.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/OAuthAuth.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/PhysicalTournament.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/PhysicalTournamentMatch.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/PhysicalTournamentParticipant.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/PhysicalTournamentParticipantId.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/PlayGame.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/PurchaseHistory.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/User.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserGameProfile.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserInventory.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserInventoryId.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/model/UserRegisterDto.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/CategoryRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/DirectMessageRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/FriendshipRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/GameActionLogRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/GameMatchRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/ItemRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/LocalAuthRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/LocalMeetupAdRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/MeetupMessageRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/MeetupParticipantRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/OAuthAuthRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/PhysicalTournamentMatchRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/PhysicalTournamentParticipantRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/PhysicalTournamentRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/PlayGameRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/PurchaseHistoryRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UserGameProfileRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UserInventoryRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/repository/UserRepository.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/AuthService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/FriendshipService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/GameMatchService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/GoogleAuthService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/JwtService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/MailService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/ShopService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/UserProfileService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/UserService.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/UserServiceOAuth.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/validator/MinAge.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/validator/MinAgeValidator.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/validator/PostalCodeES.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/validator/PostalCodeESValidator.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/validator/StrongPassword.java
-/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/validator/StrongPasswordValidator.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\BackendApplication.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\DataSourceConfig.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\JwtAuthenticationFilter.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\JwtEntryPoint.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\JwtInterceptor.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\SecurityConfig.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\UserDetailsServiceImpl.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\WebConfig.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\config\WebSocketConfig.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\AuthController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\ChatWebSocketHandler.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\DirectMessageController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\FriendshipController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\GameMatchController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\LocalMeetupAdController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\MusGameWebSocketHandler.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\PhysicalTournamentController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\ShopController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\UserController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\controller\UserProfileController.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\AuthResponse.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\GoogleLoginRequest.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\LoginRequest.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\LoginResponseDto.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\TournamentDetailDto.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\UserDTO.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\dto\UserLeaderboardDto.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\BettingHandler.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\Card.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\Deck.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\DiscardHandler.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\GameConfig.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\GamePlayer.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\GameSession.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\GameSessionManager.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\Glicko2Calculator.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\LanceBet.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\engine\RulesEvaluator.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\event\FriendshipEvent.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\exception\GlobalExceptionHandler.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\Category.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\DirectMessage.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\Friendship.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\GameActionLog.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\GameMatch.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\Item.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\LocalAuth.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\LocalMeetupAd.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\LoginRequest.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\MeetupMessage.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\MeetupParticipant.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\OAuthAuth.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\PhysicalTournament.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\PhysicalTournamentMatch.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\PhysicalTournamentParticipant.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\PhysicalTournamentParticipantId.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\PlayGame.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\PurchaseHistory.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\User.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\UserGameProfile.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\UserInventory.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\UserInventoryId.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\model\UserRegisterDto.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\CategoryRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\DirectMessageRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\FriendshipRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\GameActionLogRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\GameMatchRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\ItemRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\LocalAuthRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\LocalMeetupAdRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\MeetupMessageRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\MeetupParticipantRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\OAuthAuthRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\PhysicalTournamentMatchRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\PhysicalTournamentParticipantRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\PhysicalTournamentRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\PlayGameRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\PurchaseHistoryRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\UserGameProfileRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\UserInventoryRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\repository\UserRepository.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\AuthService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\FriendshipService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\GameMatchService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\GoogleAuthService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\JwtService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\MailService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\ShopService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\UserProfileService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\UserService.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\service\UserServiceOAuth.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\validator\MinAge.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\validator\MinAgeValidator.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\validator\PostalCodeES.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\validator\PostalCodeESValidator.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\validator\StrongPassword.java
+C:\Users\usuario\Desktop\Mondragon\2 maila\2 kuatri\Enbido.eus\backend\src\main\java\com\mus\backend\validator\StrongPasswordValidator.java
