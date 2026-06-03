@@ -12,7 +12,9 @@
     "rules": "Reglas",
     "language": "Idioma",
     "selectLanguage": "Seleccionar idioma",
-    "availableLanguages": "Idiomas disponibles"
+    "availableLanguages": "Idiomas disponibles",
+    "gameProfile": "Perfil de Juego",
+    "accountProfile": "Perfil de Cuenta"
   },
   "home": {
     "tagline": "🏆 LA CASA DEL MAESTRO DEL ENBIDO 🏆",
@@ -689,6 +691,27 @@
   "usersList": {
     "title": "Usuarios",
     "empty": "No hay usuarios registrados"
+  },
+  "account": {
+    "title": "Perfil de la Cuenta",
+    "subtitle": "Gestiona tus detalles personales, preferencias y seguridad",
+    "personalDetails": "Detalles Personales",
+    "name": "Nombre",
+    "surname": "Apellidos",
+    "accountDetails": "Detalles de Acceso",
+    "username": "Nombre de Usuario",
+    "email": "Correo Electrónico",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando...",
+    "updateSuccess": "¡Perfil actualizado con éxito!",
+    "updateError": "Error al actualizar el perfil.",
+    "passwordReset": "Restablecer Contraseña",
+    "passwordResetDesc": "Envía un enlace seguro a tu correo electrónico para cambiar tu contraseña de acceso.",
+    "sendResetBtn": "Enviar Enlace de Recuperación",
+    "resetSuccess": "¡Enlace de recuperación enviado! Revisa tu bandeja de entrada.",
+    "resetError": "Error al enviar el enlace de recuperación.",
+    "twoFactorTitle": "Doble Factor (2FA por Email)",
+    "twoFactorDesc": "Añade una capa de seguridad extra requiriendo un código de un solo uso enviado a tu email."
   },
   "seo": {
     "gameTitle": "Jugar al Mus Online - Partidas y Emparejamiento | Enbido",

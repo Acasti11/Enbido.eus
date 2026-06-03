@@ -143,10 +143,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
 
-  // Two-Factor Authentication (2FA) states
-  const [show2FaModal, setShow2FaModal] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [updating2Fa, setUpdating2Fa] = useState(false);
+
 
   const fetchOnlineTournaments = async () => {
     try {
@@ -348,10 +345,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     fetchRequests();
     fetchOnlineTournaments();
 
-    // Load 2FA status
-    api.get('/usuarios/me')
-      .then(res => setTwoFactorEnabled(res.data.twoFactorEnabled || false))
-      .catch(err => console.error('Error fetching 2FA status in lobby:', err));
   }, [currentUserId, fetchFriends, fetchRequests]);
 
   // Load blocked users when blocked tab is active
@@ -452,20 +445,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     } catch (err: any) {
       console.error('Error unblocking user:', err);
       alert(err.response?.data?.error || t('premiumLobby.errorUnblockUser'));
-    }
-  };
-
-  const handleToggle2Fa = async (enabled: boolean) => {
-    setUpdating2Fa(true);
-    try {
-      const res = await api.post('/usuarios/me/2fa/toggle', { enabled });
-      setTwoFactorEnabled(res.data.twoFactorEnabled);
-      alert(enabled ? t('premiumLobby.twoFaEnabledSuccess') : t('premiumLobby.twoFaDisabledSuccess'));
-    } catch (err: any) {
-      console.error('Error updating 2FA in lobby:', err);
-      alert(err.response?.data?.error || t('premiumLobby.twoFaUpdateError'));
-    } finally {
-      setUpdating2Fa(false);
     }
   };
 
@@ -766,26 +745,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 <div className="badge-details">
                   <span className="badge-val">{t('premiumLobby.rulesKeinus')}</span>
                   <span className="badge-lbl">{t('premiumLobby.gameGuide')}</span>
-                </div>
-              </button>
-
-              <button
-                className={`lobby-badge security-2fa-badge-btn ${twoFactorEnabled
-                  ? 'security-2fa-badge-btn--enabled'
-                  : 'security-2fa-badge-btn--disabled'
-                  }`}
-                onClick={() => setShow2FaModal(true)}
-                title={t("premiumLobby.accountSecurity")}
-              >
-                <span className="badge-icon">🔑</span>
-                <div className="badge-details">
-                  <span className={`badge-val ${twoFactorEnabled
-                        ? 'security-2fa-badge-value--enabled'
-                        : 'security-2fa-badge-value--disabled'
-                      }`}>
-                  {twoFactorEnabled ? t('premiumLobby.twoFaActive') : t('premiumLobby.twoFaActivate')}
-                  </span>
-                  <span className="badge-lbl">{t('premiumLobby.security')}</span>
                 </div>
               </button>
             </div>
@@ -1846,70 +1805,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </div>
       )}
 
-      {/* ---------- 2FA CONFIGURATION MODAL ---------- */}
-      {show2FaModal && (
-        <div className="leaderboard-modal-overlay" onClick={() => setShow2FaModal(false)}>
-          <div className="leaderboard-modal leaderboard-modal--2fa" onClick={(e) => e.stopPropagation()} >
-            <header className="leaderboard-modal-header">
-              <div className="leaderboard-title-group">
-                <span className="security-modal-icon">🔑</span>
-                <div>
-                  <h2 className="leaderboard-modal-title">{t('premiumLobby.accountSecurity')}</h2>
-                  <span className="leaderboard-modal-subtitle">{t('premiumLobby.secureAccessConfig')}</span>
-                </div>
-              </div>
-              <button className="leaderboard-close-x" onClick={() => setShow2FaModal(false)}>
-                &times;
-              </button>
-            </header>
-
-            <div className="security-modal-body">
-              <div className="security-card">
-                <div className="security-card-content">
-                  <h4 className="security-card-title">
-                      {t('premiumLobby.emailTwoFactor')}
-                  </h4> 
-                  <p className="security-card-description">
-                    {t('premiumLobby.twoFaDescription')}
-                  </p>
-                </div>
-
-                <div className="security-switch-container">
-                  <label className="switch">
-
-                    <input
-                      type="checkbox"
-                      checked={twoFactorEnabled}
-                      disabled={updating2Fa}
-                      onChange={(e) => handleToggle2Fa(e.target.checked)}
-                      className="switch-input"
-                    />
-                    <span
-                      className={`slider round ${twoFactorEnabled ? 'slider--active' : ''
-                        } ${updating2Fa ? 'slider--disabled' : ''
-                        }`}
-                    >
-                      <span
-                        className={`slider-knob ${twoFactorEnabled ? 'slider-knob--active' : ''
-                          }`}
-                      />
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="security-modal-actions">
-                <button
-                  className="btn-action security-modal-close-btn"
-                  onClick={() => setShow2FaModal(false)}
-                >
-                  {t('common.close')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

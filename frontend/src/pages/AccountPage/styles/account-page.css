@@ -1,0 +1,384 @@
+.account-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+.account-page__main {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-3xl) var(--space-lg);
+  position: relative;
+  z-index: 10;
+}
+
+.account-page__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  width: 100%;
+}
+
+.account-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(212, 175, 55, 0.2);
+  border-top-color: var(--color-accent-yellow);
+  border-radius: var(--radius-circle);
+  animation: spin 1s linear infinite;
+}
+
+/* ========== ACCOUNT GRID LAYOUT ========== */
+.account-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+  width: 100%;
+  max-width: 60rem;
+}
+
+@media (min-width: 1024px) {
+  .account-layout {
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-2xl);
+  }
+}
+
+/* ========== CARD STYLES ========== */
+.account-card {
+  background-color: var(--color-card-bg);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-premium);
+  border: 1px solid var(--color-card-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  height: fit-content;
+}
+
+.account-card--summary {
+  align-items: center;
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+}
+
+.account-card--details {
+  padding: var(--space-2xl);
+}
+
+/* Summary Card Items */
+.account-profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.account-avatar-wrapper {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-circle);
+  background: var(--color-gold-alpha-10);
+  border: 2px solid var(--color-accent-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent-yellow);
+  box-shadow: 0 0 15px var(--color-gold-alpha-20);
+  margin-bottom: var(--space-sm);
+}
+
+.account-profile-username {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-white);
+  letter-spacing: -0.5px;
+}
+
+.account-profile-email {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.account-badge-container {
+  margin-top: var(--space-md);
+}
+
+.account-badge {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.account-badge--secure {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+/* Details Card Header */
+.account-card__header {
+  margin-bottom: var(--space-lg);
+}
+
+.account-card__title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-white);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.account-card__subtitle {
+  margin: var(--space-xs) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ========== FORM STYLES ========== */
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.account-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.account-form-section-title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  color: var(--color-accent-yellow);
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-gold-alpha-15);
+  padding-bottom: var(--space-xs);
+}
+
+.account-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .account-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.account-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.account-form-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.account-form-input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  color: var(--color-text-white);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: all var(--transition-normal);
+}
+
+.account-form-input:focus {
+  outline: none;
+  border-color: var(--color-accent-yellow);
+  box-shadow: 0 0 8px var(--color-gold-alpha-15);
+}
+
+.account-form-input--readonly {
+  background: rgba(255, 255, 255, 0.03);
+  border-style: dashed;
+  cursor: not-allowed;
+  color: var(--color-text-muted);
+}
+
+.account-form-input--readonly:focus {
+  border-color: var(--color-card-border);
+  box-shadow: none;
+}
+
+/* ========== ACTIONS & SECTIONS ========== */
+.account-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+.account-divider {
+  height: 1px;
+  background: var(--color-gold-alpha-15);
+  margin: var(--space-lg) 0;
+}
+
+.account-action-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xl);
+}
+
+.account-action-content {
+  flex: 1;
+}
+
+.account-action-title {
+  margin: 0 0 var(--space-xs) 0;
+  font-size: var(--font-size-md);
+  color: var(--color-text-white);
+  font-weight: 700;
+}
+
+.account-action-desc {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* ========== BUTTONS ========== */
+.account-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.account-btn--primary {
+  background: linear-gradient(135deg, #d4af37 0%, #aa8410 100%);
+  color: #1a1a1a;
+  box-shadow: 0 4px 12px var(--color-gold-alpha-20);
+}
+
+.account-btn--primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px var(--color-gold-alpha-30);
+}
+
+.account-btn--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-card-border);
+  color: var(--color-text-white);
+}
+
+.account-btn--secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.account-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========== ALERTS ========== */
+.account-alert {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.account-alert--success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.account-alert--error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* ========== SWITCH STYLES (MATCHES PROFILE CARD) ========== */
+.account-switch-container {
+  display: flex;
+  align-items: center;
+}
+
+.account-switch-loading {
+  width: 50px;
+  height: 26px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.switch-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 34px;
+  transition: 0.4s;
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.slider--active {
+  background-color: var(--color-accent-yellow);
+  box-shadow: 0 0 10px var(--color-gold-alpha-30);
+}
+
+.slider-knob {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-circle);
+  background-color: var(--color-text-white);
+  transition: 0.4s;
+}
+
+.slider-knob--active {
+  transform: translateX(24px);
+}
