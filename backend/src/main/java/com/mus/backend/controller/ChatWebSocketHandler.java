@@ -321,7 +321,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    @org.springframework.context.event.EventListener
+    @org.springframework.transaction.event.TransactionalEventListener(fallbackExecution = true)
     public void handleFriendshipEvent(com.mus.backend.event.FriendshipEvent event) {
         WebSocketSession session = userSessions.get(event.getUserId());
         if (session != null && session.isOpen()) {
