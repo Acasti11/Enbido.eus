@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import BackgroundCards from '../ProfilePage/components/BackgroundCards';
+import ProfileHeader from '../ProfilePage/components/ProfileHeader';
 import './styles/account-page.css';
 
 interface UserData {
@@ -15,17 +16,21 @@ interface UserData {
   twoFactorEnabled: boolean;
 }
 
-const UserAvatarIcon: React.FC = () => (
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
+interface UserProfile {
+  elo: number;
+  coins: number;
+  totalGamesPlayed: number;
+  totalGamesWon: number;
+  equippedAvatarItemId?: number;
+  equippedTitleItemId?: number;
+}
+
 
 const AccountPage: React.FC = (): React.JSX.Element => {
   const { t } = useTranslation();
   
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   
@@ -41,10 +46,16 @@ const AccountPage: React.FC = (): React.JSX.Element => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const res = await api.get('/usuarios/me');
-        setUserData(res.data);
-        setName(res.data.name || '');
-        setSurname(res.data.surname || '');
+        const [userRes, profileRes] = await Promise.all([
+          api.get('/usuarios/me'),
+          api.get('/usuarios/me/profile').catch(() => null)
+        ]);
+        setUserData(userRes.data);
+        setName(userRes.data.name || '');
+        setSurname(userRes.data.surname || '');
+        if (profileRes) {
+          setProfile(profileRes.data);
+        }
       } catch (err) {
         console.error('Error fetching user data:', err);
         setErrorMsg(t('account.updateError'));
@@ -157,18 +168,17 @@ const AccountPage: React.FC = (): React.JSX.Element => {
           
           {/* LEFT COLUMN: Summary card */}
           <div className="account-card account-card--summary">
-            <div className="account-profile-header">
-              <div className="account-avatar-wrapper">
-                <UserAvatarIcon />
-              </div>
-              <h2 className="account-profile-username">{userData?.username}</h2>
-              <p className="account-profile-email">{userData?.email}</p>
-              
-              <div className="account-badge-container">
-                <span className={`account-badge ${userData?.twoFactorEnabled ? 'account-badge--secure' : ''}`}>
-                  {userData?.twoFactorEnabled ? '🔑 2FA Active' : '🔓 2FA Inactive'}
-                </span>
-              </div>
+            <ProfileHeader
+              username={userData?.username}
+              equippedAvatarItemId={profile?.equippedAvatarItemId}
+              equippedTitleItemId={profile?.equippedTitleItemId}
+            />
+            <p className="account-profile-email">{userData?.email}</p>
+            
+            <div className="account-badge-container">
+              <span className={`account-badge ${userData?.twoFactorEnabled ? 'account-badge--secure' : ''}`}>
+                {userData?.twoFactorEnabled ? '🔑 2FA Active' : '🔓 2FA Inactive'}
+              </span>
             </div>
           </div>
           
@@ -248,7 +258,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
               <div className="account-form-actions">
                 <button
                   type="submit"
-                  className="account-btn account-btn--primary"
+                  className="btn btn--primary"
                   disabled={saving}
                 >
                   {saving ? t('account.saving') : t('account.saveChanges')}
@@ -266,7 +276,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
               </div>
               <button
                 type="button"
-                className="account-btn account-btn--secondary"
+                className="btn btn--secondary"
                 onClick={handlePasswordReset}
                 disabled={sendingReset}
               >
