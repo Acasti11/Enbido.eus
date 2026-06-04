@@ -125,7 +125,20 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws-chat`;
+    
+    // Determine the host for WebSocket
+    let wsHost = window.location.host;
+    const viteApiUrl = import.meta.env.VITE_API_URL;
+    if (viteApiUrl && viteApiUrl.startsWith('http')) {
+      try {
+        const urlObj = new URL(viteApiUrl);
+        wsHost = urlObj.host;
+      } catch (e) {
+        console.error('Error parsing VITE_API_URL for WebSocket host:', e);
+      }
+    }
+
+    const wsUrl = `${wsProtocol}//${wsHost}/ws-chat`;
 
     console.log('Estableciendo conexión con el socket global de chat a ' + wsUrl);
     const socket = new WebSocket(wsUrl);

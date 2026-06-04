@@ -2116,3 +2116,83 @@ btn-primary-action btn-action-bet {
 .friendly-exit-btn-action--cancel:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* ========== ORIENTATION OVERLAY ========== */
+.orientation-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0f291e, #0d0d0c);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+  text-align: center;
+}
+
+.orientation-overlay__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  max-width: 320px;
+}
+
+.orientation-overlay__phone-wrapper {
+  margin-bottom: var(--space-lg);
+}
+
+.orientation-overlay__phone-svg {
+  display: block;
+}
+
+.phone-rect {
+  transform-origin: 50px 45px;
+  animation: rotatePhone 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+.phone-button {
+  transform-origin: 50px 45px;
+  animation: rotatePhone 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+@keyframes rotatePhone {
+  0%, 10% {
+    transform: rotate(0deg);
+  }
+  40%, 60% {
+    transform: rotate(-90deg);
+  }
+  90%, 100% {
+    transform: rotate(0deg);
+  }
+}
+
+.rotate-arrow {
+  animation: pulseArrow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulseArrow {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+.orientation-overlay__title {
+  font-family: var(--font-display), sans-serif;
+  color: var(--color-gold);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.orientation-overlay__subtitle {
+  color: var(--color-text-white-70);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  margin: 0;
+}

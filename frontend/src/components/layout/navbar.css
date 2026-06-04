@@ -1,7 +1,7 @@
 .navbar {
   width: 100%;
   height: 5rem;
-  padding: 0 var(--space-3xl);
+  padding: 0 var(--space-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,6 +18,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  margin-right: auto;
+  margin-left: var(--space-sm);
 }
 
 .navbar__logo {
@@ -64,14 +66,14 @@
 .navbar__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-2xl);
+  gap: var(--space-sm);
   font-size: var(--font-size-sm);
   font-weight: 500;
 }
 
 .navbar__lang {
   color: var(--color-text-white-70);
-  display: flex;
+  display: none;
   align-items: center;
   gap: var(--space-xs);
   transition: color var(--transition-fast);
@@ -125,8 +127,8 @@
 }
 
 .navbar__profile-avatar {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-circle);
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -149,6 +151,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0.9;
+  display: none;
 }
 
 .navbar__profile-caret {
@@ -571,7 +574,7 @@
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
-  padding: var(--space-sm) 0;
+  padding: var(--space-md) 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   transition: all var(--transition-fast) ease;
   display: flex;
@@ -601,7 +604,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: 10px;
+  padding: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
@@ -632,24 +635,25 @@
   animation: fadeIn 0.25s ease-out;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   .navbar {
-    padding: 0 var(--space-lg);
+    padding: 0 var(--space-3xl);
   }
   .navbar__brand {
-    position: static;
-    transform: none;
-    margin-right: auto;
-    margin-left: var(--space-sm);
+    margin-right: 0;
+    margin-left: 0;
   }
   .navbar__actions {
-    gap: var(--space-sm);
+    gap: var(--space-2xl);
   }
-  .navbar__lang, .navbar__profile-name {
-    display: none;
+  .navbar__lang {
+    display: flex;
+  }
+  .navbar__profile-name {
+    display: block;
   }
   .navbar__profile-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
   }
 }
