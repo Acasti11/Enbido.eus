@@ -3,8 +3,6 @@ import LoginCard from './components/LoginCard';
 import CreateUserCard from './components/CreateUserCard';
 import RecoverPasswordCard from './components/RecoverPasswordCard'; // <- Import añadido
 import BackgroundCards from './components/BackgroundCards';
-import BottomFeatures from './components/BottomFeatures';
-import ChatWidget from './components/ChatWidget';
 import './login-page.css';
 
 const LoginPage: React.FC = (): React.JSX.Element => {
