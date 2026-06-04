@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../../services/api';
 import '../styles/premium-lobby.css';
 import { useTranslation } from 'react-i18next';
 import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
+import { useChat } from '../../../context/ChatContext';
 
 interface ParticipantInfo {
   userId: number;
@@ -74,13 +75,6 @@ interface Friend {
   friendshipId?: number;
 }
 
-interface ChatMessage {
-  senderId: number;
-  senderName: string;
-  content: string;
-  timestamp: number;
-}
-
 interface UserLeaderboardDto {
   userId: number;
   username: string;
@@ -112,9 +106,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
   // WebSocket Chat Context Methods
   const {
-    registerDmCallback,
-    unregisterDmCallback,
-    sendDirectMessage,
     registerFriendshipCallback,
     unregisterFriendshipCallback
   } = useChatWebSocket();
@@ -278,13 +269,20 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [requests, setRequests] = useState<PendingRequest[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<Friend[]>([]);
 
-  // Chat & Profile overlays
-  const [activeChatUser, setActiveChatUser] = useState<Friend | null>(null);
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  // Profile overlay
   const [selectedProfileUser, setSelectedProfileUser] = useState<Friend | null>(null);
 
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  // Global chat context
+  const { openChat } = useChat();
+
+  const handleOpenChat = (friend: Friend) => {
+    openChat({
+      id: friend.id,
+      username: friend.username,
+      status: friend.status,
+      isBot: friend.isBot
+    });
+  };
 
   const handleOpenLeaderboard = async () => {
     setShowLeaderboard(true);
@@ -375,21 +373,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         fetchRequests();
       }
       else if (type === 'FRIEND_DELETED') {
-        const { friendId } = event;
         fetchFriends();
         fetchRequests();
-        if (activeChatUser && activeChatUser.id === friendId) {
-          setActiveChatUser(null);
-        }
       }
       else if (type === 'FRIEND_BLOCKED') {
-        const { friendId } = event;
         fetchFriends();
         fetchRequests();
         fetchBlockedUsers();
-        if (activeChatUser && activeChatUser.id === friendId) {
-          setActiveChatUser(null);
-        }
       }
       else if (type === 'FRIEND_UNBLOCKED') {
         fetchFriends();
@@ -403,7 +393,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   }, [
     registerFriendshipCallback,
     unregisterFriendshipCallback,
-    activeChatUser,
     fetchFriends,
     fetchRequests,
     fetchBlockedUsers
@@ -429,9 +418,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     try {
       await api.post(`/friendships/block/${friend.id}`);
       fetchFriends();
-      if (activeChatUser && activeChatUser.id === friend.id) {
-        setActiveChatUser(null);
-      }
+      // Chat will be closed by GlobalChatWindow if needed
     } catch (err: any) {
       console.error('Error blocking user:', err);
       alert(err.response?.data?.error || t('premiumLobby.errorBlockUser'));
@@ -447,117 +434,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       alert(err.response?.data?.error || t('premiumLobby.errorUnblockUser'));
     }
   };
-
-  // Sync chat with active user using real WebSockets instead of polling
-  useEffect(() => {
-    if (!activeChatUser) {
-      unregisterDmCallback();
-      return;
-    }
-
-    const loadChat = async () => {
-      if (activeChatUser.isBot) {
-        const key = `enbido_chat_with_${currentUserId}_and_${activeChatUser.id}`;
-        const savedMsgs = localStorage.getItem(key);
-        setChatMessages(savedMsgs ? JSON.parse(savedMsgs) : []);
-      } else {
-        try {
-          const res = await api.get(`/messages/${activeChatUser.id}`);
-          const mapped = res.data.map((m: { senderId: number; content: string; sentAt: string }) => ({
-            senderId: m.senderId,
-            senderName: m.senderId === currentUserId ? activeUsername : activeChatUser.username,
-            content: m.content,
-            timestamp: new Date(m.sentAt).getTime()
-          }));
-          setChatMessages(mapped);
-        } catch (err) {
-          console.error('Error loading chat messages from DB:', err);
-        }
-      }
-    };
-
-    loadChat();
-
-    // Auto-scroll to end of chat
-    setTimeout(() => {
-      if (chatEndRef.current) {
-        chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
-      }
-    }, 100);
-
-    if (!activeChatUser.isBot) {
-      // Register id to exclude notifications
-      localStorage.setItem('enbido_active_chat_user_id', String(activeChatUser.id));
-
-      registerDmCallback((newMsg: { senderId: number; receiverId: number; content: string; sentAt: string; sender?: { username: string } }) => {
-        if (
-          (newMsg.senderId === currentUserId && newMsg.receiverId === activeChatUser.id) ||
-          (newMsg.senderId === activeChatUser.id && newMsg.receiverId === currentUserId)
-        ) {
-          setChatMessages(prev => {
-            const exists = prev.some(m => m.timestamp === new Date(newMsg.sentAt).getTime() && m.content === newMsg.content);
-            if (exists) return prev;
-
-            return [...prev, {
-              senderId: newMsg.senderId,
-              senderName: newMsg.sender?.username || (newMsg.senderId === currentUserId ? activeUsername : activeChatUser.username),
-              content: newMsg.content,
-              timestamp: new Date(newMsg.sentAt).getTime()
-            }];
-          });
-        }
-      });
-    }
-
-    return () => {
-      unregisterDmCallback();
-      localStorage.removeItem('enbido_active_chat_user_id');
-    };
-  }, [activeChatUser, currentUserId, activeUsername, registerDmCallback, unregisterDmCallback]);
-
-  // Auto-scroll on new messages
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
-    }
-  }, [chatMessages]);
-
-  // Listener for when meetup chat is opened from outside (localStorage trigger)
-  useEffect(() => {
-    const checkExternalChat = () => {
-      const targetUser = localStorage.getItem('enbido_open_dm_target');
-      if (targetUser) {
-        localStorage.removeItem('enbido_open_dm_target');
-        const parsed = JSON.parse(targetUser);
-
-        const exists = friends.find(f => f.username === parsed.username);
-        if (exists) {
-          setActiveChatUser(exists);
-        } else {
-          // Add friend by sending request in backend
-          api.post(`/friendships/request/${parsed.username}`)
-            .then(() => {
-              fetchFriends();
-              fetchRequests();
-            })
-            .catch(err => console.error(err));
-
-          const newFriend: Friend = {
-            id: parsed.id,
-            username: parsed.username,
-            elo: parsed.elo || 1000,
-            totalGamesPlayed: parsed.totalGamesPlayed || 0,
-            totalGamesWon: parsed.totalGamesWon || 0,
-            status: 'online'
-          };
-          setActiveChatUser(newFriend);
-        }
-      }
-    };
-
-    const interval = setInterval(checkExternalChat, 500);
-    return () => clearInterval(interval);
-  }, [friends, currentUserId]);
 
   // ---------- SOCIAL ACTIONS ----------
   const handleSearchUsers = async () => {
@@ -616,67 +492,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       console.error('Error declining request:', err);
       const axiosError = err as { response?: { data?: { error?: string } } };
       alert(axiosError.response?.data?.error || t('premiumLobby.errorDeclineRequest'));
-    }
-  };
-
-  // ---------- CHAT ACTIONS & BOT AUTO-REPLY ----------
-  const handleSendChatMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim() || !activeChatUser) return;
-
-    const msgText = chatInput.trim();
-    setChatInput('');
-
-    if (activeChatUser.isBot) {
-      const myMsg: ChatMessage = {
-        senderId: currentUserId,
-        senderName: activeUsername,
-        content: msgText,
-        timestamp: Date.now()
-      };
-
-      const updatedMsgs = [...chatMessages, myMsg];
-      setChatMessages(updatedMsgs);
-
-      const key = `enbido_chat_with_${currentUserId}_and_${activeChatUser.id}`;
-      localStorage.setItem(key, JSON.stringify(updatedMsgs));
-
-      setTimeout(() => {
-        let botResponseContent = '';
-        if (activeChatUser.id === -1) {
-          const replies = [
-            t('premiumLobby.botReply1_1'),
-            t('premiumLobby.botReply1_2'),
-            t('premiumLobby.botReply1_3'),
-            t('premiumLobby.botReply1_4')
-          ];
-          botResponseContent = replies[Math.floor(Math.random() * replies.length)];
-        } else if (activeChatUser.id === -2) {
-          const replies = [
-            t('premiumLobby.botReply2_1'),
-            t('premiumLobby.botReply2_2'),
-            t('premiumLobby.botReply2_3'),
-            t('premiumLobby.botReply2_4')
-          ];
-          botResponseContent = replies[Math.floor(Math.random() * replies.length)];
-        } else if (activeChatUser.id === -3) {
-          botResponseContent = t('premiumLobby.botReply3_1');
-        }
-
-        const botMsg: ChatMessage = {
-          senderId: activeChatUser.id,
-          senderName: activeChatUser.username,
-          content: botResponseContent,
-          timestamp: Date.now()
-        };
-
-        const updatedWithBot = [...updatedMsgs, botMsg];
-        setChatMessages(updatedWithBot);
-        localStorage.setItem(key, JSON.stringify(updatedWithBot));
-      }, 1500);
-
-    } else {
-      sendDirectMessage(activeChatUser.id, msgText);
     }
   };
 
@@ -897,7 +712,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       <div className="friend-actions-btns">
                         <button
                           className="btn-social-mini btn-chat-mini"
-                          onClick={() => setActiveChatUser(friend)}
+                          onClick={() => handleOpenChat(friend)}
                           title={t("premiumLobby.openChat")}
                         >
                           💬
@@ -1203,58 +1018,6 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               {t('premiumLobby.closeProfile')}
             </button>
           </div>
-        </div>
-      )}
-
-      {/* ---------- FLOATING CHAT WINDOW ---------- */}
-      {activeChatUser && (
-        <div className="chat-window-fixed">
-          <header className="chat-window-header">
-            <div className="chat-header-user">
-              <span className={`chat-header-dot ${activeChatUser.status === 'online' ? 'chat-header-dot--online' : 'chat-header-dot--offline'}`} />
-              <span className="chat-header-name">{t('premiumLobby.chatWith', { username: activeChatUser.username })}</span>
-            </div>
-            <button className="chat-header-close-btn" onClick={() => setActiveChatUser(null)}>
-              &times;
-            </button>
-          </header>
-
-          <div className="chat-window-messages" ref={chatEndRef}>
-            {chatMessages.length === 0 ? (
-              <div className="chat-window-empty">
-                {t('premiumLobby.noPrivateMessages')}
-              </div>
-            ) : (
-              chatMessages.map((msg, index) => {
-                const isMe = msg.senderId === currentUserId;
-                return (
-                  <div
-                    key={index}
-                    className={`chat-msg-row ${isMe ? 'chat-msg-row--sent' : 'chat-msg-row--received'}`}
-                  >
-                    <span className={`chat-msg-sender ${isMe ? 'chat-msg-sender--me' : 'chat-msg-sender--other'}`}>
-                      {msg.senderName}
-                    </span>
-                    {msg.content}
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          <form onSubmit={handleSendChatMessage} className="chat-window-input-form">
-            <input
-              type="text"
-              className="chat-window-input"
-              placeholder={t("premiumLobby.writeMessage")}
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              required
-            />
-            <button type="submit" className="chat-window-send-btn">
-              {t('premiumLobby.send')}
-            </button>
-          </form>
         </div>
       )}
 

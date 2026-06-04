@@ -7,6 +7,7 @@ import PlayerHand from './components/PlayerHand';
 import PremiumLobby from './components/PremiumLobby';
 import LobbyWaitingRoom from './components/LobbyWaitingRoom';
 import { useMusGame } from './hooks/useMusGame';
+import { useChat } from '../../context/ChatContext';
 import api from '../../services/api';
 import './styles/mus-game.css';
 import { useSeo } from '../../hooks/useSeo';
@@ -294,6 +295,18 @@ const MusGamePage: React.FC = () => {
     activeSigns, turnDeadline, activeTurnIdx, dealerIdx,
     leaveVotes, sendLeaveVote
   } = useMusGame(currentUserId);
+
+  const { closeChat, setIsInGame } = useChat();
+
+  // Close chat when entering a match, block chat during game
+  useEffect(() => {
+    if (isPlaying) {
+      closeChat();
+      setIsInGame(true);
+    } else {
+      setIsInGame(false);
+    }
+  }, [isPlaying, closeChat, setIsInGame]);
 
   // Fetch initial profile when match starts
   useEffect(() => {
