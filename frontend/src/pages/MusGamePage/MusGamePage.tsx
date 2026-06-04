@@ -327,11 +327,7 @@ const OrientationOverlay: React.FC<{ lang: string }> = ({ lang }) => {
   );
 };
 
-interface MusGamePageProps {
-  onGameStateChange?: (isPlaying: boolean) => void;
-}
-
-const MusGamePage: React.FC<MusGamePageProps> = ({ onGameStateChange }) => {
+const MusGamePage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [isPortraitOnMobile, setIsPortraitOnMobile] = useState(false);
 
