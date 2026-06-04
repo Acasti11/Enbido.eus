@@ -105,6 +105,17 @@ const Navbar: React.FC = (): React.JSX.Element => {
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    return () => {
+      document.body.classList.remove('no-scroll');
+    };
+  }, [isDrawerOpen]);
+
   const handleLogout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
@@ -313,39 +324,44 @@ const Navbar: React.FC = (): React.JSX.Element => {
       </div>
 
       {/* Mobile drawer */}
-      <div className={`navbar__drawer ${isDrawerOpen ? 'navbar__drawer--open' : ''}`}>
-        <div className="navbar__drawer-header">
-          <span className="navbar__drawer-title">ENBIDO</span>
-          <button
-            className="navbar__drawer-close"
-            onClick={handleCloseDrawer}
-          >
-            ✕
-          </button>
-        </div>
-        <nav className="navbar__drawer-nav">
-          {renderDrawerLinks()}
-        </nav>
-        <div className="navbar__drawer-actions">
-          <Link
-            to="/tienda"
-            className="navbar__drawer-action-btn"
-            onClick={handleCloseDrawer}
-          >
-            <ShopIcon /> {t('nav.shop')}
-          </Link>
-          <button
-            className="navbar__drawer-action-btn"
-            onClick={() => {
-              handleCloseDrawer();
-              setShowSettingsModal(true);
-            }}
-          >
-            <SettingsIcon /> {t('nav.settings')}
-          </button>
-        </div>
-      </div>
-      {isDrawerOpen && <div className="navbar__overlay" onClick={() => setIsDrawerOpen(false)} />}
+      {createPortal(
+        <>
+          <div className={`navbar__drawer ${isDrawerOpen ? 'navbar__drawer--open' : ''}`}>
+            <div className="navbar__drawer-header">
+              <span className="navbar__drawer-title">ENBIDO</span>
+              <button
+                className="navbar__drawer-close"
+                onClick={handleCloseDrawer}
+              >
+                ✕
+              </button>
+            </div>
+            <nav className="navbar__drawer-nav">
+              {renderDrawerLinks()}
+            </nav>
+            <div className="navbar__drawer-actions">
+              <Link
+                to="/tienda"
+                className="navbar__drawer-action-btn"
+                onClick={handleCloseDrawer}
+              >
+                <ShopIcon /> {t('nav.shop')}
+              </Link>
+              <button
+                className="navbar__drawer-action-btn"
+                onClick={() => {
+                  handleCloseDrawer();
+                  setShowSettingsModal(true);
+                }}
+              >
+                <SettingsIcon /> {t('nav.settings')}
+              </button>
+            </div>
+          </div>
+          {isDrawerOpen && <div className="navbar__overlay" onClick={() => setIsDrawerOpen(false)} />}
+        </>,
+        document.body
+      )}
 
       {/* Settings Modal */}
       {showSettingsModal && createPortal(

@@ -3,7 +3,8 @@
    ========================================= */
 .mus-view-container {
   display: flex;
-  height: calc(100vh - 5rem);
+  height: 100vh;
+  height: 100dvh;
   /* Descuenta la altura de la Navbar */
   background-color: var(--color-bg-base);
   color: var(--color-text-white);
@@ -104,6 +105,14 @@
 /* =========================================
    ESTRUCTURAS DE AVATAR Y DETALLES (FUERA DE LA MESA)
    ========================================= */
+.player-profile-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-md);
+  position: relative;
+}
+
 .player-avatar-card {
   position: relative;
   display: flex;
@@ -601,6 +610,17 @@
 }
 
 /* Badge flotante de señas (Efecto Glassmorphism Premium) */
+.player-avatar-wrapper .mus-sign-badge {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  z-index: 20;
+  animation: pop-sign-centered 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
 .mus-sign-badge {
   position: absolute;
   top: -38px;
@@ -652,6 +672,17 @@
 
   100% {
     transform: scale(1) translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pop-sign-centered {
+  0% {
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
 }
@@ -1176,198 +1207,472 @@
 }
 
 @media (max-width: 992px) {
+  /* Layout container stays side-by-side */
   .mus-view-container {
-    flex-direction: column;
-    height: calc(100vh - 5rem);
+    flex-direction: row !important;
+    height: 100vh !important;
+    height: 100dvh !important;
   }
 
   .felt-layout-pane {
-    padding: 1rem;
-    height: 100%;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding-top: 1.5rem;
+    padding: 8px !important;
+    height: 100% !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex: 1 !important;
   }
 
+  /* Rectangular full-size board */
   .game-felt-board {
-    height: 380px;
-    max-width: 580px;
-    border: 8px solid #3d220f;
-    /* Marco de madera oval también en móvil */
-    border-radius: 60px;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+    border: 8px solid #3d220f !important;
+    border-radius: 16px !important;
   }
 
   .felt-logo {
-    font-size: 2.2rem;
-    letter-spacing: 4px;
+    font-size: 1.8rem !important;
+    letter-spacing: 6px !important;
   }
 
   .felt-sub {
-    font-size: 0.8rem;
+    font-size: 0.6rem !important;
+    letter-spacing: 4px !important;
   }
 
-  /* Posiciones de los avatares en móviles */
+  .leave-felt-btn {
+    margin-top: 6px !important;
+    padding: 4px 8px !important;
+    font-size: 0.6rem !important;
+    border-radius: 4px !important;
+  }
+
+  /* Posiciones de los avatares en los bordes del tapete */
   .position-north {
-    top: 8px;
+    top: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    flex-direction: column !important;
+    gap: 6px !important;
   }
 
   .position-south {
-    bottom: 8px;
+    bottom: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    flex-direction: column-reverse !important;
+    gap: 6px !important;
   }
 
   .position-west {
-    left: 8px;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    flex-direction: column !important;
+    gap: 6px !important;
   }
 
   .position-east {
-    right: 8px;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    flex-direction: column-reverse !important;
+    gap: 6px !important;
   }
 
-  /* Cartas Oeste/Este en móviles (Sin rotación vertical, alineadas en fila limpia) */
+  /* Rotación de las cartas de los lados Oeste y Este */
   .position-west .hand-container,
-  .position-east .hand-container {
-    flex-direction: row !important;
-    gap: 4px !important;
+  .position-west .player-cards-slot-bg,
+  .position-east .hand-container,
+  .position-east .player-cards-slot-bg {
+    flex-direction: column !important;
+    gap: 0px !important;
   }
 
   .position-west .card,
   .position-west .card-placeholder,
+  .position-west .slot-outline-card,
   .position-east .card,
-  .position-east .card-placeholder {
-    transform: none !important;
-    margin: 0 !important;
+  .position-east .card-placeholder,
+  .position-east .slot-outline-card {
+    transform: rotate(90deg) !important;
+    margin: -6px 0 !important;
   }
 
-  /* Cartas táctiles reducidas */
-  .card,
-  .card-placeholder {
-    width: 46px !important;
-    height: 68px !important;
+  /* Compact player avatar card */
+  .player-avatar-card {
+    min-width: 65px !important;
+    padding: 4px 6px !important;
+    border-radius: 8px !important;
+    gap: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
   }
 
-  .card-rank {
-    font-size: 1.15rem !important;
-    margin-top: 4px !important;
+  .player-avatar-circle {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.8rem !important;
+    border-width: 1.5px !important;
   }
 
-  .card-suit-corner {
-    font-size: 0.75rem !important;
-    top: 2px !important;
-    left: 4px !important;
+  .player-avatar-wrapper {
+    width: 32px !important;
+    height: 32px !important;
   }
 
-  .card-suit-emblem {
+  .timer-svg {
+    position: absolute !important;
+    width: 42px !important;
+    height: 42px !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .player-name-label {
     font-size: 0.6rem !important;
+    max-width: 60px !important;
+  }
+
+  .player-title-badge {
+    font-size: 0.5rem !important;
+    padding: 1px 3px !important;
     margin-top: 2px !important;
   }
 
-  /* Bocadillos */
-  .speech-bubble {
-    font-size: 0.7rem;
-    padding: 4px 8px;
+  .avatar-countdown-badge {
+    font-size: 0.5rem !important;
+    padding: 1px 3px !important;
+    bottom: -2px !important;
+    right: -2px !important;
   }
 
-  /* Marcador superior compacto */
-  .mobile-score-container {
-    display: block;
-    width: 100%;
-    max-width: 580px;
-    margin-bottom: 1rem;
+  /* Compact Player Hand wrapper */
+  .player-hand-wrapper {
+    padding: 2px !important;
   }
 
-  .mobile-score-container .scoreboard-widget {
-    background: rgba(10, 25, 18, 0.8) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(5px);
-    padding: 8px 16px !important;
-    border-radius: 12px !important;
+  /* Cartas e slots reducidos */
+  .card,
+  .card-placeholder,
+  .slot-outline-card {
+    width: 36px !important;
+    height: 54px !important;
+    border-radius: 4px !important;
   }
 
-  .mobile-score-container .team-points {
-    font-size: 1.25rem !important;
+  .player-cards-slot-bg {
+    gap: 4px !important;
   }
 
-  .mobile-score-container .team-name {
+  .hand-container {
+    gap: 4px !important;
+  }
+
+  /* Card vector text and emblem scaling */
+  .card-border-frame {
+    top: 2px !important;
+    bottom: 2px !important;
+    left: 2px !important;
+    right: 2px !important;
+    border-radius: 2px !important;
+  }
+
+  .card-index-corner.top-left {
+    top: 2px !important;
+    left: 2px !important;
+  }
+
+  .card-index-corner.bottom-right {
+    bottom: 2px !important;
+    right: 2px !important;
+  }
+
+  .card-rank-text {
+    font-size: 0.65rem !important;
+  }
+
+  .card-suit-tiny {
+    width: 7px !important;
+    height: 7px !important;
+    margin-top: 0px !important;
+  }
+
+  .card-emblem-center {
+    width: 18px !important;
+    height: 18px !important;
+    margin-top: 2px !important;
+  }
+
+  .card-emblem-center svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .is-selected-discard {
+    transform: translateY(-8px) !important;
+  }
+
+  .is-hoverable:hover {
+    transform: translateY(-4px) !important;
+  }
+
+  .is-selected-discard.is-hoverable:hover {
+    transform: translateY(-8px) !important;
+  }
+
+  /* Señas dropdown and menu items */
+  .senas-dropdown-container {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+  }
+
+  .btn-senas-toggle {
+    padding: 6px 12px !important;
     font-size: 0.7rem !important;
   }
 
-  .mobile-score-container .scoreboard-divider {
-    height: 25px !important;
+  .senas-popup-menu {
+    bottom: 36px !important;
+    width: 150px !important;
+    padding: 8px !important;
+    gap: 4px !important;
+    right: 0 !important;
+    left: auto !important;
   }
 
-  /* Ocultar elementos desktop en Sidebar */
+  .senas-menu-title {
+    font-size: 0.55rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .btn-senas-menu-item {
+    padding: 4px 6px !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Speech bubbles & signs badges */
+  .speech-bubble {
+    font-size: 0.6rem !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .mus-sign-badge {
+    padding: 3px 6px !important;
+    top: -25px !important;
+  }
+
+  .mus-sign-badge-text {
+    font-size: 0.6rem !important;
+  }
+
+  /* Dealer token scaling */
+  .dealer-baraja-token {
+    transform: scale(0.65) !important;
+  }
+
+  .position-north .dealer-baraja-token {
+    left: -24px !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) scale(0.65) !important;
+  }
+
+  .position-south .dealer-baraja-token {
+    right: -24px !important;
+    top: 50% !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) scale(0.65) !important;
+  }
+
+  .position-west .dealer-baraja-token {
+    top: 50% !important;
+    right: -24px !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) scale(0.65) !important;
+  }
+
+  .position-east .dealer-baraja-token {
+    top: 50% !important;
+    left: -24px !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) scale(0.65) !important;
+  }
+
+  /* Sidebar Panel Layout & Widgets */
   .sidebar-panel {
-    display: contents !important;
+    display: flex !important;
+    width: 230px !important;
+    padding: 0.5rem !important;
+    border-left: 1px solid #232220 !important;
+    height: 100% !important;
   }
 
-  .sidebar-panel>.scoreboard-widget,
-  .sidebar-panel>.game-logs-widget {
-    display: none !important;
+  .scoreboard-widget {
+    padding: 6px 10px !important;
+    gap: 6px !important;
+    border-radius: 8px !important;
   }
 
-  /* Docked Action Panel */
-  .action-panel-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(10, 25, 18, 0.96);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    padding: 10px 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    z-index: 90;
-    margin-top: 0;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-    box-sizing: border-box;
+  .team-points {
+    font-size: 1.2rem !important;
   }
 
-  .action-panel-bar .btn-primary-action {
-    padding: 12px !important;
-    font-size: 0.9rem !important;
+  .team-name {
+    font-size: 0.65rem !important;
+  }
+
+  .scoreboard-divider {
+    height: 22px !important;
+  }
+
+  .scoreboard-global {
+    padding-top: 6px !important;
+    gap: 1px !important;
+  }
+
+  .scoreboard-global-label {
+    font-size: 0.55rem !important;
+  }
+
+  .scoreboard-global-score {
+    font-size: 1.1rem !important;
+    letter-spacing: 1.5px !important;
+  }
+
+  .sound-toggle-container {
+    margin: 4px 0 !important;
+    padding: 4px 8px !important;
     border-radius: 6px !important;
   }
 
-  .signs-control-bar {
-    bottom: 90px;
-    padding: 4px 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .game-felt-board {
-    height: 310px;
-    max-width: 100%;
+  .sound-toggle-label {
+    font-size: 0.65rem !important;
   }
 
-  .position-north {
-    top: 4px;
+  .sound-toggle-btn {
+    padding: 2px 6px !important;
+    font-size: 0.65rem !important;
+    border-radius: 4px !important;
   }
 
-  .position-south {
-    bottom: 4px;
+  .game-logs-widget {
+    margin: 6px 0 !important;
   }
 
-  .position-west {
-    left: 4px;
+  .logs-tab-btn {
+    padding: 4px 2px !important;
+    font-size: 0.65rem !important;
   }
 
-  .position-east {
-    right: 4px;
+  .logs-scroll-box {
+    padding: 6px !important;
+    gap: 4px !important;
+    border-radius: 6px !important;
+  }
+
+  .log-item-card {
+    padding: 4px 6px !important;
+    gap: 6px !important;
+    font-size: 0.65rem !important;
+    border-radius: 6px !important;
+  }
+
+  .log-icon-wrapper {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 0.75rem !important;
+    border-radius: 4px !important;
+  }
+
+  .log-lance-header {
+    padding: 6px 8px !important;
+  }
+
+  /* Chat Box elements */
+  .game-chat-messages-box {
+    min-height: 80px !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    font-size: 0.65rem !important;
+    border-radius: 6px !important;
+  }
+
+  .game-chat-message {
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+  }
+
+  .game-chat-message-sender {
+    font-size: 0.55rem !important;
+  }
+
+  .game-chat-message-content {
+    font-size: 0.65rem !important;
+  }
+
+  .game-chat-form {
+    padding-top: 4px !important;
+    gap: 4px !important;
+  }
+
+  .game-chat-input {
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+    border-radius: 4px !important;
+  }
+
+  .game-chat-submit-btn {
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+    border-radius: 4px !important;
+  }
+
+  /* Action Panel Buttons inside Sidebar */
+  .action-panel-bar {
+    gap: 6px !important;
+    margin-top: auto !important;
+  }
+
+  .btn-primary-action {
+    padding: 8px 6px !important;
+    font-size: 0.72rem !important;
+    border-radius: 5px !important;
+  }
+
+  .action-panel-phase {
+    font-size: 0.65rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .action-panel-betting-buttons {
+    gap: 4px !important;
+  }
+
+  .waiting-text {
+    font-size: 0.75rem !important;
+    gap: 4px !important;
   }
 }
 
 /* =========================================
-   SEÑAS DROPDOWN MENU
+   SENAS DROPDOWN MENU
    ========================================= */
-.señas-dropdown-container {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
+.senas-dropdown-container {
+  position: relative;
   z-index: 100;
 }
 
-.btn-señas-toggle {
+.btn-senas-toggle {
   background: rgba(18, 17, 15, 0.92);
   color: #fbbf24;
   /* Warm Gold */
@@ -1382,17 +1687,18 @@
   backdrop-filter: blur(8px);
 }
 
-.btn-señas-toggle:hover {
+.btn-senas-toggle:hover {
   background: #fbbf24;
   color: #000;
   border-color: #fbbf24;
   transform: scale(1.05);
 }
 
-.señas-popup-menu {
+.senas-popup-menu {
   position: absolute;
   bottom: 45px;
-  left: 0;
+  right: 0;
+  left: auto;
   background: rgba(18, 17, 15, 0.96);
   border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 12px;
@@ -1418,7 +1724,7 @@
   }
 }
 
-.señas-menu-title {
+.senas-menu-title {
   font-size: 0.65rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -1427,7 +1733,7 @@
   letter-spacing: 0.5px;
 }
 
-.btn-señas-menu-item {
+.btn-senas-menu-item {
   background: var(--color-surface-elevated);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-xs);
@@ -1440,7 +1746,7 @@
   transition: all var(--transition-fast);
 }
 
-.btn-señas-menu-item:hover {
+.btn-senas-menu-item:hover {
   background: var(--color-gold-alpha-15);
   border-color: var(--color-gold);
   color: var(--color-gold);

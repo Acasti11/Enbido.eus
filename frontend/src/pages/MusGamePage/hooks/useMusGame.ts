@@ -72,20 +72,7 @@ export const useMusGame = (userId: number) => {
     }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    
-    // Determine the host for WebSocket
-    let wsHost = window.location.host;
-    const viteApiUrl = import.meta.env.VITE_API_URL;
-    if (viteApiUrl && viteApiUrl.startsWith('http')) {
-      try {
-        const urlObj = new URL(viteApiUrl);
-        wsHost = urlObj.host;
-      } catch (e) {
-        console.error('Error parsing VITE_API_URL for WebSocket host:', e);
-      }
-    }
-
-    const wsUrl = `${wsProtocol}//${wsHost}/ws-mus`;
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws-mus`;
 
     console.log('Conectando al WebSocket de Mus a: ' + wsUrl);
     const socket = new WebSocket(wsUrl);

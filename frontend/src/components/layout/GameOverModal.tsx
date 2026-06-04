@@ -29,6 +29,7 @@ interface GameOverModalProps {
   scoreThem: number;
   seats: SeatInfo[];
   eloChange: number | null;
+  coinsChange?: number | null;
   winningProfiles: { [userId: number]: PlayerProfile };
   isLoading?: boolean;
 }
@@ -44,6 +45,7 @@ const GameOverModal: React.FC<GameOverModalProps> = ({
   scoreThem,
   seats,
   eloChange,
+  coinsChange = null,
   winningProfiles,
   isLoading = false,
 }) => {
@@ -157,6 +159,41 @@ const GameOverModal: React.FC<GameOverModalProps> = ({
     );
   };
 
+  // Coins indicator section
+  const renderCoinsSection = () => {
+    if (isLoading) {
+      return (
+        <div className="elo-change-box elo-loading">
+          <span className="elo-icon animate-spin">⏳</span>
+          <span className="elo-text">{t('common.loading')}</span>
+        </div>
+      );
+    }
+
+    if (coinsChange === null) {
+      return (
+        <div className="elo-change-box elo-neutral">
+          <span className="elo-icon">🪙</span>
+          <span className="elo-text">{t('musGame.coinsNoChange')}</span>
+        </div>
+      );
+    }
+
+    const isGained = coinsChange > 0;
+    const formattedCoins = isGained ? `+${coinsChange}` : coinsChange;
+
+    return (
+      <div className={`elo-change-box coins-change-box ${isGained ? 'elo-gained' : 'elo-lost'}`}>
+        <span className="elo-icon">🪙</span>
+        <span className="elo-text">
+          {isGained 
+            ? t('musGame.coinsGained', { coins: formattedCoins }) 
+            : t('musGame.coinsLost', { coins: Math.abs(coinsChange) })}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="game-over-modal-overlay">
       <div className="game-over-modal-container animate-pop">
@@ -193,6 +230,7 @@ const GameOverModal: React.FC<GameOverModalProps> = ({
           {/* ELO and rewards change */}
           <section className="elo-section">
             {renderEloSection()}
+            {renderCoinsSection()}
           </section>
 
           {/* Winning couple cards */}

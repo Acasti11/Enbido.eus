@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/layout/Navbar';
 import LoginPage from './pages/LoginPage/LoginPage';
@@ -22,28 +22,38 @@ const NotFound: React.FC = () => {
   );
 };
 
+const AppContent: React.FC = (): React.JSX.Element => {
+  const [hideNavbarInGame, setHideNavbarInGame] = React.useState(false);
+  const location = useLocation();
+  const showNavbar = location.pathname !== '/jugar' || !hideNavbarInGame;
+
+  return (
+    <div className="app">
+      {showNavbar && <Navbar />}
+      <main className="app__main">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/jugar" element={<MusGamePage onGameStateChange={setHideNavbarInGame} />} />
+          <Route path="/torneos" element={<TournamentPage />} />
+          <Route path="/quedadas" element={<MeetupPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/recuperar-password" element={<ResetPasswordPage />} /> {/* Route añadida */}
+          <Route path="/tienda" element={<ShopPage />} />
+          <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/cuenta" element={<AccountPage />} />
+          <Route path="/reglas" element={<RulesPage />} />
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
+
 const App: React.FC = (): React.JSX.Element => {
   return (
     <BrowserRouter>
-      <div className="app">
-        <Navbar />
-        <main className="app__main">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/jugar" element={<MusGamePage />} />
-            <Route path="/torneos" element={<TournamentPage />} />
-            <Route path="/quedadas" element={<MeetupPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/recuperar-password" element={<ResetPasswordPage />} /> {/* Route añadida */}
-            <Route path="/tienda" element={<ShopPage />} />
-            <Route path="/perfil" element={<ProfilePage />} />
-            <Route path="/cuenta" element={<AccountPage />} />
-            <Route path="/reglas" element={<RulesPage />} />
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<Navigate to="/404" replace />} />
-          </Routes>
-        </main>
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 };

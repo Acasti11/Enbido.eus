@@ -3,7 +3,8 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  min-height: 100dvh;
   background: var( --color-brand-main);
 }
 

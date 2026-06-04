@@ -147,10 +147,14 @@ const PlayerPosition: React.FC<{
   toggleCardSelection?: (cardId: string) => void;
   getSignEmojiOnly: (key: string) => string;
   t: (key: string) => string;
+  isSignsOpen?: boolean;
+  setIsSignsOpen?: (isOpen: boolean) => void;
+  sendSign?: (signKey: string) => void;
 }> = ({
   position, index, timeLeft, activeTurnIdx, seats, botHands, isPlaying,
   phase, dealerIdx, speechBubbles, activeSigns, profile, playerHand,
-  selectedCards, toggleCardSelection, getSignEmojiOnly, t
+  selectedCards, toggleCardSelection, getSignEmojiOnly, t,
+  isSignsOpen, setIsSignsOpen, sendSign
 }) => {
   const isBot = position !== 'south';
   const hand = isBot ? botHands[position === 'north' ? 0 : position === 'west' ? 2 : 1] : playerHand || [];
@@ -184,23 +188,69 @@ const PlayerPosition: React.FC<{
 
   return (
     <div className={`player-position position-${position} ${isTurnActive ? 'active-zone' : ''}`}>
-      <div className="player-avatar-card">
-        <div className="player-avatar-wrapper">
-          <TimerCircle timeLeft={timeLeft} isActive={isTurnActive} />
-          <div className={`player-avatar-circle ${avatarClass}`}>
-            {username.slice(0, 2).toUpperCase()}
-          </div>
-          {isTurnActive && timeLeft > 0 && (
-            <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
-              {timeLeft}s
+      <div className="player-profile-row">
+        <div className="player-avatar-card">
+          <div className="player-avatar-wrapper">
+            <TimerCircle timeLeft={timeLeft} isActive={isTurnActive} />
+            <div className={`player-avatar-circle ${avatarClass}`}>
+              {username.slice(0, 2).toUpperCase()}
             </div>
-          )}
+            {isTurnActive && timeLeft > 0 && (
+              <div className={`avatar-countdown-badge ${timeLeft <= 3 ? 'low-time' : timeLeft <= 6 ? 'medium-time' : ''}`}>
+                {timeLeft}s
+              </div>
+            )}
+            {signType && (
+              <div className="mus-sign-badge pop-in">
+                <div className="mus-sign-badge-glow"></div>
+                <span className="mus-sign-badge-text">
+                  {getSignEmojiOnly(signType)}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="player-avatar-details">
+            <span className="player-name-label">{displayName}</span>
+            {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">{t('musGame.titleHandia')}</span>}
+            {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">{t('musGame.titleEnbidoMaisu')}</span>}
+          </div>
         </div>
-        <div className="player-avatar-details">
-          <span className="player-name-label">{displayName}</span>
-          {isSelf && profile?.equippedTitleItemId === 5 && <span className="player-title-badge player-title-badge--green">{t('musGame.titleHandia')}</span>}
-          {isSelf && profile?.equippedTitleItemId === 6 && <span className="player-title-badge player-title-badge--gold">{t('musGame.titleEnbidoMaisu')}</span>}
-        </div>
+
+        {isSelf && isPlaying && sendSign && setIsSignsOpen && (
+          <div className="senas-dropdown-container">
+            <button
+              type="button"
+              className="btn-senas-toggle"
+              onClick={() => setIsSignsOpen(!isSignsOpen)}
+              title={t('musGame.openSignsMenu')}
+            >
+              {t('musGame.signs')}
+            </button>
+            {isSignsOpen && (
+              <div className="senas-popup-menu">
+                <span className="senas-menu-title">{t('musGame.makeSign')}</span>
+                <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('dos_reyes'); setIsSignsOpen(false); }}>
+                  {t('musGame.signReyes')}
+                </button>
+                <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('dos_ases'); setIsSignsOpen(false); }}>
+                  {t('musGame.signAses')}
+                </button>
+                <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('medias'); setIsSignsOpen(false); }}>
+                  {t('musGame.signMedias')}
+                </button>
+                <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('duples'); setIsSignsOpen(false); }}>
+                  {t('musGame.signDuples')}
+                </button>
+                <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('31'); setIsSignsOpen(false); }}>
+                  {t('musGame.sign31')}
+                </button>
+                <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('30'); setIsSignsOpen(false); }}>
+                  {t('musGame.sign30')}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="player-hand-wrapper">
@@ -225,14 +275,6 @@ const PlayerPosition: React.FC<{
         </div>
       )}
       {speechBubbles[index] && <div className="speech-bubble show">{speechBubbles[index]}</div>}
-      {signType && (
-        <div className="mus-sign-badge pop-in">
-          <div className="mus-sign-badge-glow"></div>
-          <span className="mus-sign-badge-text">
-            {getSignEmojiOnly(signType)}
-          </span>
-        </div>
-      )}
     </div>
   );
 };
@@ -284,7 +326,11 @@ const OrientationOverlay: React.FC<{ lang: string }> = ({ lang }) => {
   );
 };
 
-const MusGamePage: React.FC = () => {
+interface MusGamePageProps {
+  onGameStateChange?: (isPlaying: boolean) => void;
+}
+
+const MusGamePage: React.FC<MusGamePageProps> = ({ onGameStateChange }) => {
   const { t, i18n } = useTranslation();
   const [isPortraitOnMobile, setIsPortraitOnMobile] = useState(false);
 
@@ -331,6 +377,7 @@ const MusGamePage: React.FC = () => {
   // New states for Game Over Pop-up summary
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [eloChange, setEloChange] = useState<number | null>(null);
+  const [coinsChange, setCoinsChange] = useState<number | null>(null);
   const [winningProfiles, setWinningProfiles] = useState<{ [userId: number]: any }>({});
   const [initialProfile, setInitialProfile] = useState<any>(null);
   const [finalMatchData, setFinalMatchData] = useState<any>(null);
@@ -357,6 +404,12 @@ const MusGamePage: React.FC = () => {
     activeSigns, turnDeadline, activeTurnIdx, dealerIdx,
     leaveVotes, sendLeaveVote
   } = useMusGame(currentUserId);
+
+  useEffect(() => {
+    if (onGameStateChange) {
+      onGameStateChange(isPlaying);
+    }
+  }, [isPlaying, onGameStateChange]);
 
   // Fetch initial profile when match starts
   useEffect(() => {
@@ -406,12 +459,16 @@ const MusGamePage: React.FC = () => {
           // Run all requests in parallel
           const profilePromises: Promise<any>[] = [];
 
-          // 1. Fetch our own updated profile for ELO change
+          // 1. Fetch our own updated profile for ELO and coins change
           const mePromise = api.get('/usuarios/me/profile').then(res => {
             const finalProfile = res.data;
             const beforeElo = initialProfile ? initialProfile.elo : profile?.elo;
             if (beforeElo !== undefined && finalProfile.elo !== undefined) {
               setEloChange(finalProfile.elo - beforeElo);
+            }
+            const beforeCoins = initialProfile ? initialProfile.coins : profile?.coins;
+            if (beforeCoins !== undefined && finalProfile.coins !== undefined) {
+              setCoinsChange(finalProfile.coins - beforeCoins);
             }
             setProfile(finalProfile);
           }).catch(err => {
@@ -510,6 +567,7 @@ const MusGamePage: React.FC = () => {
           setIsGameOverOpen(false);
           setFinalMatchData(null);
           setEloChange(null);
+          setCoinsChange(null);
           setInitialProfile(null);
           setIsProfileLoading(false);
         }}
@@ -518,6 +576,7 @@ const MusGamePage: React.FC = () => {
           setIsGameOverOpen(false);
           setFinalMatchData(null);
           setEloChange(null);
+          setCoinsChange(null);
           setInitialProfile(null);
           setIsProfileLoading(false);
         }}
@@ -528,33 +587,13 @@ const MusGamePage: React.FC = () => {
         scoreThem={finalMatchData.scoreThem}
         seats={finalMatchData.seats}
         eloChange={eloChange}
+        coinsChange={coinsChange}
         winningProfiles={winningProfiles}
         isLoading={isProfileLoading}
       />
     );
   };
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [lastMessageCount, setLastMessageCount] = useState(0);
-  const [hasNewNotifications, setHasNewNotifications] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 992);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (chatMessages.length > lastMessageCount) {
-      if (!isSidebarOpen || activeTab !== 'chat') setHasNewNotifications(true);
-      setLastMessageCount(chatMessages.length);
-    }
-  }, [chatMessages, isSidebarOpen, activeTab, lastMessageCount]);
-
-  useEffect(() => {
-    if (isSidebarOpen) setHasNewNotifications(false);
-  }, [isSidebarOpen]);
 
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
@@ -641,13 +680,6 @@ const MusGamePage: React.FC = () => {
       {isPortraitOnMobile && <OrientationOverlay lang={i18n.language} />}
       <div className="mus-view-container">
 
-        {isMobile && (
-          <div
-            className={`drawer-overlay ${isSidebarOpen ? 'is-open' : ''}`}
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-
         <div className="felt-layout-pane">
 
           {isPlaying && leaveVotes.length > 0 && (
@@ -664,39 +696,17 @@ const MusGamePage: React.FC = () => {
             </div>
           )}
 
-          {isMobile && (
-            <div className="mobile-score-container" onClick={() => setIsSidebarOpen(true)}>
-              <div className="mobile-score-row">
-                <span className="mobile-score-tag">{t('musGame.scoreUs')}: {score.roundsUs || 0} ({score.us})</span>
-                <span className="mobile-score-vs">VS</span>
-                <span className="mobile-score-tag">{t('musGame.scoreThem')}: {score.roundsThem || 0} ({score.them})</span>
-              </div>
-            </div>
-          )}
-
-          {isMobile && (
-            <button
-              className="mobile-drawer-toggle-btn"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              {t('musGame.chatLogs')}
-              {hasNewNotifications && <span className="notification-dot"></span>}
-            </button>
-          )}
-
           <div className="game-felt-board">
 
             <div className="felt-center-emblem">
               <h1 className="felt-logo">ENBIDO</h1>
               <span className="felt-sub">{t('musGame.musTable')}</span>
-              {!isMobile && (
-                <button
-                  className="leave-felt-btn"
-                  onClick={handleExitRequest}
-                >
-                  {t('musGame.leaveTableShort')}
-                </button>
-              )}
+              <button
+                className="leave-felt-btn"
+                onClick={handleExitRequest}
+              >
+                {t('musGame.leaveTableShort')}
+              </button>
             </div>
 
             <PlayerPosition position="north" index={2} timeLeft={timeLeft} activeTurnIdx={activeTurnIdx}
@@ -718,79 +728,14 @@ const MusGamePage: React.FC = () => {
               seats={seats} botHands={botHands} isPlaying={isPlaying} phase={phase} dealerIdx={dealerIdx}
               speechBubbles={speechBubbles} activeSigns={activeSigns} profile={profile}
               playerHand={playerHand} selectedCards={selectedCards} toggleCardSelection={toggleCardSelection}
-              getSignEmojiOnly={getSignEmojiOnly} t={t} />
+              getSignEmojiOnly={getSignEmojiOnly} t={t}
+              isSignsOpen={isSignsOpen} setIsSignsOpen={setIsSignsOpen} sendSign={sendSign} />
 
           </div>
 
-          {isPlaying && (
-            <div className="senas-dropdown-container">
-              <button
-                type="button"
-                className="btn-senas-toggle"
-                onClick={() => setIsSignsOpen(!isSignsOpen)}
-                title={t('musGame.openSignsMenu')}
-              >
-                {t('musGame.signs')}
-              </button>
-              {isSignsOpen && (
-                <div className="senas-popup-menu">
-                  <span className="senas-menu-title">{t('musGame.makeSign')}</span>
-                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('dos_reyes'); setIsSignsOpen(false); }}>
-                    {t('musGame.signReyes')}
-                  </button>
-                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('dos_ases'); setIsSignsOpen(false); }}>
-                    {t('musGame.signAses')}
-                  </button>
-                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('medias'); setIsSignsOpen(false); }}>
-                    {t('musGame.signMedias')}
-                  </button>
-                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('duples'); setIsSignsOpen(false); }}>
-                    {t('musGame.signDuples')}
-                  </button>
-                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('31'); setIsSignsOpen(false); }}>
-                    {t('musGame.sign31')}
-                  </button>
-                  <button type="button" className="btn-senas-menu-item" onClick={() => { sendSign('30'); setIsSignsOpen(false); }}>
-                    {t('musGame.sign30')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {isMobile && (
-            <div className="mobile-action-panel-container">
-              <ActionPanel
-                phase={phase}
-                stage={stage}
-                selectedCount={selectedCards.length}
-                isMyTurn={isMyTurn}
-                betState={betState}
-                onStart={handleActionPanelStart}
-                onDecision={handleUserMusDecision}
-                onDiscard={executeDiscardsLocal}
-                onBet={handleBetLocal}
-              />
-            </div>
-          )}
-
         </div>
 
-        <aside className={`sidebar-panel ${isMobile ? 'mobile-drawer' : ''} ${isSidebarOpen ? 'is-open' : ''}`}>
-
-          {isMobile && (
-            <div className="drawer-header-actions">
-              <button className="drawer-close-btn" onClick={() => setIsSidebarOpen(false)}>
-                {t('musGame.closePanel')}
-              </button>
-              <button
-                className="leave-felt-btn leave-felt-btn--mobile"
-                onClick={handleExitRequest}
-              >
-                {t('musGame.leaveShort')}
-              </button>
-            </div>
-          )}
+        <aside className="sidebar-panel">
 
           <GameScoreBoard score={score} maxRounds={maxRounds} />
 
@@ -814,6 +759,7 @@ const MusGamePage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
+                className={`logs-tab-btn ${activeTab === 'chat' ? 'logs-tab-btn--active' : ''}`}
               >
                 {t('musGame.tableChat')}
               </button>
@@ -856,7 +802,7 @@ const MusGamePage: React.FC = () => {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={t('musGame.writeInTable')}
-                
+                    className="game-chat-input"
                   />
                   <button type="submit" className="game-chat-submit-btn">
                     {t('musGame.send')}
@@ -866,19 +812,17 @@ const MusGamePage: React.FC = () => {
             )}
           </div>
 
-          {!isMobile && (
-            <ActionPanel
-              phase={phase}
-              stage={stage}
-              selectedCount={selectedCards.length}
-              isMyTurn={isMyTurn}
-              betState={betState}
-              onStart={handleActionPanelStart}
-              onDecision={handleUserMusDecision}
-              onDiscard={executeDiscardsLocal}
-              onBet={handleBetLocal}
-            />
-          )}
+          <ActionPanel
+            phase={phase}
+            stage={stage}
+            selectedCount={selectedCards.length}
+            isMyTurn={isMyTurn}
+            betState={betState}
+            onStart={handleActionPanelStart}
+            onDecision={handleUserMusDecision}
+            onDiscard={executeDiscardsLocal}
+            onBet={handleBetLocal}
+          />
         </aside>
 
       </div>

@@ -71,11 +71,9 @@ public class UserService {
             localAuth.setPassword(passwordEncoder.encode(dto.getPassword()));
             localAuthRepository.save(localAuth);
 
-            // Crear perfil de juego con monedas iniciales si no ha sido creado ya por el trigger de base de datos
-            if (!userGameProfileRepository.existsById(savedUser.getUserId())) {
-                UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
-                userGameProfileRepository.save(profile);
-            }
+            // Crear perfil de juego con monedas iniciales
+            UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
+            userGameProfileRepository.save(profile);
 
             return "Usuario registrado correctamente";
             
