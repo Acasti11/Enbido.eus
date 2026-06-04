@@ -46,13 +46,6 @@
   max-width: 60rem;
 }
 
-@media (min-width: 1024px) {
-  .account-layout {
-    grid-template-columns: 1fr 2fr;
-    gap: var(--space-2xl);
-  }
-}
-
 /* ========== CARD STYLES ========== */
 .account-card {
   background-color: var(--color-card-bg);
@@ -155,12 +148,6 @@
   gap: var(--space-md);
 }
 
-@media (min-width: 640px) {
-  .account-form-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 .account-form-field {
   display: flex;
   flex-direction: column;
@@ -179,7 +166,7 @@
   border-radius: var(--radius-md);
   padding: var(--space-md);
   color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  font-size: 16px; /* Optimized to be at least 16px to prevent auto-zoom on iOS */
   font-weight: 500;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-input);
@@ -220,9 +207,9 @@
 
 .account-action-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-xl);
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-md);
   background: rgba(26, 71, 49, 0.03);
   border: 1px solid rgba(26, 71, 49, 0.08);
   border-radius: var(--radius-md);
@@ -335,4 +322,28 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MOBILE-FIRST SCREEN BREAKPOINTS
+   ========================================= */
+
+@media (min-width: 640px) {
+  .account-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .account-action-section {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .account-layout {
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-2xl);
+  }
 }

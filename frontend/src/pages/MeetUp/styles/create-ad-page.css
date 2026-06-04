@@ -58,9 +58,9 @@
 
 .btn-cancel-form {
   flex: 1; 
-  background: var(--color-text-white); 
-  border: 1px solid var(--color-card-border); 
-  color: var(--color-text-muted); 
+  background: rgba(45, 107, 69, 0.08); 
+  border: 1px solid rgba(45, 107, 69, 0.2); 
+  color: var(--color-brand-light); 
   border-radius: var(--radius-md); 
   padding: 14px; 
   font-weight: 700; 
@@ -70,8 +70,8 @@
 }
 
 .btn-cancel-form:hover { 
-  background: var(--color-surface); 
-  color: var(--color-text-primary); 
+  background: rgba(45, 107, 69, 0.15); 
+  color: var(--color-brand-dark); 
 }
 
 .btn-submit-form {

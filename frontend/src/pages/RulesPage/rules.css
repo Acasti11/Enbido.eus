@@ -3,7 +3,7 @@
   flex-direction: column;
   min-height: 100vh;
   color: var(--color-text-white);
-  padding: var(--space-3xl) var(--space-2xl);
+  padding: var(--space-lg) var(--space-md);
   max-width: 1000px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -16,7 +16,7 @@
 
 .rules-title {
   font-family: var(--font-display), sans-serif;
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-2xl);
   font-weight: 800;
   color: var(--color-text-white);
   margin-bottom: var(--space-xs);
@@ -35,14 +35,14 @@
   backdrop-filter: blur(8px);
   border: 1px solid var(--color-border-dark);
   border-radius: var(--radius-xl);
-  padding: var(--space-3xl);
+  padding: var(--space-lg);
   margin-bottom: var(--space-3xl);
   box-shadow: var(--shadow-premium);
 }
 
 .rules-section-title {
   font-family: var(--font-display), sans-serif;
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-gold);
   margin-top: 0;
@@ -64,8 +64,8 @@
 /* LANCES GRID */
 .lances-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2xl);
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
   margin-top: var(--space-2xl);
 }
 
@@ -112,6 +112,13 @@
   font-size: var(--font-size-md);
   line-height: 1.5;
   margin: 0;
+}
+
+.lance-sublist {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-white-70);
+  padding-left: 20px;
+  margin-top: 5px;
 }
 
 /* SEÑAS GRID */
@@ -178,6 +185,10 @@
   gap: 4px;
 }
 
+.variation-item--secondary {
+  margin-top: 10px;
+}
+
 .variation-title {
   font-weight: 700;
   font-size: var(--font-size-lg);
@@ -190,20 +201,29 @@
   line-height: 1.5;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .lances-grid {
-    grid-template-columns: 1fr;
+/* =========================================
+   MOBILE-FIRST SCREEN BREAKPOINTS
+   ========================================= */
+
+@media (min-width: 768px) {
+  .rules-container {
+    padding: var(--space-3xl) var(--space-2xl);
   }
-}
 
-.lance-sublist {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-white-70);
-  padding-left: 20px;
-  margin-top: 5px;
-}
+  .rules-title {
+    font-size: var(--font-size-4xl);
+  }
 
-.variation-item--secondary {
-  margin-top: 10px;
+  .rules-section {
+    padding: var(--space-3xl);
+  }
+
+  .rules-section-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .lances-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2xl);
+  }
 }

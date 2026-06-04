@@ -65,16 +65,16 @@
 
 .page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-sm);
   margin-bottom: var(--space-3xl);
   flex-wrap: wrap;
-  gap: var(--space-lg);
 }
 
 .page-title {
   font-family: var(--font-display), sans-serif;
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-3xl);
   font-weight: 800;
   color: var(--color-text-white);
   margin: 0 0 var(--space-xs) 0;
@@ -99,6 +99,8 @@
   transition: all var(--transition-fast);
   box-shadow: 0 4px 12px var(--color-gold-alpha-30);
   white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 
 .btn-action:hover {
@@ -117,6 +119,8 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: all var(--transition-fast);
+  width: 100%;
+  text-align: center;
 }
 
 .btn-back:hover {
@@ -126,7 +130,7 @@
 
 .tournament-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-2xl);
 }
 
@@ -246,8 +250,8 @@
 
 .form-container {
   background: var(--color-card-bg);
-  padding: var(--space-3xl);
-  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
   max-width: 700px;
   margin: 0 auto;
   box-shadow: var(--shadow-premium);
@@ -313,7 +317,7 @@
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: var(--space-lg);
   margin-top: var(--space-xl);
 }
@@ -321,7 +325,7 @@
 .btn-submit {
   background-color: var(--color-brand-light);
   color: var(--color-text-white);
-  padding: 12px var(--space-2xl);
+  padding: 12px;
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-base);
@@ -329,6 +333,8 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-card);
+  width: 100%;
+  text-align: center;
 }
 
 .btn-submit:hover {
@@ -339,13 +345,15 @@
 .btn-cancel {
   background-color: transparent;
   color: var(--color-brand-dark);
-  padding: 12px var(--space-2xl);
+  padding: 12px;
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-base);
   border: 1px solid var(--color-card-border);
   cursor: pointer;
   transition: all var(--transition-fast);
+  width: 100%;
+  text-align: center;
 }
 
 .btn-cancel:hover {
@@ -684,46 +692,45 @@ div::-webkit-scrollbar-thumb:hover {
 }
 
 /* =========================================
-   RESPONSIVE TOURNAMENT & FORM PAGES
+   MOBILE-FIRST SCREEN BREAKPOINTS
    ========================================= */
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-sm);
-  }
-
-  .btn-action,
-  .btn-back {
-    width: 100%;
-    text-align: center;
-  }
-
-  .form-container {
-    padding: var(--space-lg);
-    border-radius: var(--radius-lg);
-  }
-}
-
-@media (max-width: 576px) {
+@media (min-width: 576px) {
   .page-title {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-4xl);
   }
 
   .tournament-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 
   .form-actions {
-    flex-direction: column;
-    gap: var(--space-lg);
+    flex-direction: row;
+    justify-content: flex-end;
   }
 
   .btn-submit,
   .btn-cancel {
-    width: 100%;
-    padding: 12px;
-    text-align: center;
+    width: auto;
+    padding: 12px var(--space-2xl);
+  }
+}
+
+@media (min-width: 768px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-lg);
+  }
+
+  .btn-action,
+  .btn-back {
+    width: auto;
+  }
+
+  .form-container {
+    padding: var(--space-3xl);
+    border-radius: var(--radius-xl);
   }
 }
 
