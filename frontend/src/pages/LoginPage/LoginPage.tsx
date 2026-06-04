@@ -30,9 +30,6 @@ const LoginPage: React.FC = (): React.JSX.Element => {
           <RecoverPasswordCard onSwitchToLogin={() => setView('login')} />
         )}
       </main>
-
-      <BottomFeatures />
-      <ChatWidget />
     </div>
   );
 };
