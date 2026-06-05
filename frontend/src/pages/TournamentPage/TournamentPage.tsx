@@ -26,6 +26,32 @@ interface TournamentBackendDto {
 
 import { useSeo } from '../../hooks/useSeo';
 
+const convertUtcToLocal = (utcString: string): { date: string; time: string } => {
+  if (!utcString) return { date: '', time: '' };
+  const isoString = utcString.endsWith('Z') ? utcString : utcString + 'Z';
+  const dateObj = new Date(isoString);
+  if (isNaN(dateObj.getTime())) {
+    const parts = utcString.split('T');
+    return { date: parts[0] || '', time: parts[1]?.substring(0, 5) || '' };
+  }
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  return { date: `${year}-${month}-${day}`, time: `${hours}:${minutes}` };
+};
+
+const convertLocalToUtc = (localDate: string, localTime: string): string => {
+  if (!localDate) return '';
+  const localDateTimeStr = `${localDate}T${localTime || '12:00'}:00`;
+  const dateObj = new Date(localDateTimeStr);
+  if (isNaN(dateObj.getTime())) {
+    return localDateTimeStr;
+  }
+  return dateObj.toISOString().substring(0, 19);
+};
+
 const TournamentPage = (): React.JSX.Element => {
   useSeo({
     title: 'Torneos de Mus Online y Presenciales - Brackets | Enbido',
@@ -54,29 +80,30 @@ const TournamentPage = (): React.JSX.Element => {
   const [tournamentsList, setTournamentsList] = useState<TournamentDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-
-
   const fetchTournaments = async () => {
     try {
       const res = await api.get('/tournaments');
-      const mapped = res.data.map((t: TournamentBackendDto) => ({
-        id: t.tournamentId,
-        tournamentName: t.title,
-        contactEmail: t.organizer?.email || 'harreman@mus.eus',
-        tournamentLocation: t.specificLocation + (t.city ? `, ${t.city}` : ''),
-        tournamentStructure: 'professional',
-        tournamentDate: t.startDatetime ? t.startDatetime.split('T')[0] : '',
-        tournamentTime: t.startDatetime ? t.startDatetime.split('T')[1]?.substring(0, 5) : '',
-        maxParticipants: String(t.maxTeams || 64),
-        inscriptionPrice: String(t.entryFee || 0),
-        coinsFee: String(t.coinsFee || 0),
-        coinsReward: String(t.coinsReward || 0),
-        status: t.status,
-        organizerId: t.organizerId,
-        tournamentPrizes: `1º: Txapela + ${t.coinsReward || 0} tx`,
-        otherDetails: t.status === 'open' ? 'Inscripciones abiertas' : t.status === 'playing' ? 'En juego' : 'Finalizado',
-        posterImage: 'https://images.unsplash.com/photo-1599839619722-39751411ea63?auto=format&fit=crop&w=600&q=80'
-      }));
+      const mapped = res.data.map((t: TournamentBackendDto) => {
+        const local = convertUtcToLocal(t.startDatetime);
+        return {
+          id: t.tournamentId,
+          tournamentName: t.title,
+          contactEmail: t.organizer?.email || 'harreman@mus.eus',
+          tournamentLocation: t.specificLocation + (t.city ? `, ${t.city}` : ''),
+          tournamentStructure: 'professional',
+          tournamentDate: local.date,
+          tournamentTime: local.time,
+          maxParticipants: String(t.maxTeams || 64),
+          inscriptionPrice: String(t.entryFee || 0),
+          coinsFee: String(t.coinsFee || 0),
+          coinsReward: String(t.coinsReward || 0),
+          status: t.status,
+          organizerId: t.organizerId,
+          tournamentPrizes: `1º: Txapela + ${t.coinsReward || 0} tx`,
+          otherDetails: t.status === 'open' ? 'Inscripciones abiertas' : t.status === 'playing' ? 'En juego' : 'Finalizado',
+          posterImage: 'https://images.unsplash.com/photo-1599839619722-39751411ea63?auto=format&fit=crop&w=600&q=80'
+        };
+      });
       setTournamentsList(mapped);
     } catch (err) {
       console.error('Error fetching tournaments from DB:', err);
@@ -90,15 +117,14 @@ const TournamentPage = (): React.JSX.Element => {
     fetchTournaments();
   }, []);
 
-
-
   const handleSaveTournament = async (newTournamentData: TournamentFormState) => {
     try {
+      const utcStartDatetime = convertLocalToUtc(newTournamentData.tournamentDate, newTournamentData.tournamentTime);
       const payload = {
         title: newTournamentData.tournamentName,
         city: newTournamentData.tournamentLocation.split(',')[1]?.trim() || '',
         specificLocation: newTournamentData.tournamentLocation.split(',')[0]?.trim() || newTournamentData.tournamentLocation,
-        startDatetime: `${newTournamentData.tournamentDate}T${newTournamentData.tournamentTime || '12:00'}:00`,
+        startDatetime: utcStartDatetime,
         entryFee: Number(newTournamentData.inscriptionPrice || 0),
         coinsFee: Number(newTournamentData.coinsFee || 0),
         coinsReward: Number(newTournamentData.coinsReward || 0),
@@ -108,6 +134,7 @@ const TournamentPage = (): React.JSX.Element => {
 
       const res = await api.post('/tournaments', payload);
       const saved = res.data;
+      const savedLocal = convertUtcToLocal(saved.startDatetime);
 
       const newTournament: TournamentDto = {
         id: saved.tournamentId,
@@ -115,8 +142,8 @@ const TournamentPage = (): React.JSX.Element => {
         contactEmail: saved.organizer?.email || newTournamentData.contactEmail || 'harreman@mus.eus',
         tournamentLocation: saved.specificLocation + (saved.city ? `, ${saved.city}` : ''),
         tournamentStructure: newTournamentData.tournamentStructure || 'professional',
-        tournamentDate: saved.startDatetime ? saved.startDatetime.split('T')[0] : newTournamentData.tournamentDate,
-        tournamentTime: saved.startDatetime ? saved.startDatetime.split('T')[1]?.substring(0, 5) : newTournamentData.tournamentTime,
+        tournamentDate: savedLocal.date,
+        tournamentTime: savedLocal.time,
         maxParticipants: String(saved.maxTeams || newTournamentData.maxParticipants),
         inscriptionPrice: String(saved.entryFee || newTournamentData.inscriptionPrice),
         coinsFee: String(saved.coinsFee || newTournamentData.coinsFee),
