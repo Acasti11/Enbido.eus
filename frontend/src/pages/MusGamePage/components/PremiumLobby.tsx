@@ -19,6 +19,11 @@ interface MatchInfo {
   player2Id: number | null;
   winnerId: number | null;
   score: string;
+  player1Ready?: boolean;
+  player2Ready?: boolean;
+  roundStartTime?: string;
+  isCompleted?: boolean;
+  gameRoomId?: string;
 }
 
 interface TournamentBackendDto {
@@ -133,6 +138,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportingMatchId, setReportingMatchId] = useState<number | null>(null);
   const [reportWinnerId, setReportWinnerId] = useState<number | null>(null);
   const [reportScore, setReportScore] = useState<string>('3-0');
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
 
 
@@ -212,10 +218,40 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     }
   };
 
+  const handleReadyUp = async (matchId: number) => {
+    if (!selectedTourneyId) return;
+    try {
+      await api.post(`/tournaments/${selectedTourneyId}/matches/${matchId}/ready`);
+      handleOpenTourneyDetail(selectedTourneyId);
+    } catch (err: unknown) {
+      console.error('Error marking match as ready:', err);
+      const axiosError = err as { response?: { data?: string } };
+      alert(axiosError.response?.data || 'Error al confirmar listo');
+    }
+  };
+
+  const handleCancelReady = async (matchId: number) => {
+    if (!selectedTourneyId) return;
+    try {
+      await api.post(`/tournaments/${selectedTourneyId}/matches/${matchId}/cancel-ready`);
+      handleOpenTourneyDetail(selectedTourneyId);
+    } catch (err: unknown) {
+      console.error('Error cancelling match ready:', err);
+      const axiosError = err as { response?: { data?: string } };
+      alert(axiosError.response?.data || 'Error al cancelar listo');
+    }
+  };
+
   const getTourneyUsernameById = (id: number | null): string => {
     if (!id || !tourneyDetails) return t('premiumLobby.waitingEllipsis');
     const match = tourneyDetails.participants.find((p: any) => p.userId === id);
     return match ? match.username : t('premiumLobby.playerId', { id });
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   const handleSort = (field: 'elo' | 'winRate' | 'totalGamesPlayed' | 'totalGamesWon') => {
@@ -397,6 +433,55 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     fetchRequests,
     fetchBlockedUsers
   ]);
+
+  // Find active match for the current player
+  const activeMatch = tourneyDetails?.matches.find((m: any) =>
+    !m.isCompleted &&
+    (m.player1Id === currentUserId || m.player2Id === currentUserId)
+  );
+
+  // Poll tournament details every 3 seconds if modal is open
+  useEffect(() => {
+    if (!selectedTourneyId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/tournaments/${selectedTourneyId}/details`);
+        setTourneyDetails(res.data);
+      } catch (err) {
+        console.error('Error polling tournament details:', err);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [selectedTourneyId]);
+
+  // Live timer countdown for the active match
+  useEffect(() => {
+    if (!activeMatch || !activeMatch.roundStartTime) {
+      setSecondsLeft(null);
+      return;
+    }
+
+    const updateTimer = () => {
+      const startTime = new Date(activeMatch.roundStartTime!).getTime();
+      const now = new Date().getTime();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      const remaining = 300 - elapsed;
+      setSecondsLeft(remaining > 0 ? remaining : 0);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [activeMatch?.roundStartTime]);
+
+  // Auto-redirect when both players are ready (gameRoomId is set)
+  useEffect(() => {
+    if (activeMatch && activeMatch.gameRoomId) {
+      onJoinRoom(activeMatch.gameRoomId);
+    }
+  }, [activeMatch?.gameRoomId, onJoinRoom]);
 
   const handleDeleteFriend = async (friend: Friend) => {
     const confirmMsg = t('premiumLobby.confirmDelete', { username: friend.username });
@@ -1401,6 +1486,81 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <div>
                     <h3 className="tourney-bracket-heading">{t('premiumLobby.tournamentBracket')}</h3>
 
+                    {activeMatch && (
+                      <div className="active-match-card">
+                        <h4 className="active-match-title">
+                          ⚡ {t('premiumLobby.yourActiveMatch')}
+                        </h4>
+                        
+                        <div className="active-match-players-row">
+                          <div className="active-match-player">
+                            <span className="player-name">
+                              {getTourneyUsernameById(activeMatch.player1Id)}
+                            </span>
+                            <span className={`ready-badge ${activeMatch.player1Ready ? 'ready' : 'not-ready'}`}>
+                              {activeMatch.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
+                            </span>
+                          </div>
+                          
+                          <div className="active-match-vs">VS</div>
+                          
+                          <div className="active-match-player">
+                            <span className="player-name">
+                              {getTourneyUsernameById(activeMatch.player2Id)}
+                            </span>
+                            <span className={`ready-badge ${activeMatch.player2Ready ? 'ready' : 'not-ready'}`}>
+                              {activeMatch.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
+                            </span>
+                          </div>
+                        </div>
+
+                        {secondsLeft !== null && (
+                          <div className="active-match-timer-box">
+                            <div className="timer-countdown">
+                              ⏱️ {formatTime(secondsLeft)}
+                            </div>
+                            <p className="timer-warning">
+                              ⚠️ {t('premiumLobby.disqualificationWarning')}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="active-match-actions">
+                          {activeMatch.gameRoomId ? (
+                            <div className="redirecting-msg">
+                              🔄 {t('premiumLobby.bothReadyRedirecting')}
+                            </div>
+                          ) : (
+                            <>
+                              {currentUserId === activeMatch.player1Id && (
+                                activeMatch.player1Ready ? (
+                                  <button onClick={() => handleCancelReady(activeMatch.matchId)} className="btn-action cancel-ready-btn" style={{ background: '#e63946', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.cancelReadyBtn')}
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleReadyUp(activeMatch.matchId)} className="btn-action ready-btn" style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.readyBtn')}
+                                  </button>
+                                )
+                              )}
+                              
+                              {currentUserId === activeMatch.player2Id && (
+                                activeMatch.player2Ready ? (
+                                  <button onClick={() => handleCancelReady(activeMatch.matchId)} className="btn-action cancel-ready-btn" style={{ background: '#e63946', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.cancelReadyBtn')}
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleReadyUp(activeMatch.matchId)} className="btn-action ready-btn" style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.readyBtn')}
+                                  </button>
+                                )
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="tourney-bracket-tree">
 
                       {/* ROUND 1: QUARTERFINALS */}
@@ -1416,12 +1576,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             return (
                               <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                                 <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                  <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                  <span>
+                                    {getTourneyUsernameById(match.player1Id)}
+                                    {match.player1Id && !match.winnerId && (
+                                      <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    )}
+                                  </span>
                                   {isWinner1 && <span>✔</span>}
                                 </div>
                                 <div className="bracket-divider" />
                                 <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                  <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                  <span>
+                                    {getTourneyUsernameById(match.player2Id)}
+                                    {match.player2Id && !match.winnerId && (
+                                      <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    )}
+                                  </span>
                                   {isWinner2 && <span>✔</span>}
                                 </div>
                                 {match.score && (
@@ -1450,12 +1620,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                           return (
                             <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                               <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                <span>
+                                  {getTourneyUsernameById(match.player1Id)}
+                                  {match.player1Id && !match.winnerId && (
+                                    <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  )}
+                                </span>
                                 {isWinner1 && <span>✔</span>}
                               </div>
                               <div className="bracket-divider" />
                               <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                <span>
+                                  {getTourneyUsernameById(match.player2Id)}
+                                  {match.player2Id && !match.winnerId && (
+                                    <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  )}
+                                </span>
                                 {isWinner2 && <span>✔</span>}
                               </div>
                               {match.score && (
@@ -1485,12 +1665,22 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             <div key={match.matchId} className={`bracket-match-box bracket-match-box--final ${championId ? 'bracket-match-box--championship' : reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                               {championId && <span className="bracket-match-champion-tag">{t('premiumLobby.champion')}</span>}
                               <div className={`bracket-player-row bracket-player-row--final ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player1Id)}</span>
+                                <span>
+                                  {getTourneyUsernameById(match.player1Id)}
+                                  {match.player1Id && !match.winnerId && (
+                                    <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  )}
+                                </span>
                                 {isWinner1 && <span>🏆</span>}
                               </div>
                               <div className="bracket-divider bracket-divider--final" />
                               <div className={`bracket-player-row bracket-player-row--final ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>{getTourneyUsernameById(match.player2Id)}</span>
+                                <span>
+                                  {getTourneyUsernameById(match.player2Id)}
+                                  {match.player2Id && !match.winnerId && (
+                                    <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  )}
+                                </span>
                                 {isWinner2 && <span>🏆</span>}
                               </div>
                               {match.score && (

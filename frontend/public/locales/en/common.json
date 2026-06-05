@@ -708,7 +708,18 @@
     "deleteFriend": "Delete Friend",
     "blockUser": "Block",
     "unblockUser": "Unblock",
-    "blockedTab": "Blocked"
+    "blockedTab": "Blocked",
+    "yourActiveMatch": "Your Active Match",
+    "readyBtn": "I am Ready",
+    "cancelReadyBtn": "Cancel Ready",
+    "countdownMsg": "Round starts or expires in: {{seconds}}s",
+    "disqualificationWarning": "Warning: You will be disqualified if you do not ready up in time!",
+    "bothReadyRedirecting": "Both players ready! Redirecting to game board...",
+    "playerReadyStatus": "Ready",
+    "playerNotReadyStatus": "Not Ready",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "usersList": {
     "title": "Users",
