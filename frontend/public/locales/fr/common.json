@@ -692,7 +692,18 @@
     "deleteFriend": "Retirer l'ami",
     "blockUser": "Bloquer",
     "unblockUser": "Débloquer",
-    "blockedTab": "Bloqué"
+    "blockedTab": "Bloqué",
+    "yourActiveMatch": "Votre Match Actif",
+    "readyBtn": "Je suis Prêt",
+    "cancelReadyBtn": "Annuler Prêt",
+    "countdownMsg": "La manche commence ou expire dans: {{seconds}}s",
+    "disqualificationWarning": "Attention: Vous serez disqualifié si vous ne vous préparez pas à temps !",
+    "bothReadyRedirecting": "Les deux joueurs sont prêts! Redirection vers le plateau...",
+    "playerReadyStatus": "Prêt",
+    "playerNotReadyStatus": "Pas Prêt",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "usersList": {
     "title": "Utilisateurs",

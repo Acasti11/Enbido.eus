@@ -648,7 +648,18 @@
     "deleteFriend": "Kendu laguna",
     "blockUser": "Blokeatu",
     "unblockUser": "Desblokeatu",
-    "blockedTab": "Blokeatuta"
+    "blockedTab": "Blokeatuta",
+    "yourActiveMatch": "Zure Partida Aktiboa",
+    "readyBtn": "Prest Nago",
+    "cancelReadyBtn": "Utzi Prest",
+    "countdownMsg": "Txanda hasten edo iraungitzen da: {{seconds}}s",
+    "disqualificationWarning": "Oharra: Kanporatua izango zara garaiz prest ez bazaude!",
+    "bothReadyRedirecting": "Jokalari biak prest! Partidara bideratzen...",
+    "playerReadyStatus": "Prest",
+    "playerNotReadyStatus": "Ez Prest",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "account": {
     "title": "Kontuaren Profila",

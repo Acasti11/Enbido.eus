@@ -700,7 +700,18 @@
     "deleteFriend": "Eliminar Amigo",
     "blockUser": "Bloquear",
     "unblockUser": "Desbloquear",
-    "blockedTab": "Bloqueado"
+    "blockedTab": "Bloqueado",
+    "yourActiveMatch": "Tu Partida Activa",
+    "readyBtn": "Estoy Listo",
+    "cancelReadyBtn": "Cancelar Listo",
+    "countdownMsg": "La ronda comienza o expira en: {{seconds}}s",
+    "disqualificationWarning": "¡Advertencia: Serás descalificado si no confirmas a tiempo!",
+    "bothReadyRedirecting": "¡Ambos jugadores listos! Redirigiendo a la partida...",
+    "playerReadyStatus": "Listo",
+    "playerNotReadyStatus": "No Listo",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "usersList": {
     "title": "Usuarios",
