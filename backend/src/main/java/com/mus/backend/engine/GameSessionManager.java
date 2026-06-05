@@ -175,7 +175,7 @@ public class GameSessionManager {
                     MatchmakerEntry p4 = group.get(3);
                     
                     String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-") + (int)Math.floor(100 + Math.random() * 900);
-                    GameSession session = createRoom(autoRoomId);
+                    2GameSession session = createRoom(autoRoomId);
                     session.getConfig().setReyesOption(reyesOption);
                     session.getConfig().setMaxRounds(3);
                     
@@ -310,24 +310,9 @@ public class GameSessionManager {
                                     match.setIsCompleted(true);
                                     matchRepository.save(match);
 
-                                    // Advance winner
+                                    // Advance winner (both player and partner)
                                     int currentRound = match.getRoundNumber();
-                                    int nextRound = currentRound + 1;
-                                    int nextIndex = match.getMatchIndex() / 2;
-                                    boolean isPlayer1 = match.getMatchIndex() % 2 == 0;
-
-                                    if (currentRound < 3) {
-                                        PhysicalTournamentMatch nextMatch = matchRepository
-                                                .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, nextRound, nextIndex);
-                                        if (nextMatch != null) {
-                                            if (isPlayer1) {
-                                                nextMatch.setPlayer1Id(winnerId);
-                                            } else {
-                                                nextMatch.setPlayer2Id(winnerId);
-                                            }
-                                            matchRepository.save(nextMatch);
-                                        }
-                                    }
+                                    advanceWinner(tournamentId, currentRound, match.getMatchIndex(), winnerId);
 
                                     // Run round checks and byes
                                     tournamentRepository.findById(tournamentId).ifPresent(tournament -> {
@@ -551,10 +536,31 @@ public class GameSessionManager {
                 Long winnerId = finalMatch.getWinnerId();
                 int prize = tournament.getCoinsReward() != null ? tournament.getCoinsReward() : 0;
                 if (prize > 0) {
-                    UserGameProfile profile = profileRepository.findById(winnerId)
-                            .orElseGet(() -> new UserGameProfile(winnerId));
-                    profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
-                    profileRepository.save(profile);
+                    Long p1 = finalMatch.getPlayer1Id();
+                    Long p1P = finalMatch.getPlayer1PartnerId();
+                    Long p2 = finalMatch.getPlayer2Id();
+                    Long p2P = finalMatch.getPlayer2PartnerId();
+
+                    Long w1 = null;
+                    Long w2 = null;
+                    if (winnerId.equals(p1) || (p1P != null && winnerId.equals(p1P))) {
+                        w1 = p1;
+                        w2 = p1P;
+                    } else if (winnerId.equals(p2) || (p2P != null && winnerId.equals(p2P))) {
+                        w1 = p2;
+                        w2 = p2P;
+                    }
+
+                    if (w1 != null) {
+                        UserGameProfile profile = profileRepository.findById(w1).orElseGet(() -> new UserGameProfile(w1));
+                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
+                        profileRepository.save(profile);
+                    }
+                    if (w2 != null) {
+                        UserGameProfile profile = profileRepository.findById(w2).orElseGet(() -> new UserGameProfile(w2));
+                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
+                        profileRepository.save(profile);
+                    }
                 }
             }
             return;
@@ -615,11 +621,27 @@ public class GameSessionManager {
         if (currentRound < 3) {
             PhysicalTournamentMatch nextMatch = matchRepository
                     .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, nextRound, nextIndex);
-            if (nextMatch != null) {
+            PhysicalTournamentMatch currentMatch = matchRepository
+                    .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, currentRound, matchIndex);
+
+            if (nextMatch != null && currentMatch != null) {
+                Long pWinner = null;
+                Long pWinnerPartner = null;
+
+                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
+                    pWinner = currentMatch.getPlayer1Id();
+                    pWinnerPartner = currentMatch.getPlayer1PartnerId();
+                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
+                    pWinner = currentMatch.getPlayer2Id();
+                    pWinnerPartner = currentMatch.getPlayer2PartnerId();
+                }
+
                 if (isPlayer1) {
-                    nextMatch.setPlayer1Id(winnerId);
+                    nextMatch.setPlayer1Id(pWinner);
+                    nextMatch.setPlayer1PartnerId(pWinnerPartner);
                 } else {
-                    nextMatch.setPlayer2Id(winnerId);
+                    nextMatch.setPlayer2Id(pWinner);
+                    nextMatch.setPlayer2PartnerId(pWinnerPartner);
                 }
                 matchRepository.save(nextMatch);
             }

@@ -17,10 +17,14 @@ interface MatchInfo {
   matchIndex: number;
   player1Id: number | null;
   player2Id: number | null;
+  player1PartnerId: number | null;
+  player2PartnerId: number | null;
   winnerId: number | null;
   score: string;
   player1Ready?: boolean;
   player2Ready?: boolean;
+  player1PartnerReady?: boolean;
+  player2PartnerReady?: boolean;
   roundStartTime?: string;
   isCompleted?: boolean;
   gameRoomId?: string;
@@ -516,10 +520,13 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
     fetchBlockedUsers
   ]);
 
-  // Find active match for the current player
+  // Find active match for the current player (including partner IDs)
   const activeMatch = tourneyDetails?.matches.find((m: any) =>
     !m.isCompleted &&
-    (m.player1Id === currentUserId || m.player2Id === currentUserId)
+    (m.player1Id === currentUserId ||
+     m.player2Id === currentUserId ||
+     m.player1PartnerId === currentUserId ||
+     m.player2PartnerId === currentUserId)
   );
 
   // Poll tournament details every 3 seconds if modal is open
@@ -1599,23 +1606,47 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         
                         <div className="active-match-players-row">
                           <div className="active-match-player">
-                            <span className="player-name">
-                              {getTourneyUsernameById(activeMatch.player1Id)}
-                            </span>
-                            <span className={`ready-badge ${activeMatch.player1Ready ? 'ready' : 'not-ready'}`}>
-                              {activeMatch.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
-                            </span>
+                            <div className="player-team-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                              <span className="player-name">
+                                {getTourneyUsernameById(activeMatch.player1Id)}
+                              </span>
+                              <span className={`ready-badge ${activeMatch.player1Ready ? 'ready' : 'not-ready'}`}>
+                                {activeMatch.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
+                              </span>
+                            </div>
+                            {activeMatch.player1PartnerId && (
+                              <div className="player-team-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+                                <span className="player-name">
+                                  {getTourneyUsernameById(activeMatch.player1PartnerId)}
+                                </span>
+                                <span className={`ready-badge ${activeMatch.player1PartnerReady ? 'ready' : 'not-ready'}`}>
+                                  {activeMatch.player1PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="active-match-vs">VS</div>
                           
                           <div className="active-match-player">
-                            <span className="player-name">
-                              {getTourneyUsernameById(activeMatch.player2Id)}
-                            </span>
-                            <span className={`ready-badge ${activeMatch.player2Ready ? 'ready' : 'not-ready'}`}>
-                              {activeMatch.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
-                            </span>
+                            <div className="player-team-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                              <span className="player-name">
+                                {getTourneyUsernameById(activeMatch.player2Id)}
+                              </span>
+                              <span className={`ready-badge ${activeMatch.player2Ready ? 'ready' : 'not-ready'}`}>
+                                {activeMatch.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
+                              </span>
+                            </div>
+                            {activeMatch.player2PartnerId && (
+                              <div className="player-team-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+                                <span className="player-name">
+                                  {getTourneyUsernameById(activeMatch.player2PartnerId)}
+                                </span>
+                                <span className={`ready-badge ${activeMatch.player2PartnerReady ? 'ready' : 'not-ready'}`}>
+                                  {activeMatch.player2PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1648,9 +1679,33 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                                   </button>
                                 )
                               )}
+
+                              {currentUserId === activeMatch.player1PartnerId && (
+                                activeMatch.player1PartnerReady ? (
+                                  <button onClick={() => handleCancelReady(activeMatch.matchId)} className="btn-action cancel-ready-btn" style={{ background: '#e63946', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.cancelReadyBtn')}
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleReadyUp(activeMatch.matchId)} className="btn-action ready-btn" style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.readyBtn')}
+                                  </button>
+                                )
+                              )}
                               
                               {currentUserId === activeMatch.player2Id && (
                                 activeMatch.player2Ready ? (
+                                  <button onClick={() => handleCancelReady(activeMatch.matchId)} className="btn-action cancel-ready-btn" style={{ background: '#e63946', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.cancelReadyBtn')}
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleReadyUp(activeMatch.matchId)} className="btn-action ready-btn" style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    {t('premiumLobby.readyBtn')}
+                                  </button>
+                                )
+                              )}
+
+                              {currentUserId === activeMatch.player2PartnerId && (
+                                activeMatch.player2PartnerReady ? (
                                   <button onClick={() => handleCancelReady(activeMatch.matchId)} className="btn-action cancel-ready-btn" style={{ background: '#e63946', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                                     {t('premiumLobby.cancelReadyBtn')}
                                   </button>
@@ -1673,30 +1728,50 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                         <div className="bracket-round-column">
                           <span className="bracket-round-label">{t('premiumLobby.quarterfinals')}</span>
                           {tourneyDetails.matches.filter((m: any) => m.roundNumber === 1).map((match: any) => {
-                            const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                            const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                            const isWinner1 = match.winnerId && (match.winnerId === match.player1Id || match.winnerId === match.player1PartnerId);
+                            const isWinner2 = match.winnerId && (match.winnerId === match.player2Id || match.winnerId === match.player2PartnerId);
                             const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
                             const isActive = !match.winnerId && match.player1Id && match.player2Id;
 
                             return (
                               <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                                 <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                  <span>
-                                    {getTourneyUsernameById(match.player1Id)}
-                                    {match.player1Id && !match.winnerId && (
-                                      <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      {getTourneyUsernameById(match.player1Id)}
+                                      {match.player1Id && !match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                      )}
+                                    </span>
+                                    {match.player1PartnerId && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                        {getTourneyUsernameById(match.player1PartnerId)}
+                                        {!match.winnerId && (
+                                          <span className={`ready-indicator-dot ${match.player1PartnerReady ? 'ready' : 'not-ready'}`} title={match.player1PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                        )}
+                                      </span>
                                     )}
-                                  </span>
+                                  </div>
                                   {isWinner1 && <span>✔</span>}
                                 </div>
                                 <div className="bracket-divider" />
                                 <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                  <span>
-                                    {getTourneyUsernameById(match.player2Id)}
-                                    {match.player2Id && !match.winnerId && (
-                                      <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      {getTourneyUsernameById(match.player2Id)}
+                                      {match.player2Id && !match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                      )}
+                                    </span>
+                                    {match.player2PartnerId && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                        {getTourneyUsernameById(match.player2PartnerId)}
+                                        {!match.winnerId && (
+                                          <span className={`ready-indicator-dot ${match.player2PartnerReady ? 'ready' : 'not-ready'}`} title={match.player2PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                        )}
+                                      </span>
                                     )}
-                                  </span>
+                                  </div>
                                   {isWinner2 && <span>✔</span>}
                                 </div>
                                 {match.score && (
@@ -1717,30 +1792,50 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       <div className="bracket-round-column bracket-round-column--semis">
                         <span className="bracket-round-label">{t('premiumLobby.semifinals')}</span>
                         {tourneyDetails.matches.filter((m: any) => m.roundNumber === 2).map((match: any) => {
-                          const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                          const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                          const isWinner1 = match.winnerId && (match.winnerId === match.player1Id || match.winnerId === match.player1PartnerId);
+                          const isWinner2 = match.winnerId && (match.winnerId === match.player2Id || match.winnerId === match.player2PartnerId);
                           const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
                           const isActive = !match.winnerId && match.player1Id && match.player2Id;
 
                           return (
                             <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                               <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>
-                                  {getTourneyUsernameById(match.player1Id)}
-                                  {match.player1Id && !match.winnerId && (
-                                    <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    {getTourneyUsernameById(match.player1Id)}
+                                    {match.player1Id && !match.winnerId && (
+                                      <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    )}
+                                  </span>
+                                  {match.player1PartnerId && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                      {getTourneyUsernameById(match.player1PartnerId)}
+                                      {!match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player1PartnerReady ? 'ready' : 'not-ready'}`} title={match.player1PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                      )}
+                                    </span>
                                   )}
-                                </span>
+                                </div>
                                 {isWinner1 && <span>✔</span>}
                               </div>
                               <div className="bracket-divider" />
                               <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>
-                                  {getTourneyUsernameById(match.player2Id)}
-                                  {match.player2Id && !match.winnerId && (
-                                    <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    {getTourneyUsernameById(match.player2Id)}
+                                    {match.player2Id && !match.winnerId && (
+                                      <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    )}
+                                  </span>
+                                  {match.player2PartnerId && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                      {getTourneyUsernameById(match.player2PartnerId)}
+                                      {!match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player2PartnerReady ? 'ready' : 'not-ready'}`} title={match.player2PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                      )}
+                                    </span>
                                   )}
-                                </span>
+                                </div>
                                 {isWinner2 && <span>✔</span>}
                               </div>
                               {match.score && (
@@ -1760,8 +1855,8 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       <div className="bracket-round-column bracket-round-column--final">
                         <span className="bracket-round-label">{t('premiumLobby.grandFinal')}</span>
                         {tourneyDetails.matches.filter((m: any) => m.roundNumber === 3).map((match: any) => {
-                          const isWinner1 = match.winnerId && match.winnerId === match.player1Id;
-                          const isWinner2 = match.winnerId && match.winnerId === match.player2Id;
+                          const isWinner1 = match.winnerId && (match.winnerId === match.player1Id || match.winnerId === match.player1PartnerId);
+                          const isWinner2 = match.winnerId && (match.winnerId === match.player2Id || match.winnerId === match.player2PartnerId);
                           const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
                           const isActive = !match.winnerId && match.player1Id && match.player2Id;
                           const championId = match.winnerId;
@@ -1770,22 +1865,42 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                             <div key={match.matchId} className={`bracket-match-box bracket-match-box--final ${championId ? 'bracket-match-box--championship' : reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
                               {championId && <span className="bracket-match-champion-tag">{t('premiumLobby.champion')}</span>}
                               <div className={`bracket-player-row bracket-player-row--final ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>
-                                  {getTourneyUsernameById(match.player1Id)}
-                                  {match.player1Id && !match.winnerId && (
-                                    <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    {getTourneyUsernameById(match.player1Id)}
+                                    {match.player1Id && !match.winnerId && (
+                                      <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    )}
+                                  </span>
+                                  {match.player1PartnerId && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                      {getTourneyUsernameById(match.player1PartnerId)}
+                                      {!match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player1PartnerReady ? 'ready' : 'not-ready'}`} title={match.player1PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                      )}
+                                    </span>
                                   )}
-                                </span>
+                                </div>
                                 {isWinner1 && <span>🏆</span>}
                               </div>
                               <div className="bracket-divider bracket-divider--final" />
                               <div className={`bracket-player-row bracket-player-row--final ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <span>
-                                  {getTourneyUsernameById(match.player2Id)}
-                                  {match.player2Id && !match.winnerId && (
-                                    <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    {getTourneyUsernameById(match.player2Id)}
+                                    {match.player2Id && !match.winnerId && (
+                                      <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    )}
+                                  </span>
+                                  {match.player2PartnerId && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                      {getTourneyUsernameById(match.player2PartnerId)}
+                                      {!match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player2PartnerReady ? 'ready' : 'not-ready'}`} title={match.player2PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                      )}
+                                    </span>
                                   )}
-                                </span>
+                                </div>
                                 {isWinner2 && <span>🏆</span>}
                               </div>
                               {match.score && (

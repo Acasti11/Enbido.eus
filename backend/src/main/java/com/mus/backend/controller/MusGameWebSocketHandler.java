@@ -237,25 +237,27 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         
         broadcastRoomState(room);
 
-        // Si es una sala de torneo, iniciar la partida automáticamente cuando ambos jugadores estén conectados
+        // Si es una sala de torneo, iniciar la partida automáticamente cuando todos los jugadores reales estén conectados
         if (roomId.startsWith("TORNEO-")) {
-            boolean p0Connected = false;
-            boolean p1Connected = false;
-            Long p0Id = room.getPlayers().get(0) != null ? room.getPlayers().get(0).getUserId() : null;
-            Long p1Id = room.getPlayers().get(1) != null ? room.getPlayers().get(1).getUserId() : null;
-
-            for (UserConnection c : activeConnections.values()) {
-                if (roomId.equalsIgnoreCase(c.roomId)) {
-                    if (p0Id != null && p0Id.equals(c.userId) && c.session.isOpen()) {
-                        p0Connected = true;
+            boolean allHumanPlayersConnected = true;
+            for (int i = 0; i < 4; i++) {
+                GamePlayer gp = room.getPlayers().get(i);
+                if (gp != null && !gp.isBot() && gp.getUserId() != null) {
+                    boolean connected = false;
+                    for (UserConnection c : activeConnections.values()) {
+                        if (roomId.equalsIgnoreCase(c.roomId) && gp.getUserId().equals(c.userId) && c.session.isOpen()) {
+                            connected = true;
+                            break;
+                        }
                     }
-                    if (p1Id != null && p1Id.equals(c.userId) && c.session.isOpen()) {
-                        p1Connected = true;
+                    if (!connected) {
+                        allHumanPlayersConnected = false;
+                        break;
                     }
                 }
             }
 
-            if (p0Connected && p1Connected && !room.isPlaying()) {
+            if (allHumanPlayersConnected && !room.isPlaying()) {
                 // Persistir la partida en la Base de Datos antes de empezar
                 sessionManager.saveNewGameToDb(room);
                 

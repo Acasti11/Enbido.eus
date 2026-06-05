@@ -44,6 +44,18 @@ public class PhysicalTournamentMatch {
     @Column(name = "player2_ready")
     private Boolean player2Ready = false;
 
+    @Column(name = "player1_partner_id")
+    private Long player1PartnerId;
+
+    @Column(name = "player2_partner_id")
+    private Long player2PartnerId;
+
+    @Column(name = "player1_partner_ready")
+    private Boolean player1PartnerReady = false;
+
+    @Column(name = "player2_partner_ready")
+    private Boolean player2PartnerReady = false;
+
     @Column(name = "round_start_time")
     private java.time.LocalDateTime roundStartTime;
 

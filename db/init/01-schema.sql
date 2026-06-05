@@ -243,11 +243,22 @@ CREATE TABLE IF NOT EXISTS physical_tournament_match (
     match_index INT,
     player1_id BIGINT NULL,
     player2_id BIGINT NULL,
+    player1_partner_id BIGINT NULL,
+    player2_partner_id BIGINT NULL,
+    player1_ready BOOLEAN DEFAULT FALSE,
+    player2_ready BOOLEAN DEFAULT FALSE,
+    player1_partner_ready BOOLEAN DEFAULT FALSE,
+    player2_partner_ready BOOLEAN DEFAULT FALSE,
+    round_start_time TIMESTAMP NULL,
+    is_completed BOOLEAN DEFAULT FALSE,
+    game_room_id VARCHAR(100) NULL,
     winner_id BIGINT NULL,
     score VARCHAR(20) DEFAULT '',
     FOREIGN KEY (tournament_id) REFERENCES physical_tournament (tournament_id) ON DELETE CASCADE,
     FOREIGN KEY (player1_id) REFERENCES users (user_id) ON DELETE SET NULL,
     FOREIGN KEY (player2_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    FOREIGN KEY (player1_partner_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    FOREIGN KEY (player2_partner_id) REFERENCES users (user_id) ON DELETE SET NULL,
     FOREIGN KEY (winner_id) REFERENCES users (user_id) ON DELETE SET NULL
 );
 
