@@ -567,34 +567,32 @@ const Navbar: React.FC = (): React.JSX.Element => {
 
       {/* Age Prompt Modal */}
       {showAgeModal && createPortal(
-        <div className="settings-modal-overlay" style={{ zIndex: 10100 }}>
-          <div className="settings-modal" style={{ maxWidth: '400px', textAlign: 'center', padding: '24px' }}>
-            <h2 style={{ color: '#d4af37', fontSize: '20px', marginBottom: '12px', fontWeight: 'bold' }}>
+        <div className="settings-modal-overlay age-modal-overlay">
+          <div className="settings-modal age-modal">
+            <h2 className="age-modal__title">
               🎂 {t('login.agePromptTitle')}
             </h2>
-            <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
+            <p className="age-modal__desc">
               {t('login.agePromptDesc')}
             </p>
             <form onSubmit={handleAgeSubmit}>
               <input
                 type="date"
-                className="settings-select"
+                className="settings-select age-modal__input"
                 value={birthDateInput}
                 onChange={(e) => setBirthDateInput(e.target.value)}
                 disabled={submittingAge}
                 required
-                style={{ marginBottom: '16px', display: 'block', width: '100%', padding: '10px' }}
               />
               {ageModalError && (
-                <p style={{ color: '#ef4444', fontSize: '12px', marginBottom: '16px' }}>
+                <p className="age-modal__error">
                   {ageModalError}
                 </p>
               )}
               <button
                 type="submit"
-                className="settings-save-btn"
+                className="settings-save-btn age-modal__submit"
                 disabled={submittingAge}
-                style={{ width: '100%', padding: '12px' }}
               >
                 {submittingAge ? t('common.loading') : t('login.agePromptSubmit')}
               </button>
