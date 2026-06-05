@@ -1789,67 +1789,69 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                       )}
 
                       {/* ROUND 2: SEMIFINALS */}
-                      <div className="bracket-round-column bracket-round-column--semis">
-                        <span className="bracket-round-label">{t('premiumLobby.semifinals')}</span>
-                        {tourneyDetails.matches.filter((m: any) => m.roundNumber === 2).map((match: any) => {
-                          const isWinner1 = match.winnerId && (match.winnerId === match.player1Id || match.winnerId === match.player1PartnerId);
-                          const isWinner2 = match.winnerId && (match.winnerId === match.player2Id || match.winnerId === match.player2PartnerId);
-                          const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
-                          const isActive = !match.winnerId && match.player1Id && match.player2Id;
+                      {tourneyDetails.matches.some((m: any) => m.roundNumber === 2) && (
+                        <div className="bracket-round-column bracket-round-column--semis">
+                          <span className="bracket-round-label">{t('premiumLobby.semifinals')}</span>
+                          {tourneyDetails.matches.filter((m: any) => m.roundNumber === 2).map((match: any) => {
+                            const isWinner1 = match.winnerId && (match.winnerId === match.player1Id || match.winnerId === match.player1PartnerId);
+                            const isWinner2 = match.winnerId && (match.winnerId === match.player2Id || match.winnerId === match.player2PartnerId);
+                            const isOrganizer = tourneyDetails.tournament.organizerId === currentUserId;
+                            const isActive = !match.winnerId && match.player1Id && match.player2Id;
 
-                          return (
-                            <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
-                              <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    {getTourneyUsernameById(match.player1Id)}
-                                    {match.player1Id && !match.winnerId && (
-                                      <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
-                                    )}
-                                  </span>
-                                  {match.player1PartnerId && (
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
-                                      {getTourneyUsernameById(match.player1PartnerId)}
-                                      {!match.winnerId && (
-                                        <span className={`ready-indicator-dot ${match.player1PartnerReady ? 'ready' : 'not-ready'}`} title={match.player1PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                            return (
+                              <div key={match.matchId} className={`bracket-match-box ${reportingMatchId === match.matchId ? 'bracket-match-box--reporting' : ''}`}>
+                                <div className={`bracket-player-row ${isWinner1 ? 'bracket-player-row--winner' : ''}`}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      {getTourneyUsernameById(match.player1Id)}
+                                      {match.player1Id && !match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player1Ready ? 'ready' : 'not-ready'}`} title={match.player1Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
                                       )}
                                     </span>
-                                  )}
-                                </div>
-                                {isWinner1 && <span>✔</span>}
-                              </div>
-                              <div className="bracket-divider" />
-                              <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    {getTourneyUsernameById(match.player2Id)}
-                                    {match.player2Id && !match.winnerId && (
-                                      <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                    {match.player1PartnerId && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                        {getTourneyUsernameById(match.player1PartnerId)}
+                                        {!match.winnerId && (
+                                          <span className={`ready-indicator-dot ${match.player1PartnerReady ? 'ready' : 'not-ready'}`} title={match.player1PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                        )}
+                                      </span>
                                     )}
-                                  </span>
-                                  {match.player2PartnerId && (
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
-                                      {getTourneyUsernameById(match.player2PartnerId)}
-                                      {!match.winnerId && (
-                                        <span className={`ready-indicator-dot ${match.player2PartnerReady ? 'ready' : 'not-ready'}`} title={match.player2PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                  </div>
+                                  {isWinner1 && <span>✔</span>}
+                                </div>
+                                <div className="bracket-divider" />
+                                <div className={`bracket-player-row ${isWinner2 ? 'bracket-player-row--winner' : ''}`}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      {getTourneyUsernameById(match.player2Id)}
+                                      {match.player2Id && !match.winnerId && (
+                                        <span className={`ready-indicator-dot ${match.player2Ready ? 'ready' : 'not-ready'}`} title={match.player2Ready ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
                                       )}
                                     </span>
-                                  )}
+                                    {match.player2PartnerId && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '0.85em' }}>
+                                        {getTourneyUsernameById(match.player2PartnerId)}
+                                        {!match.winnerId && (
+                                          <span className={`ready-indicator-dot ${match.player2PartnerReady ? 'ready' : 'not-ready'}`} title={match.player2PartnerReady ? t('premiumLobby.playerReadyStatus') : t('premiumLobby.playerNotReadyStatus')} />
+                                        )}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {isWinner2 && <span>✔</span>}
                                 </div>
-                                {isWinner2 && <span>✔</span>}
+                                {match.score && (
+                                  <div className="bracket-score">{t('premiumLobby.result')} {match.score}</div>
+                                )}
+                                {isOrganizer && isActive && reportingMatchId !== match.matchId && (
+                                  <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title={t("premiumLobby.reportWinnerTooltip")}>
+                                    ✎
+                                  </button>
+                                )}
                               </div>
-                              {match.score && (
-                                <div className="bracket-score">{t('premiumLobby.result')} {match.score}</div>
-                              )}
-                              {isOrganizer && isActive && reportingMatchId !== match.matchId && (
-                                <button onClick={() => { setReportingMatchId(match.matchId); setReportWinnerId(match.player1Id); }} className="bracket-report-icon-btn" title={t("premiumLobby.reportWinnerTooltip")}>
-                                  ✎
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
 
                       {/* ROUND 3: GRAND FINAL */}
                       <div className="bracket-round-column bracket-round-column--final">
