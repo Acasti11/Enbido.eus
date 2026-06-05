@@ -1011,7 +1011,18 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
                     <div className="tourney-card-info">
                       <div>📍 <strong>{t('premiumLobby.server')}</strong> Enbido.eus Online</div>
-                      <div>🗓️ <strong>{t('premiumLobby.date')}</strong> {tourney.startDatetime ? tourney.startDatetime.replace('T', ' ').substring(0, 16) : t('tournament.determineLater')}</div>
+                      <div>🗓️ <strong>{t('premiumLobby.date')}</strong> {(() => {
+                        if (!tourney.startDatetime) return t('tournament.determineLater');
+                        const isoString = tourney.startDatetime.endsWith('Z') ? tourney.startDatetime : tourney.startDatetime + 'Z';
+                        const dateObj = new Date(isoString);
+                        if (isNaN(dateObj.getTime())) return tourney.startDatetime.replace('T', ' ').substring(0, 16);
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        const hours = String(dateObj.getHours()).padStart(2, '0');
+                        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                        return `${year}-${month}-${day} ${hours}:${minutes}`;
+                      })()}</div>
                     </div>
 
                     <div className="tourney-card-prizes">
