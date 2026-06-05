@@ -6,6 +6,8 @@ import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
 import com.mus.backend.dto.UserRegisterDto;
 import com.mus.backend.dto.LoginResponseDto;
+import com.mus.backend.repository.UserGameProfileRepository;
+import com.mus.backend.model.UserGameProfile;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,6 +32,9 @@ public class UserController {
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserGameProfileRepository userGameProfileRepository;
 
     // ============================================
     // PÚBLICO: Registro (sin token)
@@ -112,12 +117,28 @@ public class UserController {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        boolean isBirthDateSetFirstTime = (user.getBirthDate() == null && datos.getBirthDate() != null);
+
         user.setName(datos.getName());
         user.setSurname(datos.getSurname());
         user.setPhoneNumber(datos.getPhoneNumber());
         user.setPostalCode(datos.getPostalCode());
+        if (datos.getBirthDate() != null) {
+            user.setBirthDate(datos.getBirthDate());
+        }
         
         User updated = userRepository.save(user);
+
+        if (isBirthDateSetFirstTime) {
+            UserGameProfile profile = userGameProfileRepository.findById(userId)
+                .orElseGet(() -> new UserGameProfile(userId));
+            int age = java.time.LocalDate.now().getYear() - updated.getBirthDate().getYear();
+            int elo = (int) Math.round(1000.5769 + 30.0668 * age - 0.26948 * age * age);
+            elo = Math.max(500, Math.min(2000, elo));
+            profile.setElo(elo);
+            userGameProfileRepository.save(profile);
+        }
+
         return ResponseEntity.ok(updated);
     }
 

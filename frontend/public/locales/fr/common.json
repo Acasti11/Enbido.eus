@@ -102,6 +102,9 @@
     "codeExpired": "Le code a expiré. Retournez en arrière pour en générer un autre.",
     "verifyAndEnter": "Vérifier et entrer",
     "invalidCode": "Saisissez un code à 6 chiffres",
+    "agePromptTitle": "Complétez votre profil!",
+    "agePromptDesc": "Veuillez saisir votre date de naissance afin de calculer votre ELO initial en fonction de votre âge selon notre étude statistique.",
+    "agePromptSubmit": "Enregistrer et Commencer",
     "wrongCode": "Code de sécurité incorrect",
     "error": {
       "invalidCredentials": "L'email ou le mot de passe est incorrect",

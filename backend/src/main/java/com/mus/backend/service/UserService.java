@@ -73,6 +73,12 @@ public class UserService {
 
             // Crear perfil de juego con monedas iniciales
             UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
+            if (savedUser.getBirthDate() != null) {
+                int age = java.time.LocalDate.now().getYear() - savedUser.getBirthDate().getYear();
+                int elo = (int) Math.round(1000.5769 + 30.0668 * age - 0.26948 * age * age);
+                elo = Math.max(500, Math.min(2000, elo));
+                profile.setElo(elo);
+            }
             userGameProfileRepository.save(profile);
 
             return "Usuario registrado correctamente";

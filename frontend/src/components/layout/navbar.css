@@ -662,3 +662,46 @@
     height: 28px;
   }
 }
+
+/* ========== AGE PROMPT MODAL ========== */
+.age-modal-overlay {
+  z-index: 10100;
+}
+
+.age-modal {
+  max-width: 400px;
+  text-align: center;
+  padding: 24px;
+}
+
+.age-modal__title {
+  color: #d4af37;
+  font-size: 20px;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.age-modal__desc {
+  color: #ccc;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+
+.age-modal__input {
+  margin-bottom: 16px;
+  display: block;
+  width: 100%;
+  padding: 10px;
+}
+
+.age-modal__error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.age-modal__submit {
+  width: 100%;
+  padding: 12px;
+}
