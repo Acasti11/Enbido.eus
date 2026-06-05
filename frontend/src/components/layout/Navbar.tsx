@@ -136,11 +136,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
     setIsDrawerOpen(false);
   }, [playSfx]);
 
-  const handleOpenSettings = useCallback(() => {
-    playSfx('click');
-    setShowSettingsModal(true);
-  }, [playSfx]);
-
   const handleCloseSettings = useCallback(() => {
     playSfx('click');
     setShowSettingsModal(false);
@@ -222,14 +217,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
         <Link to="/tienda" className="navbar__shop-btn" title={t('nav.shop')} onClick={() => playSfx('click')}>
           <ShopIcon />
         </Link>
-
-        <button
-          className="navbar__shop-btn"
-          title={t('nav.settings')}
-          onClick={handleOpenSettings}
-        >
-          <SettingsIcon />
-        </button>
 
         <LanguageSwitcher />
 
