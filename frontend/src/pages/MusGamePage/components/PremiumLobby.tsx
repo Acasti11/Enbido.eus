@@ -140,6 +140,17 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const [reportScore, setReportScore] = useState<string>('3-0');
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
+  // Tournament creation states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newTourneyName, setNewTourneyName] = useState('');
+  const [newTourneyCoinsFee, setNewTourneyCoinsFee] = useState('0');
+  const [newTourneyCoinsReward, setNewTourneyCoinsReward] = useState('0');
+  const [newTourneyMaxTeams, setNewTourneyMaxTeams] = useState('8');
+  const [newTourneyDate, setNewTourneyDate] = useState('');
+  const [newTourneyTime, setNewTourneyTime] = useState('');
+  const [newTourneyLocation, setNewTourneyLocation] = useState('Enbido.eus Online');
+  const [creatingTourney, setCreatingTourney] = useState(false);
+
 
 
   const fetchOnlineTournaments = async () => {
@@ -193,6 +204,69 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       console.error('Error starting online tournament:', err);
       const axiosError = err as { response?: { data?: string } };
       alert(axiosError.response?.data || t('premiumLobby.tournamentStartError'));
+    }
+  };
+
+  const setTimeToMinutesFromNow = (minutes: number) => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutes);
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    setNewTourneyDate(`${year}-${month}-${day}`);
+    setNewTourneyTime(`${hours}:${mins}`);
+  };
+
+  const handleCreateTournamentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTourneyName.trim()) {
+      alert(t('premiumLobby.errorTourneyNameRequired') || 'El nombre del torneo es obligatorio');
+      return;
+    }
+    if (!newTourneyDate || !newTourneyTime) {
+      alert(t('premiumLobby.errorTourneyDateTimeRequired') || 'La fecha y hora son obligatorias');
+      return;
+    }
+
+    try {
+      setCreatingTourney(true);
+      const localDateTimeStr = `${newTourneyDate}T${newTourneyTime}:00`;
+      const dateObj = new Date(localDateTimeStr);
+      let utcStartDatetime = localDateTimeStr;
+      if (!isNaN(dateObj.getTime())) {
+        utcStartDatetime = dateObj.toISOString().substring(0, 19);
+      }
+
+      const payload = {
+        title: newTourneyName,
+        city: 'Online',
+        specificLocation: newTourneyLocation || 'Enbido.eus Online',
+        startDatetime: utcStartDatetime,
+        entryFee: 0,
+        coinsFee: Number(newTourneyCoinsFee || 0),
+        coinsReward: Number(newTourneyCoinsReward || 0),
+        maxTeams: Number(newTourneyMaxTeams || 8),
+        status: 'open'
+      };
+
+      await api.post('/tournaments', payload);
+      alert(t('premiumLobby.createTourneySuccess') || 'Torneo creado con éxito');
+      setShowCreateModal(false);
+      setNewTourneyName('');
+      setNewTourneyCoinsFee('0');
+      setNewTourneyCoinsReward('0');
+      setNewTourneyMaxTeams('8');
+      setNewTourneyDate('');
+      setNewTourneyTime('');
+      fetchOnlineTournaments();
+    } catch (err: unknown) {
+      console.error('Error creating virtual tournament:', err);
+      const axiosError = err as { response?: { data?: string } };
+      alert(axiosError.response?.data || t('premiumLobby.createTourneyError') || 'Error al crear el torneo');
+    } finally {
+      setCreatingTourney(false);
     }
   };
 
@@ -966,12 +1040,24 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                 {t('premiumLobby.tournamentsDesc')}
               </p>
             </div>
-            <button
-              onClick={fetchOnlineTournaments}
-              className="btn-action tournaments-refresh-btn"
-            >
-              {t('premiumLobby.updateList')}
-            </button>
+            <div className="tournaments-header-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => {
+                  setShowCreateModal(true);
+                  setTimeToMinutesFromNow(1);
+                }}
+                className="btn-action tournaments-create-btn"
+                style={{ background: 'var(--color-gold)', color: '#000', fontWeight: 'bold' }}
+              >
+                {t('premiumLobby.createTournament')}
+              </button>
+              <button
+                onClick={fetchOnlineTournaments}
+                className="btn-action tournaments-refresh-btn"
+              >
+                {t('premiumLobby.updateList')}
+              </button>
+            </div>
           </div>
 
           {loadingTournaments ? (
@@ -1768,6 +1854,149 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         </div>
       )}
 
+      {/* ---------- CREATE TOURNAMENT MODAL ---------- */}
+      {showCreateModal && (
+        <div className="tourney-modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="tourney-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="tourney-modal-header">
+              <h2 className="tourney-modal-title">{t('premiumLobby.createTourneyTitle')}</h2>
+              <button className="tourney-modal-close-x" onClick={() => setShowCreateModal(false)}>✕</button>
+            </div>
+
+            <form onSubmit={handleCreateTournamentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 'bold' }}>
+                  {t('premiumLobby.tourneyName')}
+                </label>
+                <input
+                  type="text"
+                  value={newTourneyName}
+                  onChange={(e) => setNewTourneyName(e.target.value)}
+                  placeholder="Ej: Súper Torneo Rápido"
+                  required
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
+                  <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 'bold' }}>
+                    {t('premiumLobby.coinsFeeLabel')}
+                  </label>
+                  <input
+                    type="number"
+                    value={newTourneyCoinsFee}
+                    onChange={(e) => setNewTourneyCoinsFee(e.target.value)}
+                    min="0"
+                    required
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
+                  <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 'bold' }}>
+                    {t('premiumLobby.coinsRewardLabel')}
+                  </label>
+                  <input
+                    type="number"
+                    value={newTourneyCoinsReward}
+                    onChange={(e) => setNewTourneyCoinsReward(e.target.value)}
+                    min="0"
+                    required
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
+                  <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 'bold' }}>
+                    {t('premiumLobby.maxTeamsLabel')}
+                  </label>
+                  <select
+                    value={newTourneyMaxTeams}
+                    onChange={(e) => setNewTourneyMaxTeams(e.target.value)}
+                    style={{ background: '#121915', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none', width: '100%' }}
+                  >
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
+                  <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 'bold' }}>
+                    {t('premiumLobby.locationLabel')}
+                  </label>
+                  <input
+                    type="text"
+                    value={newTourneyLocation}
+                    onChange={(e) => setNewTourneyLocation(e.target.value)}
+                    required
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 'bold' }}>
+                    {t('premiumLobby.dateTimeLabel')}
+                  </label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setTimeToMinutesFromNow(1)}
+                      style={{ fontSize: '0.75rem', background: 'rgba(212,175,55,0.15)', border: '1px solid var(--color-gold)', borderRadius: '4px', padding: '2px 8px', color: 'var(--color-gold-light)', cursor: 'pointer' }}
+                    >
+                      +1 min
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTimeToMinutesFromNow(5)}
+                      style={{ fontSize: '0.75rem', background: 'rgba(212,175,55,0.15)', border: '1px solid var(--color-gold)', borderRadius: '4px', padding: '2px 8px', color: 'var(--color-gold-light)', cursor: 'pointer' }}
+                    >
+                      +5 min
+                    </button>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '15px' }}>
+                  <input
+                    type="date"
+                    value={newTourneyDate}
+                    onChange={(e) => setNewTourneyDate(e.target.value)}
+                    required
+                    style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none' }}
+                  />
+                  <input
+                    type="time"
+                    value={newTourneyTime}
+                    onChange={(e) => setNewTourneyTime(e.target.value)}
+                    required
+                    style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '10px', color: '#fff', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', padding: '12px', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {t('premiumLobby.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingTourney}
+                  style={{ flex: 1, background: 'var(--color-gold)', border: 'none', borderRadius: '6px', padding: '12px', color: '#000', fontWeight: 'bold', cursor: 'pointer', opacity: creatingTourney ? 0.7 : 1 }}
+                >
+                  {creatingTourney ? t('premiumLobby.creating') : t('premiumLobby.create')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
