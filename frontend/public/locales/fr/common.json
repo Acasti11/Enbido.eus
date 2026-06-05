@@ -91,7 +91,16 @@
     "codeExpired": "Le code a expiré. Retournez en arrière pour en générer un autre.",
     "verifyAndEnter": "Vérifier et entrer",
     "invalidCode": "Saisissez un code à 6 chiffres",
-    "wrongCode": "Code de sécurité incorrect"
+    "wrongCode": "Code de sécurité incorrect",
+    "error": {
+      "invalidCredentials": "L'email ou le mot de passe est incorrect",
+      "accountNotFound": "Ce compte n'existe pas. Voulez-vous vous inscrire ?",
+      "tooManyAttempts": "Trop de tentatives. Attendez 5 minutes.",
+      "accountLocked": "Votre compte est bloqué. Contactez le support.",
+      "usernameRequired": "Entrez votre nom d'utilisateur ou email",
+      "passwordRequired": "Entrez votre mot de passe",
+      "accountNotFoundHint": "Vous n'avez pas de compte ?"
+    }
   },
   "meetup": {
     "title": "Trouver une Partie Physique",
@@ -714,5 +723,47 @@
     "gameKeywords": "jouer mus, mus en ligne, matchmaking mus, salles mus, jouer mus en ligne gratuit",
     "gameOgTitle": "Lobby de Mus - Enbido",
     "gamePlatform": "Navigateur Web"
+  },
+  "register": {
+    "confirmPassword": "Confirmer le mot de passe",
+    "placeholderConfirmPassword": "Répétez votre mot de passe",
+    "success": "Compte créé ! Redirection vers la connexion...",
+    "errorGeneric": "Erreur lors de la création du compte",
+    "errorUsernameOrEmailExists": "Nom d'utilisateur ou email déjà enregistré",
+    "password": {
+      "showRequirements": "Voir les exigences de sécurité",
+      "requirements": {
+        "minLength": "Minimum 8 caractères",
+        "uppercase": "Au moins 1 majuscule (A-Z)",
+        "lowercase": "Au moins 1 minuscule (a-z)",
+        "number": "Au moins 1 chiffre (0-9)",
+        "specialChar": "Au moins 1 caractère spécial (!@#$%^&*...)"
+      },
+      "strength": {
+        "weak": "Faible",
+        "fair": "Acceptable",
+        "good": "Bonne",
+        "strong": "Fort"
+      }
+    },
+    "validation": {
+      "nameRequired": "Le prénom est obligatoire",
+      "nameMinLength": "Le prénom doit contenir au moins 2 caractères",
+      "emailRequired": "L'email est obligatoire",
+      "emailInvalid": "Entrez un email valide (exemple@email.com)",
+      "usernameRequired": "Le nom d'utilisateur est obligatoire",
+      "usernameMinLength": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+      "usernameNoSpaces": "Le nom d'utilisateur ne peut pas contenir d'espaces",
+      "passwordRequired": "Le mot de passe est obligatoire",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordUppercase": "Doit contenir au moins une majuscule",
+      "passwordLowercase": "Doit contenir au moins une minuscule",
+      "passwordNumber": "Doit contenir au moins un chiffre",
+      "passwordSpecialChar": "Doit contenir au moins un caractère spécial",
+      "confirmPasswordRequired": "Confirmez votre mot de passe",
+      "passwordsMismatch": "Les mots de passe ne correspondent pas",
+      "birthDateRequired": "La date de naissance est obligatoire",
+      "birthDateInvalid": "La date de naissance doit être dans le passé"
+    }
   }
 }

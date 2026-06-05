@@ -91,7 +91,16 @@
     "codeExpired": "Kodea iraungitu da. Bueltatu bestea sortzeko.",
     "verifyAndEnter": "Egiaztatu eta sartu",
     "invalidCode": "Sartu 6 digitoko kode bat",
-    "wrongCode": "Segurtasun-kode okerra"
+    "wrongCode": "Segurtasun-kode okerra",
+    "error": {
+      "invalidCredentials": "Posta elektronikoa edo pasahitza okerrak dira",
+      "accountNotFound": "Kontu hau ez da existitzen. Izena eman nahi duzu?",
+      "tooManyAttempts": "Saiakera gehiegi. Itxaron 5 minutu.",
+      "accountLocked": "Zure kontua blokeatuta dago. Jarri harremanetan laguntzarekin.",
+      "usernameRequired": "Sartu zure erabiltzaile-izena edo posta elektronikoa",
+      "passwordRequired": "Sartu zure pasahitza",
+      "accountNotFoundHint": "Ez duzu konturik?"
+    }
   },
   "meetup": {
     "title": "Aurkitu Partida Fisikoa",
@@ -660,27 +669,6 @@
     "twoFactorTitle": "Faktore Bikoitza (2FA Posta Bidez)",
     "twoFactorDesc": "Gehitu segurtasun-geruza estra bat saioa hastean zure postara bidalitako erabilera bakarreko kodea eskatuz."
   },
-  "account": {
-    "title": "Kontuaren Profila",
-    "subtitle": "Kudeatu zure xehetasun pertsonalak, hobespenak eta segurtasuna",
-    "personalDetails": "Xehetasun Pertsonalak",
-    "name": "Izena",
-    "surname": "Abizenak",
-    "accountDetails": "Sarbide Xehetasunak",
-    "username": "Erabiltzaile Izena",
-    "email": "Posta Elektronikoa",
-    "saveChanges": "Gorde Aldaketak",
-    "saving": "Gordetzen...",
-    "updateSuccess": "Profila ondo eguneratu da!",
-    "updateError": "Errorea profila eguneratzean.",
-    "passwordReset": "Pasahitza Berrezarri",
-    "passwordResetDesc": "Bidali berreskuratze esteka seguru bat zure posta elektronikora pasahitza aldatzeko.",
-    "sendResetBtn": "Bidali Berreskuratze Esteka",
-    "resetSuccess": "Berreskuratze esteka bidali da! Egiaztatu zure sarrera-ontzia.",
-    "resetError": "Errorea berreskuratze esteka bidaltzean.",
-    "twoFactorTitle": "Faktore Bikoitza (2FA Posta Bidez)",
-    "twoFactorDesc": "Gehitu segurtasun-geruza estra bat saioa hastean zure postara bidalitako erabilera bakarreko kodea eskatuz."
-  },
   "seo": {
     "gameTitle": "Jokatu Musean Online - Partidak eta Parekatzeak | Enbido",
     "gameDescription": "Bat egin Enbidorekin doan musean jokatzeko. ELO parekatzeak, gela pribatuak eta boten aurkako joko aurreratua.",
@@ -691,5 +679,47 @@
   "usersList": {
     "empty": "Ez dago erabiltzailerik erregistratuta",
     "title": "Erabiltzaileak"
+  },
+  "register": {
+    "confirmPassword": "Berretsi pasahitza",
+    "placeholderConfirmPassword": "Errepikatu zure pasahitza",
+    "success": "Kontua sortu da! Saio-hasierara bideratzen...",
+    "errorGeneric": "Errorea kontua sortzean",
+    "errorUsernameOrEmailExists": "Erabiltzaile-izena edo posta elektronikoa jada erregistratuta dago",
+    "password": {
+      "showRequirements": "Ikusi segurtasun eskakizunak",
+      "requirements": {
+        "minLength": "Gutxienez 8 karaktere",
+        "uppercase": "Gutxienez letra larri 1 (A-Z)",
+        "lowercase": "Gutxienez letra xehe 1 (a-z)",
+        "number": "Gutxienez zenbaki 1 (0-9)",
+        "specialChar": "Gutxienez karaktere berezi 1 (!@#$%^&*...)"
+      },
+      "strength": {
+        "weak": "Ahula",
+        "fair": "Onargarria",
+        "good": "Ona",
+        "strong": "Sendoa"
+      }
+    },
+    "validation": {
+      "nameRequired": "Izena nahitaezkoa da",
+      "nameMinLength": "Izenak gutxienez 2 karaktere izan behar ditu",
+      "emailRequired": "Posta elektronikoa nahitaezkoa da",
+      "emailInvalid": "Sartu baliozko posta elektroniko bat (adibidea@posta.com)",
+      "usernameRequired": "Erabiltzaile-izena nahitaezkoa da",
+      "usernameMinLength": "Erabiltzaile-izenak gutxienez 3 karaktere izan behar ditu",
+      "usernameNoSpaces": "Erabiltzaile-izenak ezin ditu espaziorik eduki",
+      "passwordRequired": "Pasahitza nahitaezkoa da",
+      "passwordMinLength": "Pasahitzak gutxienez 8 karaktere izan behar ditu",
+      "passwordUppercase": "Gutxienez letra larri bat eduki behar du",
+      "passwordLowercase": "Gutxienez letra xehe bat eduki behar du",
+      "passwordNumber": "Gutxienez zenbaki bat eduki behar du",
+      "passwordSpecialChar": "Gutxienez karaktere berezi bat eduki behar du",
+      "confirmPasswordRequired": "Berretsi zure pasahitza",
+      "passwordsMismatch": "Pasahitzak ez datoz bat",
+      "birthDateRequired": "Jaiotze-data nahitaezkoa da",
+      "birthDateInvalid": "Jaiotze-datak iraganekoa izan behar du"
+    }
   }
 }
