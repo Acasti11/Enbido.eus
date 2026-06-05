@@ -170,7 +170,8 @@ public class PhysicalTournamentController {
 
     private void startTournamentInternal(PhysicalTournament tournament, List<PhysicalTournamentParticipant> parts) {
         Collections.shuffle(parts);
-        int startingRound = parts.size() > 4 ? 1 : 2;
+        int numTeams = (int) Math.ceil(parts.size() / 2.0);
+        int startingRound = numTeams > 4 ? 1 : 2;
         Long id = tournament.getTournamentId();
 
         List<PhysicalTournamentMatch> existing = matchRepository.findByTournamentId(id);
@@ -181,17 +182,23 @@ public class PhysicalTournamentController {
         if (startingRound == 1) {
             // Quarterfinals
             for (int i = 0; i < 4; i++) {
-                Long p1 = (i * 2 < parts.size()) ? parts.get(i * 2).getUserId() : null;
-                Long p2 = (i * 2 + 1 < parts.size()) ? parts.get(i * 2 + 1).getUserId() : null;
+                Long p1 = (i * 4 < parts.size()) ? parts.get(i * 4).getUserId() : null;
+                Long p1Partner = (i * 4 + 1 < parts.size()) ? parts.get(i * 4 + 1).getUserId() : null;
+                Long p2 = (i * 4 + 2 < parts.size()) ? parts.get(i * 4 + 2).getUserId() : null;
+                Long p2Partner = (i * 4 + 3 < parts.size()) ? parts.get(i * 4 + 3).getUserId() : null;
 
                 PhysicalTournamentMatch match = new PhysicalTournamentMatch();
                 match.setTournamentId(id);
                 match.setRoundNumber(1);
                 match.setMatchIndex(i);
                 match.setPlayer1Id(p1);
+                match.setPlayer1PartnerId(p1Partner);
                 match.setPlayer2Id(p2);
+                match.setPlayer2PartnerId(p2Partner);
                 match.setPlayer1Ready(false);
+                match.setPlayer1PartnerReady(false);
                 match.setPlayer2Ready(false);
+                match.setPlayer2PartnerReady(false);
                 match.setIsCompleted(false);
                 matchRepository.save(match);
             }
@@ -214,17 +221,23 @@ public class PhysicalTournamentController {
         } else {
             // Semifinals
             for (int i = 0; i < 2; i++) {
-                Long p1 = (i * 2 < parts.size()) ? parts.get(i * 2).getUserId() : null;
-                Long p2 = (i * 2 + 1 < parts.size()) ? parts.get(i * 2 + 1).getUserId() : null;
+                Long p1 = (i * 4 < parts.size()) ? parts.get(i * 4).getUserId() : null;
+                Long p1Partner = (i * 4 + 1 < parts.size()) ? parts.get(i * 4 + 1).getUserId() : null;
+                Long p2 = (i * 4 + 2 < parts.size()) ? parts.get(i * 4 + 2).getUserId() : null;
+                Long p2Partner = (i * 4 + 3 < parts.size()) ? parts.get(i * 4 + 3).getUserId() : null;
 
                 PhysicalTournamentMatch match = new PhysicalTournamentMatch();
                 match.setTournamentId(id);
                 match.setRoundNumber(2);
                 match.setMatchIndex(i);
                 match.setPlayer1Id(p1);
+                match.setPlayer1PartnerId(p1Partner);
                 match.setPlayer2Id(p2);
+                match.setPlayer2PartnerId(p2Partner);
                 match.setPlayer1Ready(false);
+                match.setPlayer1PartnerReady(false);
                 match.setPlayer2Ready(false);
+                match.setPlayer2PartnerReady(false);
                 match.setIsCompleted(false);
                 matchRepository.save(match);
             }
@@ -301,15 +314,17 @@ public class PhysicalTournamentController {
                         stateChanged = true;
                     } else if (m.getGameRoomId() == null) {
                         if (m.getRoundStartTime().plusMinutes(5).isBefore(now)) {
-                            boolean p1Ready = m.getPlayer1Ready() != null && m.getPlayer1Ready();
-                            boolean p2Ready = m.getPlayer2Ready() != null && m.getPlayer2Ready();
+                            boolean t1Ready = (m.getPlayer1Ready() != null && m.getPlayer1Ready()) &&
+                                              (m.getPlayer1PartnerId() == null || (m.getPlayer1PartnerReady() != null && m.getPlayer1PartnerReady()));
+                            boolean t2Ready = (m.getPlayer2Ready() != null && m.getPlayer2Ready()) &&
+                                              (m.getPlayer2PartnerId() == null || (m.getPlayer2PartnerReady() != null && m.getPlayer2PartnerReady()));
 
                             m.setIsCompleted(true);
-                            if (p1Ready && !p2Ready) {
+                            if (t1Ready && !t2Ready) {
                                 m.setWinnerId(m.getPlayer1Id());
                                 m.setScore("W/O");
                                 advanceWinner(tournamentId, activeRound, m.getMatchIndex(), m.getPlayer1Id());
-                            } else if (!p1Ready && p2Ready) {
+                            } else if (!t1Ready && t2Ready) {
                                 m.setWinnerId(m.getPlayer2Id());
                                 m.setScore("W/O");
                                 advanceWinner(tournamentId, activeRound, m.getMatchIndex(), m.getPlayer2Id());
@@ -354,10 +369,31 @@ public class PhysicalTournamentController {
                 Long winnerId = finalMatch.getWinnerId();
                 int prize = tournament.getCoinsReward() != null ? tournament.getCoinsReward() : 0;
                 if (prize > 0) {
-                    UserGameProfile profile = profileRepository.findById(winnerId)
-                            .orElseGet(() -> new UserGameProfile(winnerId));
-                    profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
-                    profileRepository.save(profile);
+                    Long p1 = finalMatch.getPlayer1Id();
+                    Long p1P = finalMatch.getPlayer1PartnerId();
+                    Long p2 = finalMatch.getPlayer2Id();
+                    Long p2P = finalMatch.getPlayer2PartnerId();
+
+                    Long w1 = null;
+                    Long w2 = null;
+                    if (winnerId.equals(p1) || (p1P != null && winnerId.equals(p1P))) {
+                        w1 = p1;
+                        w2 = p1P;
+                    } else if (winnerId.equals(p2) || (p2P != null && winnerId.equals(p2P))) {
+                        w1 = p2;
+                        w2 = p2P;
+                    }
+
+                    if (w1 != null) {
+                        UserGameProfile profile = profileRepository.findById(w1).orElseGet(() -> new UserGameProfile(w1));
+                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
+                        profileRepository.save(profile);
+                    }
+                    if (w2 != null) {
+                        UserGameProfile profile = profileRepository.findById(w2).orElseGet(() -> new UserGameProfile(w2));
+                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
+                        profileRepository.save(profile);
+                    }
                 }
             }
             return;
@@ -418,11 +454,27 @@ public class PhysicalTournamentController {
         if (currentRound < 3) {
             PhysicalTournamentMatch nextMatch = matchRepository
                     .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, nextRound, nextIndex);
-            if (nextMatch != null) {
+            PhysicalTournamentMatch currentMatch = matchRepository
+                    .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, currentRound, matchIndex);
+
+            if (nextMatch != null && currentMatch != null) {
+                Long pWinner = null;
+                Long pWinnerPartner = null;
+
+                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
+                    pWinner = currentMatch.getPlayer1Id();
+                    pWinnerPartner = currentMatch.getPlayer1PartnerId();
+                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
+                    pWinner = currentMatch.getPlayer2Id();
+                    pWinnerPartner = currentMatch.getPlayer2PartnerId();
+                }
+
                 if (isPlayer1) {
-                    nextMatch.setPlayer1Id(winnerId);
+                    nextMatch.setPlayer1Id(pWinner);
+                    nextMatch.setPlayer1PartnerId(pWinnerPartner);
                 } else {
-                    nextMatch.setPlayer2Id(winnerId);
+                    nextMatch.setPlayer2Id(pWinner);
+                    nextMatch.setPlayer2PartnerId(pWinnerPartner);
                 }
                 matchRepository.save(nextMatch);
             }
@@ -450,22 +502,29 @@ public class PhysicalTournamentController {
             return ResponseEntity.badRequest().body("Este enfrentamiento ya ha finalizado.");
         }
 
-        if (!userId.equals(match.getPlayer1Id()) && !userId.equals(match.getPlayer2Id())) {
+        if (!userId.equals(match.getPlayer1Id()) && !userId.equals(match.getPlayer2Id()) &&
+            !userId.equals(match.getPlayer1PartnerId()) && !userId.equals(match.getPlayer2PartnerId())) {
             return ResponseEntity.status(403).body("No eres participante de esta partida.");
         }
 
         if (userId.equals(match.getPlayer1Id())) {
             match.setPlayer1Ready(true);
-        } else {
+        } else if (userId.equals(match.getPlayer2Id())) {
             match.setPlayer2Ready(true);
+        } else if (userId.equals(match.getPlayer1PartnerId())) {
+            match.setPlayer1PartnerReady(true);
+        } else if (userId.equals(match.getPlayer2PartnerId())) {
+            match.setPlayer2PartnerReady(true);
         }
 
         matchRepository.save(match);
 
         boolean p1Ready = match.getPlayer1Ready() != null && match.getPlayer1Ready();
         boolean p2Ready = match.getPlayer2Ready() != null && match.getPlayer2Ready();
+        boolean p1PartnerReady = match.getPlayer1PartnerId() == null || (match.getPlayer1PartnerReady() != null && match.getPlayer1PartnerReady());
+        boolean p2PartnerReady = match.getPlayer2PartnerId() == null || (match.getPlayer2PartnerReady() != null && match.getPlayer2PartnerReady());
 
-        if (p1Ready && p2Ready && match.getGameRoomId() == null) {
+        if (p1Ready && p2Ready && p1PartnerReady && p2PartnerReady && match.getGameRoomId() == null) {
             String roomCode = "TORNEO-" + id + "-M" + matchId;
             try {
                 com.mus.backend.engine.GameSession session = sessionManager.createRoom(roomCode);
@@ -480,8 +539,21 @@ public class PhysicalTournamentController {
                         .map(com.mus.backend.model.User::getUsername).orElse("Jugador 2");
                 session.addPlayer(1, match.getPlayer2Id(), uname2);
 
-                session.addBot(2);
-                session.addBot(3);
+                if (match.getPlayer1PartnerId() != null) {
+                    String uname1P = userRepository.findById(match.getPlayer1PartnerId())
+                            .map(com.mus.backend.model.User::getUsername).orElse("Compañero 1");
+                    session.addPlayer(2, match.getPlayer1PartnerId(), uname1P);
+                } else {
+                    session.addBot(2);
+                }
+
+                if (match.getPlayer2PartnerId() != null) {
+                    String uname2P = userRepository.findById(match.getPlayer2PartnerId())
+                            .map(com.mus.backend.model.User::getUsername).orElse("Compañero 2");
+                    session.addPlayer(3, match.getPlayer2PartnerId(), uname2P);
+                } else {
+                    session.addBot(3);
+                }
 
                 match.setGameRoomId(roomCode);
                 matchRepository.save(match);
@@ -520,14 +592,19 @@ public class PhysicalTournamentController {
             return ResponseEntity.badRequest().body("La partida ya ha comenzado.");
         }
 
-        if (!userId.equals(match.getPlayer1Id()) && !userId.equals(match.getPlayer2Id())) {
+        if (!userId.equals(match.getPlayer1Id()) && !userId.equals(match.getPlayer2Id()) &&
+            !userId.equals(match.getPlayer1PartnerId()) && !userId.equals(match.getPlayer2PartnerId())) {
             return ResponseEntity.status(403).body("No eres participante de esta partida.");
         }
 
         if (userId.equals(match.getPlayer1Id())) {
             match.setPlayer1Ready(false);
-        } else {
+        } else if (userId.equals(match.getPlayer2Id())) {
             match.setPlayer2Ready(false);
+        } else if (userId.equals(match.getPlayer1PartnerId())) {
+            match.setPlayer1PartnerReady(false);
+        } else if (userId.equals(match.getPlayer2PartnerId())) {
+            match.setPlayer2PartnerReady(false);
         }
 
         matchRepository.save(match);
