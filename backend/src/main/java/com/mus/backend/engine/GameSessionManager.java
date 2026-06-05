@@ -175,7 +175,7 @@ public class GameSessionManager {
                     MatchmakerEntry p4 = group.get(3);
                     
                     String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-") + (int)Math.floor(100 + Math.random() * 900);
-                    2GameSession session = createRoom(autoRoomId);
+                    GameSession session = createRoom(autoRoomId);
                     session.getConfig().setReyesOption(reyesOption);
                     session.getConfig().setMaxRounds(3);
                     

@@ -170,22 +170,47 @@ public class PhysicalTournamentController {
 
     private void startTournamentInternal(PhysicalTournament tournament, List<PhysicalTournamentParticipant> parts) {
         Collections.shuffle(parts);
-        int numTeams = (int) Math.ceil(parts.size() / 2.0);
-        int startingRound = numTeams > 4 ? 1 : 2;
+        int numTeams;
+        if (parts.size() <= 2) {
+            numTeams = 2;
+        } else {
+            numTeams = (int) Math.ceil(parts.size() / 2.0);
+        }
+
+        int startingRound;
+        if (numTeams > 4) {
+            startingRound = 1; // Quarterfinals
+        } else if (numTeams > 2) {
+            startingRound = 2; // Semifinals
+        } else {
+            startingRound = 3; // Grand Final
+        }
+
         Long id = tournament.getTournamentId();
+
+        // Balanced team assignment: leaders first, then partners
+        Long[] teamLeaders = new Long[numTeams];
+        Long[] teamPartners = new Long[numTeams];
+        int playerIdx = 0;
+        for (int i = 0; i < numTeams && playerIdx < parts.size(); i++) {
+            teamLeaders[i] = parts.get(playerIdx++).getUserId();
+        }
+        for (int i = 0; i < numTeams && playerIdx < parts.size(); i++) {
+            teamPartners[i] = parts.get(playerIdx++).getUserId();
+        }
 
         List<PhysicalTournamentMatch> existing = matchRepository.findByTournamentId(id);
         if (!existing.isEmpty()) {
             matchRepository.deleteAll(existing);
         }
 
+        // Create Round 1 (Quarterfinals) if startingRound == 1
         if (startingRound == 1) {
-            // Quarterfinals
             for (int i = 0; i < 4; i++) {
-                Long p1 = (i * 4 < parts.size()) ? parts.get(i * 4).getUserId() : null;
-                Long p1Partner = (i * 4 + 1 < parts.size()) ? parts.get(i * 4 + 1).getUserId() : null;
-                Long p2 = (i * 4 + 2 < parts.size()) ? parts.get(i * 4 + 2).getUserId() : null;
-                Long p2Partner = (i * 4 + 3 < parts.size()) ? parts.get(i * 4 + 3).getUserId() : null;
+                Long p1 = (2 * i < numTeams) ? teamLeaders[2 * i] : null;
+                Long p1Partner = (2 * i < numTeams) ? teamPartners[2 * i] : null;
+                Long p2 = (2 * i + 1 < numTeams) ? teamLeaders[2 * i + 1] : null;
+                Long p2Partner = (2 * i + 1 < numTeams) ? teamPartners[2 * i + 1] : null;
 
                 PhysicalTournamentMatch match = new PhysicalTournamentMatch();
                 match.setTournamentId(id);
@@ -202,29 +227,15 @@ public class PhysicalTournamentController {
                 match.setIsCompleted(false);
                 matchRepository.save(match);
             }
-            // Semifinals
+        }
+
+        // Create Round 2 (Semifinals) if startingRound <= 2
+        if (startingRound <= 2) {
             for (int i = 0; i < 2; i++) {
-                PhysicalTournamentMatch match = new PhysicalTournamentMatch();
-                match.setTournamentId(id);
-                match.setRoundNumber(2);
-                match.setMatchIndex(i);
-                match.setIsCompleted(false);
-                matchRepository.save(match);
-            }
-            // Final
-            PhysicalTournamentMatch match = new PhysicalTournamentMatch();
-            match.setTournamentId(id);
-            match.setRoundNumber(3);
-            match.setMatchIndex(0);
-            match.setIsCompleted(false);
-            matchRepository.save(match);
-        } else {
-            // Semifinals
-            for (int i = 0; i < 2; i++) {
-                Long p1 = (i * 4 < parts.size()) ? parts.get(i * 4).getUserId() : null;
-                Long p1Partner = (i * 4 + 1 < parts.size()) ? parts.get(i * 4 + 1).getUserId() : null;
-                Long p2 = (i * 4 + 2 < parts.size()) ? parts.get(i * 4 + 2).getUserId() : null;
-                Long p2Partner = (i * 4 + 3 < parts.size()) ? parts.get(i * 4 + 3).getUserId() : null;
+                Long p1 = (startingRound == 2 && 2 * i < numTeams) ? teamLeaders[2 * i] : null;
+                Long p1Partner = (startingRound == 2 && 2 * i < numTeams) ? teamPartners[2 * i] : null;
+                Long p2 = (startingRound == 2 && 2 * i + 1 < numTeams) ? teamLeaders[2 * i + 1] : null;
+                Long p2Partner = (startingRound == 2 && 2 * i + 1 < numTeams) ? teamPartners[2 * i + 1] : null;
 
                 PhysicalTournamentMatch match = new PhysicalTournamentMatch();
                 match.setTournamentId(id);
@@ -241,11 +252,27 @@ public class PhysicalTournamentController {
                 match.setIsCompleted(false);
                 matchRepository.save(match);
             }
-            // Final
+        }
+
+        // Create Round 3 (Grand Final)
+        {
+            Long p1 = (startingRound == 3 && 0 < numTeams) ? teamLeaders[0] : null;
+            Long p1Partner = (startingRound == 3 && 0 < numTeams) ? teamPartners[0] : null;
+            Long p2 = (startingRound == 3 && 1 < numTeams) ? teamLeaders[1] : null;
+            Long p2Partner = (startingRound == 3 && 1 < numTeams) ? teamPartners[1] : null;
+
             PhysicalTournamentMatch match = new PhysicalTournamentMatch();
             match.setTournamentId(id);
             match.setRoundNumber(3);
             match.setMatchIndex(0);
+            match.setPlayer1Id(p1);
+            match.setPlayer1PartnerId(p1Partner);
+            match.setPlayer2Id(p2);
+            match.setPlayer2PartnerId(p2Partner);
+            match.setPlayer1Ready(false);
+            match.setPlayer1PartnerReady(false);
+            match.setPlayer2Ready(false);
+            match.setPlayer2PartnerReady(false);
             match.setIsCompleted(false);
             matchRepository.save(match);
         }

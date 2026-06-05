@@ -533,7 +533,7 @@
     "dateTimeLabel": "Start Date and Time",
     "coinsFeeLabel": "Entry Fee (Coins)",
     "coinsRewardLabel": "Winner Reward (Coins)",
-    "maxTeamsLabel": "Max Teams / Pairs",
+    "maxTeamsLabel": "Capacity (Players)",
     "locationLabel": "Server Location",
     "creating": "Creating...",
     "create": "Create",
