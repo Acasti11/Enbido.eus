@@ -60,10 +60,7 @@ public class UserProfileController {
     // PROTEGIDO: Obtener Clasificación / Leaderboard
     // ============================================
     @GetMapping("/leaderboard")
-    public ResponseEntity<?> getLeaderboard(HttpServletRequest request) {
-        // Enforce JWT token verification by trying to extract the userId
-        getCurrentUserId(request);
-        
+    public ResponseEntity<?> getLeaderboard() {
         return ResponseEntity.ok(userProfileService.getLeaderboard());
     }
 

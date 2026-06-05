@@ -215,50 +215,7 @@ const HowToPlaySection: React.FC = () => {
   );
 };
 
-interface PodiumColumnProps {
-  position: 1 | 2 | 3;
-  username: string;
-  elo: number;
-  rankKey: string;
-}
 
-const PodiumColumn: React.FC<PodiumColumnProps> = ({ position, username, elo, rankKey }) => {
-  const { t } = useTranslation();
-  const getMedalEmoji = (pos: number) => (pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉');
-  return (
-    <div className={`home-podium-column position-${position}`}>
-      <div className="home-podium-avatar">
-        <span className="home-podium-medal">{getMedalEmoji(position)}</span>
-        <div className={`home-podium-frame rank-${position}`} />
-      </div>
-      <div className="home-podium-details">
-        <span className="home-podium-username">{username}</span>
-        <span className="home-podium-elo">{elo} ELO</span>
-        <span className="home-podium-rank">{t(rankKey)}</span>
-      </div>
-      <div className="home-podium-block">
-        <span className="home-podium-number">{position}</span>
-      </div>
-    </div>
-  );
-};
-
-const LeaderboardTeaser: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <section className="home-leaderboard-teaser">
-      <div className="home-leaderboard-teaser-header">
-        <h2 className="home-section-title">{t('home.topPlayersTitle')}</h2>
-        <p className="home-section-subtitle">{t('home.topPlayersDesc')}</p>
-      </div>
-      <div className="home-podium-container">
-        <PodiumColumn position={2} username="AmaiaOrdago" elo={1980} rankKey="premiumLobby.rankExpert" />
-        <PodiumColumn position={1} username="MikelMus" elo={2150} rankKey="premiumLobby.rankEnbidoMaisu" />
-        <PodiumColumn position={3} username="AnderEnbido" elo={1850} rankKey="premiumLobby.rankExpert" />
-      </div>
-    </section>
-  );
-};
 
 const ShopBanner: React.FC = () => {
   const { t } = useTranslation();
@@ -349,7 +306,6 @@ const HomePage: React.FC = (): React.JSX.Element => {
       </section>
       <FeaturesSection />
       <HowToPlaySection />
-      <LeaderboardTeaser />
       <ShopBanner />
       <HomeFooter />
     </div>
