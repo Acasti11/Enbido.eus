@@ -102,7 +102,10 @@
     "codeExpired": "The code has expired. Go back to generate another one.",
     "verifyAndEnter": "Verify and Enter",
     "invalidCode": "Enter a 6-digit code",
-    "wrongCode": "Incorrect security code"
+    "wrongCode": "Incorrect security code",
+    "agePromptTitle": "Complete your profile!",
+    "agePromptDesc": "Please enter your birth date to calculate your starting ELO based on your age according to our statistical study.",
+    "agePromptSubmit": "Save and Start"
   },
   "meetup": {
     "title": "Find Physical Game",

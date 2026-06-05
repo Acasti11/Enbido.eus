@@ -102,7 +102,10 @@
     "codeExpired": "El código ha expirado. Regresa para generar otro.",
     "verifyAndEnter": "Verificar y Entrar",
     "invalidCode": "Introduce un código de 6 dígitos",
-    "wrongCode": "Código de seguridad incorrecto"
+    "wrongCode": "Código de seguridad incorrecto",
+    "agePromptTitle": "¡Completa tu perfil!",
+    "agePromptDesc": "Por favor, introduce tu fecha de nacimiento para calcular tu ELO inicial en base a tu edad según nuestro estudio estadístico.",
+    "agePromptSubmit": "Guardar y Empezar"
   },
   "meetup": {
     "title": "Encontrar Partida Física",

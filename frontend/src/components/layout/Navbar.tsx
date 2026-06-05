@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import api from '../../services/api';
 import './navbar.css';
 
 import { useSettings } from '../../context/SettingsContext';
@@ -63,6 +64,13 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Age based initial ELO check states
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [birthDateInput, setBirthDateInput] = useState('');
+  const [ageModalError, setAgeModalError] = useState('');
+  const [submittingAge, setSubmittingAge] = useState(false);
+  const [currentUserDetails, setCurrentUserDetails] = useState<any>(null);
+
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -106,6 +114,68 @@ const Navbar: React.FC = (): React.JSX.Element => {
   }, [location.pathname]);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token && localStorage.getItem('enbido_age_checked') !== 'true') {
+      api.get('/usuarios/me')
+        .then(res => {
+          setCurrentUserDetails(res.data);
+          if (!res.data.birthDate) {
+            setShowAgeModal(true);
+          } else {
+            localStorage.setItem('enbido_age_checked', 'true');
+          }
+        })
+        .catch(err => {
+          console.error('Error checking user age on login:', err);
+        });
+    }
+  }, [isLoggedIn, location.pathname]);
+
+  const handleAgeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!birthDateInput) {
+      setAgeModalError(t('login.requiredField'));
+      return;
+    }
+
+    const birthDate = new Date(birthDateInput);
+    const today = new Date();
+    if (birthDate >= today) {
+      setAgeModalError(t('login.invalidBirthDate'));
+      return;
+    }
+
+    const minDate = new Date();
+    minDate.setFullYear(today.getFullYear() - 3);
+    if (birthDate > minDate) {
+      setAgeModalError(t('login.invalidBirthDate'));
+      return;
+    }
+
+    setSubmittingAge(true);
+    setAgeModalError('');
+
+    try {
+      await api.put('/usuarios/me', {
+        name: currentUserDetails?.name || '',
+        surname: currentUserDetails?.surname || '',
+        phoneNumber: currentUserDetails?.phoneNumber || '',
+        postalCode: currentUserDetails?.postalCode || '',
+        birthDate: birthDateInput
+      });
+
+      localStorage.setItem('enbido_age_checked', 'true');
+      setShowAgeModal(false);
+      window.dispatchEvent(new Event('enbido_login'));
+    } catch (err) {
+      console.error('Error setting age:', err);
+      setAgeModalError(t('account.updateError'));
+    } finally {
+      setSubmittingAge(false);
+    }
+  };
+
+  useEffect(() => {
     if (isDrawerOpen) {
       document.body.classList.add('no-scroll');
     } else {
@@ -121,6 +191,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('role');
+    localStorage.removeItem('enbido_age_checked');
     console.log("logged out");
     setIsLoggedIn(false);
     navigate('/login');
@@ -489,6 +560,45 @@ const Navbar: React.FC = (): React.JSX.Element => {
                 {t('settings.save')}
               </button>
             </footer>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Age Prompt Modal */}
+      {showAgeModal && createPortal(
+        <div className="settings-modal-overlay" style={{ zIndex: 10100 }}>
+          <div className="settings-modal" style={{ maxWidth: '400px', textAlign: 'center', padding: '24px' }}>
+            <h2 style={{ color: '#d4af37', fontSize: '20px', marginBottom: '12px', fontWeight: 'bold' }}>
+              🎂 {t('login.agePromptTitle')}
+            </h2>
+            <p style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px' }}>
+              {t('login.agePromptDesc')}
+            </p>
+            <form onSubmit={handleAgeSubmit}>
+              <input
+                type="date"
+                className="settings-select"
+                value={birthDateInput}
+                onChange={(e) => setBirthDateInput(e.target.value)}
+                disabled={submittingAge}
+                required
+                style={{ marginBottom: '16px', display: 'block', width: '100%', padding: '10px' }}
+              />
+              {ageModalError && (
+                <p style={{ color: '#ef4444', fontSize: '12px', marginBottom: '16px' }}>
+                  {ageModalError}
+                </p>
+              )}
+              <button
+                type="submit"
+                className="settings-save-btn"
+                disabled={submittingAge}
+                style={{ width: '100%', padding: '12px' }}
+              >
+                {submittingAge ? t('common.loading') : t('login.agePromptSubmit')}
+              </button>
+            </form>
           </div>
         </div>,
         document.body

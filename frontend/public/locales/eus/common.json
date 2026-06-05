@@ -102,7 +102,10 @@
     "codeExpired": "Kodea iraungitu da. Bueltatu bestea sortzeko.",
     "verifyAndEnter": "Egiaztatu eta sartu",
     "invalidCode": "Sartu 6 digitoko kode bat",
-    "wrongCode": "Segurtasun-kode okerra"
+    "wrongCode": "Segurtasun-kode okerra",
+    "agePromptTitle": "Bete zure profila!",
+    "agePromptDesc": "Mesedez, sartu zure jaiotza-data zure adinaren araberako hasierako ELOa kalkulatzeko gure azterketa estatistikoan oinarrituta.",
+    "agePromptSubmit": "Gorde eta Hasi"
   },
   "meetup": {
     "title": "Aurkitu Partida Fisikoa",
