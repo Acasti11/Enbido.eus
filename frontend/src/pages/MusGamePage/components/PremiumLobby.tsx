@@ -263,8 +263,16 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
       fetchOnlineTournaments();
     } catch (err: unknown) {
       console.error('Error creating virtual tournament:', err);
-      const axiosError = err as { response?: { data?: string } };
-      alert(axiosError.response?.data || t('premiumLobby.createTourneyError') || 'Error al crear el torneo');
+      const axiosError = err as { response?: { data?: any } };
+      let errorDetail = '';
+      if (axiosError.response?.data) {
+        if (typeof axiosError.response.data === 'object') {
+          errorDetail = axiosError.response.data.message || axiosError.response.data.error || JSON.stringify(axiosError.response.data);
+        } else {
+          errorDetail = String(axiosError.response.data);
+        }
+      }
+      alert(`${t('premiumLobby.createTourneyError') || 'Error al crear el torneo'}${errorDetail ? ': ' + errorDetail : ''}`);
     } finally {
       setCreatingTourney(false);
     }
