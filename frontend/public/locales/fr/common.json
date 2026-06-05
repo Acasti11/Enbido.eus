@@ -102,7 +102,8 @@
     "codeExpired": "Le code a expiré. Retournez en arrière pour en générer un autre.",
     "verifyAndEnter": "Vérifier et entrer",
     "invalidCode": "Saisissez un code à 6 chiffres",
-    "wrongCode": "Code de sécurité incorrect"
+    "wrongCode": "Code de sécurité incorrect",
+    "or": "Ou"
   },
   "meetup": {
     "title": "Trouver une Partie Physique",
@@ -113,7 +114,7 @@
     "filterMine": "Créées par moi",
     "loading": "Chargement...",
     "empty": "Aucune annonce ne correspond aux filtres sélectionnés.",
-    "locationLabel": "Lieu (Bar, Local, Ville) : *",
+    "locationLabel": "Lieu: *",
     "locationPlaceholder": "Ex : Taberna El Botxo",
     "searchMap": "🔍 Rechercher sur la carte",
     "searching": "Recherche...",
@@ -122,8 +123,8 @@
     "coordinates": "Latitude : {{lat}} | Longitude : {{lng}}",
     "dateTimeLabel": "Date et Heure de la rencontre : *",
     "establishmentTypeLabel": "Type d'établissement : *",
-    "bar": "🍻 Taverne / Bar",
-    "txoko": "🍽️ Société Gastronomique / Txoko",
+    "bar": "🍻 Taverne",
+    "txoko": "🍽️ Société Gastronomique",
     "cafe": "☕ Café",
     "outdoor": "🌳 Extérieur / Parc",
     "missingPlayersLabel": "Joueurs manquants : *",
@@ -179,7 +180,11 @@
     "seoDescription": "Trouvez et organisez des rencontres Mus physiques au Pays basque. Recherchez des tables complètes ou libres avec notre carte interactive et rejoignez des parties locales.",
     "seoKeywords": "mus pays basque, rencontres mus, meetups mus, carte mus, jouer au mus en personne",
     "seoJsonLdName": "Rencontres et Tables Physiques de Mus - Enbido",
-    "seoJsonLdDescription": "Événements et rencontres locales pour les joueurs de Mus au Pays basque."
+    "seoJsonLdDescription": "Événements et rencontres locales pour les joueurs de Mus au Pays basque.",
+    "locateAnnouncement": "📍 Localisez la partie sur la carte (Déplacez l'épingle ou cliquez) :",
+    "dateAndTime": "Date et heure de la rencontre : *",
+    "establishmentType": "Type d'établissement : *",
+    "playersNeeded": "Joueurs manquants : *"
   },
   "tournament": {
     "title": "Tournois",
@@ -198,6 +203,7 @@
     "formTitle": "Publiez votre tournoi",
     "formSubtitle": "Remplissez les informations de votre tournoi",
     "cancel": "Annuler",
+    "spanText": "🏆 Si vous souhaitez rejoindre un tournoi virtuel et consulter/gérer ses tableaux, cliquez ici.",
     "submit": "Publier",
     "contactFooter": "Si vous avez des problèmes :",
     "nameLabel": "Nom du tournoi",
@@ -511,6 +517,8 @@
     "youParenthesis": "(Vous)"
   },
   "premiumLobby": {
+    "playedShort": "Parties Jouées",
+    "wonShort": "Parties Gagnées",
     "registeredPlayer": "JOUEUR ENREGISTRÉ",
     "hello": "Bonjour, {{username}} !",
     "rankPoints": "Points de Rang",
@@ -582,7 +590,7 @@
     "writeMessage": "Écrivez un message...",
     "send": "Envoyer",
     "leaderboardTitle": "Classement Général",
-    "leaderboardSubtitle": "Euskadi Mus Arena",
+    "leaderboardSubtitle": "Enbido",
     "loadingLeaderboard": "Chargement du classement des champions...",
     "noLeaderboardData": "Aucune donnée de classement disponible.",
     "position": "Position",

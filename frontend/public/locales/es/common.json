@@ -102,7 +102,8 @@
     "codeExpired": "El código ha expirado. Regresa para generar otro.",
     "verifyAndEnter": "Verificar y Entrar",
     "invalidCode": "Introduce un código de 6 dígitos",
-    "wrongCode": "Código de seguridad incorrecto"
+    "wrongCode": "Código de seguridad incorrecto",
+    "or": "O"
   },
   "meetup": {
     "title": "Encontrar Partida Física",
@@ -113,7 +114,7 @@
     "filterMine": "Creadas por mí",
     "loading": "Cargando...",
     "empty": "No hay anuncios que coincidan con los filtros seleccionados.",
-    "locationLabel": "Ubicación (Bar, Local, Ciudad): *",
+    "locationLabel": "Ubicación: *",
     "locationPlaceholder": "Ej.: Taberna El Botxo",
     "searchMap": "🔍 Buscar en el Mapa",
     "searching": "Buscando...",
@@ -122,8 +123,8 @@
     "coordinates": "Latitud: {{lat}} | Longitud: {{lng}}",
     "dateTimeLabel": "Fecha y hora de la quedada: *",
     "establishmentTypeLabel": "Tipo de local: *",
-    "bar": "🍻 Taberna / Bar",
-    "txoko": "🍽️ Sociedad Gastronómica / Txoko",
+    "bar": "🍻 Bar",
+    "txoko": "🍽️ Sociedad Gastronómica",
     "cafe": "☕ Cafetería",
     "outdoor": "🌳 Al aire libre / Parque",
     "missingPlayersLabel": "Jugadores que faltan: *",
@@ -179,7 +180,11 @@
     "seoDescription": "Encuentra y organiza quedadas físicas de Mus en el País Vasco. Busca mesas completas o abiertas con nuestro mapa interactivo y únete a partidas locales.",
     "seoKeywords": "mus pais vasco, quedadas mus, encuentros mus, mapa mus, jugar mus en persona",
     "seoJsonLdName": "Quedadas de Mus y Mesas Físicas - Enbido",
-    "seoJsonLdDescription": "Eventos locales y quedadas para jugadores de Mus en el País Vasco."
+    "seoJsonLdDescription": "Eventos locales y quedadas para jugadores de Mus en el País Vasco.",
+    "locateAnnouncement": "📍 Ubica la partida en el mapa (Mueve el pin o haz clic):",
+    "dateAndTime":"Fecha y hora del encuentro: *",
+    "establishmentType":"Tipo de establecimiento: *",
+        "playersNeeded":"Jugadores faltantes: *"
   },
   "tournament": {
     "title": "Torneos",
@@ -198,6 +203,7 @@
     "formTitle": "Publica tu torneo",
     "formSubtitle": "Rellena los detalles de tu torneo",
     "cancel": "Cancelar",
+    "spanText": "🏆 Si quieres unirte a un torneo virtual y ver/gestionar sus brackets, haz clic aquí.",
     "submit": "Publicar",
     "contactFooter": "Si tienes algún problema:",
     "nameLabel": "Nombre del torneo",
@@ -493,8 +499,8 @@
     "musTable": "MESA DE MUS",
     "seated": "{{count}}/4 Sentados",
     "kingsRule": "REGLA REYES:",
-    "kings8": "👑 8 Reyes (Español)",
-    "kings4": "⚔️ 4 Reyes (Vasco)",
+    "kings8": "8 Reyes",
+    "kings4": "4 Reyes",
     "roundsToWin": "CHICOS A GANAR:",
     "round1": "1 Chico (Partida rápida)",
     "round2": "2 Chicos (Al mejor de 3)",
@@ -519,6 +525,8 @@
     "youParenthesis": "(Tú)"
   },
   "premiumLobby": {
+    "playedShort": "Partidas jugadas",
+    "wonShort": "Partidas ganadas",
     "registeredPlayer": "JUGADOR REGISTRADO",
     "hello": "¡Hola, {{username}}!",
     "rankPoints": "Puntos de Rango",
@@ -590,7 +598,7 @@
     "writeMessage": "Escribe un mensaje...",
     "send": "Enviar",
     "leaderboardTitle": "Clasificación General",
-    "leaderboardSubtitle": "Euskadi Mus Arena",
+    "leaderboardSubtitle": "Enbido",
     "loadingLeaderboard": "Cargando clasificación de campeones...",
     "noLeaderboardData": "No hay datos de clasificación disponibles.",
     "position": "Puesto",

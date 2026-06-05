@@ -1217,7 +1217,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
                   <span>⚔️</span> {t('premiumLobby.rules4Lances')}
                 </h3>
                 <p className="rules-text">
-                  {t('premiumLobby.lancesIntro')}
+                  {t('rules.lancesIntro')}
                 </p>
                 <div className="rules-grid-2col">
                   <div className="rules-card">
