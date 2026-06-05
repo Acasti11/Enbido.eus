@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './homepage.css';
@@ -44,38 +44,35 @@ const CardsIcon: React.FC = () => (
   </svg>
 );
 
+const UserPlusIcon: React.FC = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <line x1="19" y1="8" x2="19" y2="14" />
+    <line x1="22" y1="11" x2="16" y2="11" />
+  </svg>
+);
+
+const GameControllerIcon: React.FC = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="6" y1="12" x2="10" y2="12" />
+    <line x1="8" y1="10" x2="8" y2="14" />
+    <line x1="15" y1="13" x2="15.01" y2="13" />
+    <line x1="18" y1="11" x2="18.01" y2="11" />
+    <rect x="2" y="6" width="20" height="12" rx="3" />
+  </svg>
+);
+
+const CrownIcon: React.FC = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z" />
+    <path d="M5 20h14" />
+  </svg>
+);
+
 // ========== SUB-COMPONENTS ==========
 
-interface StatsBarProps {
-  onlinePlayers: number;
-  gamesToday: number;
-}
-
-const StatsBar: React.FC<StatsBarProps> = ({ onlinePlayers, gamesToday }) => {
-  const { t } = useTranslation();
-  return (
-    <div className="home-stats-bar" aria-label={t('home.liveStatsAriaLabel')}>
-      <div className="home-stat-item">
-        <span className="home-stat-number">
-          <span className="home-stat-pulse" />
-          {onlinePlayers.toLocaleString()}
-        </span>
-        <span className="home-stat-label">{t('home.onlinePlayers')}</span>
-      </div>
-      <div className="home-stat-item">
-        <span className="home-stat-number">{gamesToday.toLocaleString()}</span>
-        <span className="home-stat-label">{t('home.gamesToday')}</span>
-      </div>
-    </div>
-  );
-};
-
-interface HeroCtaPaneProps {
-  onlinePlayers: number;
-  gamesToday: number;
-}
-
-const HeroCtaPane: React.FC<HeroCtaPaneProps> = ({ onlinePlayers, gamesToday }) => {
+const HeroCtaPane: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -86,7 +83,6 @@ const HeroCtaPane: React.FC<HeroCtaPaneProps> = ({ onlinePlayers, gamesToday }) 
         <span>{t('home.titleSub')}</span>
       </h1>
       <p className="home-subtitle">{t('home.subtitle')}</p>
-      <StatsBar onlinePlayers={onlinePlayers} gamesToday={gamesToday} />
       <div className="home-buttons-box">
         <button
           className="btn-play-primary"
@@ -126,9 +122,6 @@ const HeroVisualPane: React.FC = () => {
         alt={t('home.heroImageAlt')}
         className="home-hero-img"
       />
-      <div className="home-visual-overlay">
-        <div className="home-visual-tagline">{t('home.tagline')}</div>
-      </div>
     </div>
   );
 };
@@ -178,6 +171,51 @@ const FeaturesSection: React.FC = () => {
     </section>
   );
 };
+
+interface HowToPlayCardProps {
+  icon: React.ReactNode;
+  titleKey: string;
+  descKey: string;
+}
+
+const HowToPlayCard: React.FC<HowToPlayCardProps> = ({ icon, titleKey, descKey }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="home-step-card">
+      <div className="home-step-icon">{icon}</div>
+      <h3 className="home-step-title">{t(titleKey)}</h3>
+      <p className="home-step-desc">{t(descKey)}</p>
+    </div>
+  );
+};
+
+const HowToPlaySection: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <section className="home-how-section" aria-label={t('home.howToPlayTitle')}>
+      <h2 className="home-section-title">{t('home.howToPlayTitle')}</h2>
+      <div className="home-steps-grid">
+        <HowToPlayCard
+          icon={<UserPlusIcon />}
+          titleKey="home.step1Title"
+          descKey="home.step1Desc"
+        />
+        <HowToPlayCard
+          icon={<GameControllerIcon />}
+          titleKey="home.step2Title"
+          descKey="home.step2Desc"
+        />
+        <HowToPlayCard
+          icon={<CrownIcon />}
+          titleKey="home.step3Title"
+          descKey="home.step3Desc"
+        />
+      </div>
+    </section>
+  );
+};
+
+
 
 const ShopBanner: React.FC = () => {
   const { t } = useTranslation();
@@ -229,24 +267,6 @@ const HomeFooter: React.FC = () => {
 
 // ========== HOOKS ==========
 
-const useLiveStats = () => {
-  const [onlinePlayers, setOnlinePlayers] = useState(1482);
-  const [gamesToday, setGamesToday] = useState(3841);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setOnlinePlayers((prev) => {
-        const change = Math.floor(Math.random() * 11) - 5;
-        return Math.max(1400, prev + change);
-      });
-      setGamesToday((prev) => prev + Math.floor(Math.random() * 2));
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return { onlinePlayers, gamesToday };
-};
-
 const useHomeSeo = () => {
   const { t } = useTranslation();
   useSeo({
@@ -276,17 +296,16 @@ const useHomeSeo = () => {
 // ========== MAIN COMPONENT ==========
 
 const HomePage: React.FC = (): React.JSX.Element => {
-  const { onlinePlayers, gamesToday } = useLiveStats();
-
   useHomeSeo();
 
   return (
     <div className="home-container">
       <section className="home-hero-section">
         <HeroVisualPane />
-        <HeroCtaPane onlinePlayers={onlinePlayers} gamesToday={gamesToday} />
+        <HeroCtaPane />
       </section>
       <FeaturesSection />
+      <HowToPlaySection />
       <ShopBanner />
       <HomeFooter />
     </div>
