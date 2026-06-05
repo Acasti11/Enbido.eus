@@ -21,5 +21,5 @@ public class MeetupParticipant {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private Usuario user;
+    private User user;
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import api from '../../services/api';
 import './navbar.css';
 
 import { useSettings } from '../../context/SettingsContext';
@@ -63,6 +64,13 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Age based initial ELO check states
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [birthDateInput, setBirthDateInput] = useState('');
+  const [ageModalError, setAgeModalError] = useState('');
+  const [submittingAge, setSubmittingAge] = useState(false);
+  const [currentUserDetails, setCurrentUserDetails] = useState<any>(null);
+
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -105,11 +113,86 @@ const Navbar: React.FC = (): React.JSX.Element => {
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token && localStorage.getItem('enbido_age_checked') !== 'true') {
+      api.get('/usuarios/me')
+        .then(res => {
+          setCurrentUserDetails(res.data);
+          if (!res.data.birthDate) {
+            setShowAgeModal(true);
+          } else {
+            localStorage.setItem('enbido_age_checked', 'true');
+          }
+        })
+        .catch(err => {
+          console.error('Error checking user age on login:', err);
+        });
+    }
+  }, [isLoggedIn, location.pathname]);
+
+  const handleAgeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!birthDateInput) {
+      setAgeModalError(t('login.requiredField'));
+      return;
+    }
+
+    const birthDate = new Date(birthDateInput);
+    const today = new Date();
+    if (birthDate >= today) {
+      setAgeModalError(t('login.invalidBirthDate'));
+      return;
+    }
+
+    const minDate = new Date();
+    minDate.setFullYear(today.getFullYear() - 3);
+    if (birthDate > minDate) {
+      setAgeModalError(t('login.invalidBirthDate'));
+      return;
+    }
+
+    setSubmittingAge(true);
+    setAgeModalError('');
+
+    try {
+      await api.put('/usuarios/me', {
+        name: currentUserDetails?.name || '',
+        surname: currentUserDetails?.surname || '',
+        phoneNumber: currentUserDetails?.phoneNumber || '',
+        postalCode: currentUserDetails?.postalCode || '',
+        birthDate: birthDateInput
+      });
+
+      localStorage.setItem('enbido_age_checked', 'true');
+      setShowAgeModal(false);
+      window.dispatchEvent(new Event('enbido_login'));
+    } catch (err) {
+      console.error('Error setting age:', err);
+      setAgeModalError(t('account.updateError'));
+    } finally {
+      setSubmittingAge(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    return () => {
+      document.body.classList.remove('no-scroll');
+    };
+  }, [isDrawerOpen]);
+
   const handleLogout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('role');
+    localStorage.removeItem('enbido_age_checked');
+    console.log("logged out");
     setIsLoggedIn(false);
     navigate('/login');
   }, [navigate]);
@@ -122,11 +205,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const handleCloseDrawer = useCallback(() => {
     playSfx('click');
     setIsDrawerOpen(false);
-  }, [playSfx]);
-
-  const handleOpenSettings = useCallback(() => {
-    playSfx('click');
-    setShowSettingsModal(true);
   }, [playSfx]);
 
   const handleCloseSettings = useCallback(() => {
@@ -210,14 +288,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
         <Link to="/tienda" className="navbar__shop-btn" title={t('nav.shop')} onClick={() => playSfx('click')}>
           <ShopIcon />
         </Link>
-
-        <button
-          className="navbar__shop-btn"
-          title={t('nav.settings')}
-          onClick={handleOpenSettings}
-        >
-          <SettingsIcon />
-        </button>
 
         <LanguageSwitcher />
 
@@ -312,39 +382,44 @@ const Navbar: React.FC = (): React.JSX.Element => {
       </div>
 
       {/* Mobile drawer */}
-      <div className={`navbar__drawer ${isDrawerOpen ? 'navbar__drawer--open' : ''}`}>
-        <div className="navbar__drawer-header">
-          <span className="navbar__drawer-title">ENBIDO</span>
-          <button
-            className="navbar__drawer-close"
-            onClick={handleCloseDrawer}
-          >
-            ✕
-          </button>
-        </div>
-        <nav className="navbar__drawer-nav">
-          {renderDrawerLinks()}
-        </nav>
-        <div className="navbar__drawer-actions">
-          <Link
-            to="/tienda"
-            className="navbar__drawer-action-btn"
-            onClick={handleCloseDrawer}
-          >
-            <ShopIcon /> {t('nav.shop')}
-          </Link>
-          <button
-            className="navbar__drawer-action-btn"
-            onClick={() => {
-              handleCloseDrawer();
-              setShowSettingsModal(true);
-            }}
-          >
-            <SettingsIcon /> {t('nav.settings')}
-          </button>
-        </div>
-      </div>
-      {isDrawerOpen && <div className="navbar__overlay" onClick={() => setIsDrawerOpen(false)} />}
+      {createPortal(
+        <>
+          <div className={`navbar__drawer ${isDrawerOpen ? 'navbar__drawer--open' : ''}`}>
+            <div className="navbar__drawer-header">
+              <span className="navbar__drawer-title">ENBIDO</span>
+              <button
+                className="navbar__drawer-close"
+                onClick={handleCloseDrawer}
+              >
+                ✕
+              </button>
+            </div>
+            <nav className="navbar__drawer-nav">
+              {renderDrawerLinks()}
+            </nav>
+            <div className="navbar__drawer-actions">
+              <Link
+                to="/tienda"
+                className="navbar__drawer-action-btn"
+                onClick={handleCloseDrawer}
+              >
+                <ShopIcon /> {t('nav.shop')}
+              </Link>
+              <button
+                className="navbar__drawer-action-btn"
+                onClick={() => {
+                  handleCloseDrawer();
+                  setShowSettingsModal(true);
+                }}
+              >
+                <SettingsIcon /> {t('nav.settings')}
+              </button>
+            </div>
+          </div>
+          {isDrawerOpen && <div className="navbar__overlay" onClick={() => setIsDrawerOpen(false)} />}
+        </>,
+        document.body
+      )}
 
       {/* Settings Modal */}
       {showSettingsModal && createPortal(
@@ -485,6 +560,43 @@ const Navbar: React.FC = (): React.JSX.Element => {
                 {t('settings.save')}
               </button>
             </footer>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Age Prompt Modal */}
+      {showAgeModal && createPortal(
+        <div className="settings-modal-overlay age-modal-overlay">
+          <div className="settings-modal age-modal">
+            <h2 className="age-modal__title">
+              🎂 {t('login.agePromptTitle')}
+            </h2>
+            <p className="age-modal__desc">
+              {t('login.agePromptDesc')}
+            </p>
+            <form onSubmit={handleAgeSubmit}>
+              <input
+                type="date"
+                className="settings-select age-modal__input"
+                value={birthDateInput}
+                onChange={(e) => setBirthDateInput(e.target.value)}
+                disabled={submittingAge}
+                required
+              />
+              {ageModalError && (
+                <p className="age-modal__error">
+                  {ageModalError}
+                </p>
+              )}
+              <button
+                type="submit"
+                className="settings-save-btn age-modal__submit"
+                disabled={submittingAge}
+              >
+                {submittingAge ? t('common.loading') : t('login.agePromptSubmit')}
+              </button>
+            </form>
           </div>
         </div>,
         document.body

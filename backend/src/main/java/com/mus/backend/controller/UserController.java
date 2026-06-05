@@ -1,22 +1,26 @@
 package com.mus.backend.controller;
 
-import com.mus.backend.model.Usuario;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.model.User;
+import com.mus.backend.repository.UserRepository;
 import com.mus.backend.service.UserService;
 import com.mus.backend.model.LoginRequest;
 import com.mus.backend.dto.UserRegisterDto;
 import com.mus.backend.dto.LoginResponseDto;
+import com.mus.backend.repository.UserGameProfileRepository;
+import com.mus.backend.model.UserGameProfile;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -24,10 +28,13 @@ import java.util.Map;
 public class UserController {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserGameProfileRepository userGameProfileRepository;
 
     // ============================================
     // PÚBLICO: Registro (sin token)
@@ -42,6 +49,10 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
                 Map.of("error", e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                Map.of("error", e.getClass().getSimpleName() + ": " + e.getMessage())
             );
         }
     }
@@ -90,30 +101,44 @@ public class UserController {
     public ResponseEntity<?> getMyProfile(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         
-        Usuario usuario = usuarioRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
-        usuario.setPassword(null);
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(user);
     }
 
     // ============================================
     // PROTEGIDO: Actualizar MI perfil (del token)
     // ============================================
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyProfile(@RequestBody Usuario datos, HttpServletRequest request) {
+    public ResponseEntity<?> updateMyProfile(@RequestBody User datos, HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         
-        Usuario usuario = usuarioRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        usuario.setName(datos.getName());
-        usuario.setSurname(datos.getSurname());
-        usuario.setPhoneNumber(datos.getPhoneNumber());
-        usuario.setPostalCode(datos.getPostalCode());
+        boolean isBirthDateSetFirstTime = (user.getBirthDate() == null && datos.getBirthDate() != null);
+
+        user.setName(datos.getName());
+        user.setSurname(datos.getSurname());
+        user.setPhoneNumber(datos.getPhoneNumber());
+        user.setPostalCode(datos.getPostalCode());
+        if (datos.getBirthDate() != null) {
+            user.setBirthDate(datos.getBirthDate());
+        }
         
-        Usuario updated = usuarioRepository.save(usuario);
-        updated.setPassword(null);
+        User updated = userRepository.save(user);
+
+        if (isBirthDateSetFirstTime) {
+            UserGameProfile profile = userGameProfileRepository.findById(userId)
+                .orElseGet(() -> new UserGameProfile(userId));
+            int age = java.time.LocalDate.now().getYear() - updated.getBirthDate().getYear();
+            int elo = (int) Math.round(1000.5769 + 30.0668 * age - 0.26948 * age * age);
+            elo = Math.max(500, Math.min(2000, elo));
+            profile.setElo(elo);
+            userGameProfileRepository.save(profile);
+        }
+
         return ResponseEntity.ok(updated);
     }
 
@@ -123,7 +148,7 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteMyAccount(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
-        usuarioRepository.deleteById(userId);
+        userRepository.deleteById(userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -132,8 +157,7 @@ public class UserController {
     // ============================================
     @GetMapping
     public ResponseEntity<?> getAllUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        usuarios.forEach(u -> u.setPassword(null));
+        List<User> usuarios = userRepository.findAll();
         return ResponseEntity.ok(usuarios);
     }
 
@@ -204,6 +228,22 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    // ============================================
+    // EXCEPTION HANDLER: Validation errors (@Valid)
+    // ============================================
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.badRequest().body(
+            Map.of("error", "Validation failed", "details", errors)
+        );
     }
 
     // ============================================

@@ -32,7 +32,7 @@ public class AuthController {
     public ResponseEntity<?> loginTraditional(@RequestBody LoginRequest request) {
         try {
             AuthResponse response = authService.loginTraditional(
-                    request.getUsername(),
+                    request.getEmail(),
                     request.getPassword()
             );
             return ResponseEntity.ok(response);

@@ -1,6 +1,6 @@
 .ad-card {
-  background-color: var(--color-card-bg); 
-  border: 1px solid var(--color-card-border); 
+  background-color: var(--color-surface-dark); 
+  border: 1px solid rgba(255, 255, 255, 0.08); 
   border-radius: var(--radius-xl); 
   padding: var(--space-lg); 
   display: flex; 
@@ -15,7 +15,7 @@
 }
 
 .ad-card__header { 
-  border-bottom: 1px solid var(--color-card-border); 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
   padding-bottom: var(--space-md); 
   margin-bottom: var(--space-md); 
 }
@@ -27,13 +27,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-brand-dark); 
+  color: var(--color-gold); 
   margin: 0 0 var(--space-xs) 0; 
 }
 
 .ad-card__creator { 
   font-size: var(--font-size-sm); 
-  color: var(--color-text-secondary); 
+  color: var(--color-text-white-70); 
   margin: 0; 
 }
 
@@ -55,7 +55,7 @@
 
 .ad-card__desc { 
   font-size: var(--font-size-md); 
-  color: var(--color-text-secondary); 
+  color: var(--color-text-white-70); 
   line-height: 1.5; 
   margin: 0; 
 }
@@ -100,9 +100,9 @@
 
 .btn-chat-toggle {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-white);
-  border: 1px solid var(--color-card-border);
+  background: #121212;
+  color: var(--color-text-white) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 10px 16px;
   border-radius: var(--radius-lg);
   font-weight: 600;
@@ -115,9 +115,9 @@
 }
 
 .btn-chat-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #1f1f1f;
   border-color: var(--color-info);
-  color: var(--color-info);
+  color: var(--color-info) !important;
 }
 
 /* Chat de Mesa */
@@ -284,7 +284,7 @@
   gap: 15px;
   margin-top: 6px;
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--color-text-white-70);
 }
 
 .ad-card__date-tag {
@@ -331,9 +331,9 @@
 /* Maps Navigation button */
 .btn-maps-link {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
+  background: #121212;
   color: var(--color-text-white);
-  border: 1px solid var(--color-card-border);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 10px 16px;
   border-radius: var(--radius-lg);
   font-weight: 700;
@@ -347,19 +347,19 @@
 }
 
 .btn-maps-link:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #1f1f1f;
   border-color: var(--color-success);
   color: var(--color-success);
 }
 
 .btn-chat-contact {
-  background-color: var(--color-gold-alpha-15) !important;
+  background-color: #121212 !important;
   color: var(--color-gold) !important;
   border-color: var(--color-gold-alpha-30) !important;
 }
 
 .btn-chat-contact:hover {
-  background-color: var(--color-gold-alpha-30) !important;
+  background-color: #1f1f1f !important;
   border-color: var(--color-gold) !important;
   color: var(--color-gold) !important;
 }
@@ -386,13 +386,15 @@
 }
 
 .btn-share-link {
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  background: #121212 !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
   color: var(--color-success) !important;
 }
 
 .btn-share-link:hover {
-  background: rgba(16, 185, 129, 0.1) !important;
+  background: #1f1f1f !important;
   border-color: var(--color-success) !important;
+  color: var(--color-success) !important;
 }
 
 .ad-card__header-top {

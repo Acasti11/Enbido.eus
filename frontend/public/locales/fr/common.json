@@ -17,13 +17,24 @@
     "accountProfile": "Profil du Compte"
   },
   "home": {
-    "tagline": "🏆 MAISON DU MAÎTRE ENBIDO 🏆",
     "title": "Jouez au Mus en Ligne",
     "titleSub": "Jouez au Mus dans la Plus Grande Communauté",
     "subtitle": "Affrontez les meilleurs joueurs ou créez une table privée pour vos amis.",
     "onlinePlayers": "En ligne",
     "gamesToday": "Parties aujourd'hui",
     "playNow": "Jouer Maintenant",
+    "howToPlayTitle": "Comment ça marche ?",
+    "step1Title": "1. Créer un Compte",
+    "step1Desc": "Inscrivez-vous gratuitement, obtenez vos pièces de départ et personnalisez votre profil.",
+    "step2Title": "2. Choisir le Mode",
+    "step2Desc": "Jouez avec des amis dans des salons privés, affrontez-les en matchmaking rapide ou entraînez-vous contre des bots.",
+    "step3Title": "3. Grimper dans le Classement",
+    "step3Desc": "Gagnez des matchs, accumulez des points ELO et prouvez qui est le plus grand Maître d'Enbido.",
+    "topPlayersTitle": "Podium des Champions",
+    "topPlayersDesc": "Les meilleurs joueurs du classement général de l'Euskadi Mus Arena. Augmentez votre ELO pour les affronter !",
+    "rankEnbidoMaisu": "Maître d'Enbido",
+    "rankExpert": "Expert",
+    "rankBeginner": "Débutant",
     "joinTournaments": "Rejoindre les Tournois",
     "findMeetups": "Trouver des Rencontres",
     "featurePlay": "Jouer",
@@ -91,7 +102,19 @@
     "codeExpired": "Le code a expiré. Retournez en arrière pour en générer un autre.",
     "verifyAndEnter": "Vérifier et entrer",
     "invalidCode": "Saisissez un code à 6 chiffres",
-    "wrongCode": "Code de sécurité incorrect"
+    "agePromptTitle": "Complétez votre profil!",
+    "agePromptDesc": "Veuillez saisir votre date de naissance afin de calculer votre ELO initial en fonction de votre âge selon notre étude statistique.",
+    "agePromptSubmit": "Enregistrer et Commencer",
+    "wrongCode": "Code de sécurité incorrect",
+    "error": {
+      "invalidCredentials": "L'email ou le mot de passe est incorrect",
+      "accountNotFound": "Ce compte n'existe pas. Voulez-vous vous inscrire ?",
+      "tooManyAttempts": "Trop de tentatives. Attendez 5 minutes.",
+      "accountLocked": "Votre compte est bloqué. Contactez le support.",
+      "usernameRequired": "Entrez votre nom d'utilisateur ou email",
+      "passwordRequired": "Entrez votre mot de passe",
+      "accountNotFoundHint": "Vous n'avez pas de compte ?"
+    }
   },
   "meetup": {
     "title": "Trouver une Partie Physique",
@@ -397,6 +420,9 @@
     "eloGained": "Vous avez gagné {{elo}} ELO",
     "eloLost": "Vous avez perdu {{elo}} ELO",
     "eloNoChange": "Aucun changement d'ELO",
+    "coinsGained": "Vous avez gagné {{coins}} pièces",
+    "coinsLost": "Vous avez perdu {{coins}} pièces",
+    "coinsNoChange": "Aucun changement de pièces",
     "finalScore": "Points du dernier chico",
     "chicasLabel": "Chicos : {{rounds}}",
     "botLabel": "Robot",
@@ -497,6 +523,20 @@
     "youParenthesis": "(Vous)"
   },
   "premiumLobby": {
+    "createTournament": "+ Créer un Tournoi",
+    "createTourneyTitle": "Créer un Tournoi Virtuel",
+    "tourneyName": "Nom du Tournoi",
+    "dateTimeLabel": "Date et Heure de Début",
+    "coinsFeeLabel": "Frais d'inscription (Pièces)",
+    "coinsRewardLabel": "Récompense du vainqueur (Pièces)",
+    "maxTeamsLabel": "Capacité (Joueurs)",
+    "locationLabel": "Emplacement du Serveur",
+    "creating": "Création...",
+    "create": "Créer",
+    "errorTourneyNameRequired": "Le nom du tournoi est obligatoire.",
+    "errorTourneyDateTimeRequired": "La date et l'heure de début sont obligatoires.",
+    "createTourneySuccess": "Tournoi créé avec succès",
+    "createTourneyError": "Erreur lors de la création du tournoi",
     "registeredPlayer": "JOUEUR ENREGISTRÉ",
     "hello": "Bonjour, {{username}} !",
     "rankPoints": "Points de Rang",
@@ -678,7 +718,18 @@
     "deleteFriend": "Retirer l'ami",
     "blockUser": "Bloquer",
     "unblockUser": "Débloquer",
-    "blockedTab": "Bloqué"
+    "blockedTab": "Bloqué",
+    "yourActiveMatch": "Votre Match Actif",
+    "readyBtn": "Je suis Prêt",
+    "cancelReadyBtn": "Annuler Prêt",
+    "countdownMsg": "La manche commence ou expire dans: {{seconds}}s",
+    "disqualificationWarning": "Attention: Vous serez disqualifié si vous ne vous préparez pas à temps !",
+    "bothReadyRedirecting": "Les deux joueurs sont prêts! Redirection vers le plateau...",
+    "playerReadyStatus": "Prêt",
+    "playerNotReadyStatus": "Pas Prêt",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "usersList": {
     "title": "Utilisateurs",
@@ -711,5 +762,47 @@
     "gameKeywords": "jouer mus, mus en ligne, matchmaking mus, salles mus, jouer mus en ligne gratuit",
     "gameOgTitle": "Lobby de Mus - Enbido",
     "gamePlatform": "Navigateur Web"
+  },
+  "register": {
+    "confirmPassword": "Confirmer le mot de passe",
+    "placeholderConfirmPassword": "Répétez votre mot de passe",
+    "success": "Compte créé ! Redirection vers la connexion...",
+    "errorGeneric": "Erreur lors de la création du compte",
+    "errorUsernameOrEmailExists": "Nom d'utilisateur ou email déjà enregistré",
+    "password": {
+      "showRequirements": "Voir les exigences de sécurité",
+      "requirements": {
+        "minLength": "Minimum 8 caractères",
+        "uppercase": "Au moins 1 majuscule (A-Z)",
+        "lowercase": "Au moins 1 minuscule (a-z)",
+        "number": "Au moins 1 chiffre (0-9)",
+        "specialChar": "Au moins 1 caractère spécial (!@#$%^&*...)"
+      },
+      "strength": {
+        "weak": "Faible",
+        "fair": "Acceptable",
+        "good": "Bonne",
+        "strong": "Fort"
+      }
+    },
+    "validation": {
+      "nameRequired": "Le prénom est obligatoire",
+      "nameMinLength": "Le prénom doit contenir au moins 2 caractères",
+      "emailRequired": "L'email est obligatoire",
+      "emailInvalid": "Entrez un email valide (exemple@email.com)",
+      "usernameRequired": "Le nom d'utilisateur est obligatoire",
+      "usernameMinLength": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+      "usernameNoSpaces": "Le nom d'utilisateur ne peut pas contenir d'espaces",
+      "passwordRequired": "Le mot de passe est obligatoire",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordUppercase": "Doit contenir au moins une majuscule",
+      "passwordLowercase": "Doit contenir au moins une minuscule",
+      "passwordNumber": "Doit contenir au moins un chiffre",
+      "passwordSpecialChar": "Doit contenir au moins un caractère spécial",
+      "confirmPasswordRequired": "Confirmez votre mot de passe",
+      "passwordsMismatch": "Les mots de passe ne correspondent pas",
+      "birthDateRequired": "La date de naissance est obligatoire",
+      "birthDateInvalid": "La date de naissance doit être dans le passé"
+    }
   }
 }

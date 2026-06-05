@@ -83,3 +83,8 @@ body {
     --spacing-3xl: 1.75rem;
   }
 }
+
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100vh;
+}

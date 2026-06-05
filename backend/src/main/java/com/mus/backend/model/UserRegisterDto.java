@@ -23,7 +23,7 @@ public class UserRegisterDto {
     @StrongPassword
     private String password;
     
-    @Pattern(regexp = "^\\+?[0-9\\s]{9,20}$", message = "Phone must be 9-20 digits/spaces, optional + prefix")
+    @Pattern(regexp = "^(\\+?[0-9\\s]{9,20})?$", message = "Phone must be 9-20 digits/spaces, optional + prefix")
     private String phoneNumber;
 
     @PostalCodeES

@@ -1,9 +1,9 @@
 package com.mus.backend.controller;
 
 import com.mus.backend.model.DirectMessage;
-import com.mus.backend.model.Usuario;
+import com.mus.backend.model.User;
 import com.mus.backend.repository.DirectMessageRepository;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class DirectMessageController {
     private DirectMessageRepository directMessageRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private com.mus.backend.service.FriendshipService friendshipService;
@@ -37,7 +37,7 @@ public class DirectMessageController {
         Long currentUserId = getCurrentUserId(request);
         
         // Verify receiver exists
-        if (!usuarioRepository.existsById(friendId)) {
+        if (!userRepository.existsById(friendId)) {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario amigo no encontrado"));
         }
 
@@ -63,7 +63,7 @@ public class DirectMessageController {
         }
 
         // Verify receiver exists
-        Optional<Usuario> receiverOpt = usuarioRepository.findById(friendId);
+        Optional<User> receiverOpt = userRepository.findById(friendId);
         if (receiverOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario receptor no encontrado"));
         }

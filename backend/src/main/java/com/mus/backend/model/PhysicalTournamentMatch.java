@@ -37,4 +37,32 @@ public class PhysicalTournamentMatch {
 
     @Column(name = "score")
     private String score = "";
+
+    @Column(name = "player1_ready")
+    private Boolean player1Ready = false;
+
+    @Column(name = "player2_ready")
+    private Boolean player2Ready = false;
+
+    @Column(name = "player1_partner_id")
+    private Long player1PartnerId;
+
+    @Column(name = "player2_partner_id")
+    private Long player2PartnerId;
+
+    @Column(name = "player1_partner_ready")
+    private Boolean player1PartnerReady = false;
+
+    @Column(name = "player2_partner_ready")
+    private Boolean player2PartnerReady = false;
+
+    @Column(name = "round_start_time")
+    private java.time.LocalDateTime roundStartTime;
+
+    @Column(name = "is_completed")
+    private Boolean isCompleted = false;
+
+    @Column(name = "game_room_id")
+    private String gameRoomId;
 }
+

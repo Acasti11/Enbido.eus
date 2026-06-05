@@ -17,13 +17,24 @@
     "accountProfile": "Account Profile"
   },
   "home": {
-    "tagline": "🏆 HOUSE OF THE ENBIDO MASTER 🏆",
     "title": "Play Mus Online",
     "titleSub": "Play Mus in the Largest Community",
     "subtitle": "Compete against the best players or create a private table for your friends.",
     "onlinePlayers": "Online",
     "gamesToday": "Games today",
     "playNow": "Play Now",
+    "howToPlayTitle": "How it works?",
+    "step1Title": "1. Create Account",
+    "step1Desc": "Register for free, get your starting coins and customize your profile details.",
+    "step2Title": "2. Choose Mode",
+    "step2Desc": "Play with friends in private rooms, compete in quick matchmaking, or practice against bots.",
+    "step3Title": "3. Climb the Ranking",
+    "step3Desc": "Win matches, accumulate ELO points and prove who is the greatest Enbido Master.",
+    "topPlayersTitle": "Champions Podium",
+    "topPlayersDesc": "The best players in the general ranking of Euskadi Mus Arena. Raise your ELO to compete against them!",
+    "rankEnbidoMaisu": "Enbido Master",
+    "rankExpert": "Expert",
+    "rankBeginner": "Beginner",
     "joinTournaments": "Join Tournaments",
     "findMeetups": "Find Meetups",
     "featurePlay": "Play",
@@ -91,7 +102,19 @@
     "codeExpired": "The code has expired. Go back to generate another one.",
     "verifyAndEnter": "Verify and Enter",
     "invalidCode": "Enter a 6-digit code",
-    "wrongCode": "Incorrect security code"
+    "agePromptTitle": "Complete your profile!",
+    "agePromptDesc": "Please enter your birth date to calculate your starting ELO based on your age according to our statistical study.",
+    "agePromptSubmit": "Save and Start",
+    "wrongCode": "Incorrect security code",
+    "error": {
+      "invalidCredentials": "The email or password is incorrect",
+      "accountNotFound": "This account does not exist. Want to register?",
+      "tooManyAttempts": "Too many attempts. Wait 5 minutes.",
+      "accountLocked": "Your account is locked. Contact support.",
+      "usernameRequired": "Enter your username or email",
+      "passwordRequired": "Enter your password",
+      "accountNotFoundHint": "Don't have an account?"
+    }
   },
   "meetup": {
     "title": "Find Physical Game",
@@ -404,6 +427,9 @@
     "eloGained": "Gained {{elo}} ELO",
     "eloLost": "Lost {{elo}} ELO",
     "eloNoChange": "No ELO change",
+    "coinsGained": "Gained {{coins}} coins",
+    "coinsLost": "Lost {{coins}} coins",
+    "coinsNoChange": "No coins change",
     "finalScore": "Points in last chico",
     "chicasLabel": "Chicos: {{rounds}}",
     "botLabel": "Bot",
@@ -504,6 +530,20 @@
     "youParenthesis": "(You)"
   },
   "premiumLobby": {
+    "createTournament": "+ Create Tournament",
+    "createTourneyTitle": "Create Virtual Tournament",
+    "tourneyName": "Tournament Name",
+    "dateTimeLabel": "Start Date and Time",
+    "coinsFeeLabel": "Entry Fee (Coins)",
+    "coinsRewardLabel": "Winner Reward (Coins)",
+    "maxTeamsLabel": "Capacity (Players)",
+    "locationLabel": "Server Location",
+    "creating": "Creating...",
+    "create": "Create",
+    "errorTourneyNameRequired": "Tournament name is required.",
+    "errorTourneyDateTimeRequired": "Start date and time are required.",
+    "createTourneySuccess": "Tournament created successfully",
+    "createTourneyError": "Error creating tournament",
     "registeredPlayer": "REGISTERED PLAYER",
     "hello": "Hello, {{username}}!",
     "rankPoints": "Rank Points",
@@ -685,7 +725,18 @@
     "deleteFriend": "Delete Friend",
     "blockUser": "Block",
     "unblockUser": "Unblock",
-    "blockedTab": "Blocked"
+    "blockedTab": "Blocked",
+    "yourActiveMatch": "Your Active Match",
+    "readyBtn": "I am Ready",
+    "cancelReadyBtn": "Cancel Ready",
+    "countdownMsg": "Round starts or expires in: {{seconds}}s",
+    "disqualificationWarning": "Warning: You will be disqualified if you do not ready up in time!",
+    "bothReadyRedirecting": "Both players ready! Redirecting to game board...",
+    "playerReadyStatus": "Ready",
+    "playerNotReadyStatus": "Not Ready",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "usersList": {
     "title": "Users",
@@ -718,5 +769,47 @@
     "gameKeywords": "play mus, mus online, mus matchmaking, mus rooms, play mus online free",
     "gameOgTitle": "Mus Lobby - Enbido",
     "gamePlatform": "Web Browser"
+  },
+  "register": {
+    "confirmPassword": "Confirm password",
+    "placeholderConfirmPassword": "Repeat your password",
+    "success": "Account created! Redirecting to login...",
+    "errorGeneric": "Error creating account",
+    "errorUsernameOrEmailExists": "Username or email already registered",
+    "password": {
+      "showRequirements": "View security requirements",
+      "requirements": {
+        "minLength": "Minimum 8 characters",
+        "uppercase": "At least 1 uppercase (A-Z)",
+        "lowercase": "At least 1 lowercase (a-z)",
+        "number": "At least 1 number (0-9)",
+        "specialChar": "At least 1 special character (!@#$%^&*...)"
+      },
+      "strength": {
+        "weak": "Weak",
+        "fair": "Fair",
+        "good": "Good",
+        "strong": "Strong"
+      }
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMinLength": "Name must be at least 2 characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email (example@email.com)",
+      "usernameRequired": "Username is required",
+      "usernameMinLength": "Username must be at least 3 characters",
+      "usernameNoSpaces": "Username cannot contain spaces",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordUppercase": "Must contain at least one uppercase letter",
+      "passwordLowercase": "Must contain at least one lowercase letter",
+      "passwordNumber": "Must contain at least one number",
+      "passwordSpecialChar": "Must contain at least one special character",
+      "confirmPasswordRequired": "Confirm your password",
+      "passwordsMismatch": "Passwords do not match",
+      "birthDateRequired": "Birth date is required",
+      "birthDateInvalid": "Birth date must be in the past"
+    }
   }
 }

@@ -47,5 +47,5 @@ public class PhysicalTournament {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organizer_id", insertable = false, updatable = false)
-    private Usuario organizer;
+    private User organizer;
 }

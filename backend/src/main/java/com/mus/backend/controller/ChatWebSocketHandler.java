@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mus.backend.model.DirectMessage;
 import com.mus.backend.model.MeetupMessage;
-import com.mus.backend.model.Usuario;
+import com.mus.backend.model.User;
 import com.mus.backend.repository.DirectMessageRepository;
 import com.mus.backend.repository.MeetupMessageRepository;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserRepository;
 import com.mus.backend.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private MeetupMessageRepository meetupMessageRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
 
     // Mapea userId -> WebSocketSession activa
     private final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
@@ -106,7 +106,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
             // Notify friends that this user is offline
             try {
-                String username = usuarioRepository.findById(userId).map(Usuario::getUsername).orElse("Usuario");
+                String username = userRepository.findById(userId).map(User::getUsername).orElse("Usuario");
                 List<com.mus.backend.controller.FriendshipController.FriendResponse> friends = friendshipService.getFriends(userId);
                 for (com.mus.backend.controller.FriendshipController.FriendResponse f : friends) {
                     WebSocketSession friendSession = userSessions.get(f.id);
@@ -183,13 +183,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        Optional<Usuario> receiverOpt = usuarioRepository.findById(receiverId);
+        Optional<User> receiverOpt = userRepository.findById(receiverId);
         if (receiverOpt.isEmpty()) {
             sendErrorMessage(session, "Usuario receptor no encontrado.");
             return;
         }
 
-        Optional<Usuario> senderOpt = usuarioRepository.findById(senderId);
+        Optional<User> senderOpt = userRepository.findById(senderId);
         if (senderOpt.isEmpty()) {
             sendErrorMessage(session, "Usuario emisor no encontrado.");
             return;
@@ -265,7 +265,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        Optional<Usuario> userOpt = usuarioRepository.findById(senderId);
+        Optional<User> userOpt = userRepository.findById(senderId);
         if (userOpt.isEmpty()) {
             sendErrorMessage(session, "Usuario no encontrado.");
             return;

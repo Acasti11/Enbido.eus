@@ -3,9 +3,13 @@ package com.mus.backend.engine;
 import com.mus.backend.model.GameActionLog;
 import com.mus.backend.model.PlayGame;
 import com.mus.backend.model.UserGameProfile;
+import com.mus.backend.model.PhysicalTournament;
+import com.mus.backend.model.PhysicalTournamentMatch;
 import com.mus.backend.repository.GameActionLogRepository;
 import com.mus.backend.repository.PlayGameRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
+import com.mus.backend.repository.PhysicalTournamentRepository;
+import com.mus.backend.repository.PhysicalTournamentMatchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
@@ -13,6 +17,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -35,6 +40,13 @@ public class GameSessionManager {
 
     @Autowired
     private GameActionLogRepository actionLogRepository;
+
+    @Autowired
+    private PhysicalTournamentRepository tournamentRepository;
+
+    @Autowired
+    private PhysicalTournamentMatchRepository matchRepository;
+
 
     public static class MatchmakerEntry {
         public Long userId;
@@ -271,6 +283,47 @@ public class GameSessionManager {
                     pg.setGameStateId(2); // 2 = Finalizada
                     // Actualizar las estadísticas de los perfiles de los jugadores reales
                     syncUserStatsPostGame(session);
+
+                    if (session.getRoomId().startsWith("TORNEO-")) {
+                        try {
+                            String roomId = session.getRoomId();
+                            int firstDash = roomId.indexOf("-");
+                            int secondDash = roomId.indexOf("-M");
+                            if (firstDash != -1 && secondDash != -1) {
+                                Long tournamentId = Long.parseLong(roomId.substring(firstDash + 1, secondDash));
+                                Long matchId = Long.parseLong(roomId.substring(secondDash + 2));
+
+                                matchRepository.findById(matchId).ifPresent(match -> {
+                                    boolean team1Won;
+                                    if (session.getRoundsWonUs() >= session.getConfig().getMaxRounds()) {
+                                        team1Won = true;
+                                    } else if (session.getRoundsWonThem() >= session.getConfig().getMaxRounds()) {
+                                        team1Won = false;
+                                    } else {
+                                        // Fallback for early abandonment
+                                        team1Won = session.getScoreUs() >= 30;
+                                    }
+                                    Long winnerId = team1Won ? match.getPlayer1Id() : match.getPlayer2Id();
+
+                                    match.setWinnerId(winnerId);
+                                    match.setScore(session.getRoundsWonUs() + "-" + session.getRoundsWonThem());
+                                    match.setIsCompleted(true);
+                                    matchRepository.save(match);
+
+                                    // Advance winner (both player and partner)
+                                    int currentRound = match.getRoundNumber();
+                                    advanceWinner(tournamentId, currentRound, match.getMatchIndex(), winnerId);
+
+                                    // Run round checks and byes
+                                    tournamentRepository.findById(tournamentId).ifPresent(tournament -> {
+                                        checkAndAdvanceRound(tournament);
+                                    });
+                                });
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("Error processing tournament match completion: " + ex.getMessage());
+                        }
+                    }
                 }
                 playGameRepository.save(pg);
             });
@@ -458,4 +511,141 @@ public class GameSessionManager {
         }
         System.out.println(">>> [BD] Migraciones de base de datos finalizadas con éxito.");
     }
+
+    public void checkAndAdvanceRound(PhysicalTournament tournament) {
+        Long tournamentId = tournament.getTournamentId();
+        List<PhysicalTournamentMatch> matches = matchRepository.findByTournamentId(tournamentId);
+
+        int activeRound = 4;
+        for (PhysicalTournamentMatch m : matches) {
+            if (m.getIsCompleted() == null || !m.getIsCompleted()) {
+                if (m.getRoundNumber() < activeRound) {
+                    activeRound = m.getRoundNumber();
+                }
+            }
+        }
+
+        if (activeRound == 4) {
+            tournament.setStatus("finished");
+            tournamentRepository.save(tournament);
+
+            PhysicalTournamentMatch finalMatch = matches.stream()
+                    .filter(m -> m.getRoundNumber() == 3 && m.getMatchIndex() == 0)
+                    .findFirst().orElse(null);
+            if (finalMatch != null && finalMatch.getWinnerId() != null && finalMatch.getWinnerId() > 0) {
+                Long winnerId = finalMatch.getWinnerId();
+                int prize = tournament.getCoinsReward() != null ? tournament.getCoinsReward() : 0;
+                if (prize > 0) {
+                    Long p1 = finalMatch.getPlayer1Id();
+                    Long p1P = finalMatch.getPlayer1PartnerId();
+                    Long p2 = finalMatch.getPlayer2Id();
+                    Long p2P = finalMatch.getPlayer2PartnerId();
+
+                    Long w1 = null;
+                    Long w2 = null;
+                    if (winnerId.equals(p1) || (p1P != null && winnerId.equals(p1P))) {
+                        w1 = p1;
+                        w2 = p1P;
+                    } else if (winnerId.equals(p2) || (p2P != null && winnerId.equals(p2P))) {
+                        w1 = p2;
+                        w2 = p2P;
+                    }
+
+                    if (w1 != null) {
+                        UserGameProfile profile = profileRepository.findById(w1).orElseGet(() -> new UserGameProfile(w1));
+                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
+                        profileRepository.save(profile);
+                    }
+                    if (w2 != null) {
+                        UserGameProfile profile = profileRepository.findById(w2).orElseGet(() -> new UserGameProfile(w2));
+                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
+                        profileRepository.save(profile);
+                    }
+                }
+            }
+            return;
+        }
+
+        boolean roundCompleted = true;
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        for (PhysicalTournamentMatch m : matches) {
+            if (m.getRoundNumber() == activeRound) {
+                if (m.getIsCompleted() == null || !m.getIsCompleted()) {
+                    if (m.getPlayer1Id() == null && m.getPlayer2Id() == null) {
+                        m.setIsCompleted(true);
+                        m.setScore("DNP");
+                        m.setWinnerId(null);
+                        matchRepository.save(m);
+                    } else if (m.getPlayer1Id() != null && m.getPlayer2Id() == null) {
+                        m.setIsCompleted(true);
+                        m.setWinnerId(m.getPlayer1Id());
+                        m.setScore("BYE");
+                        matchRepository.save(m);
+                        advanceWinner(tournamentId, activeRound, m.getMatchIndex(), m.getPlayer1Id());
+                    } else if (m.getPlayer1Id() == null && m.getPlayer2Id() != null) {
+                        m.setIsCompleted(true);
+                        m.setWinnerId(m.getPlayer2Id());
+                        m.setScore("BYE");
+                        matchRepository.save(m);
+                        advanceWinner(tournamentId, activeRound, m.getMatchIndex(), m.getPlayer2Id());
+                    } else {
+                        if (m.getRoundStartTime() == null) {
+                            m.setRoundStartTime(now);
+                            matchRepository.save(m);
+                        }
+                        roundCompleted = false;
+                    }
+                }
+            }
+        }
+
+        if (roundCompleted) {
+            for (PhysicalTournamentMatch m : matches) {
+                if (m.getRoundNumber() == activeRound + 1) {
+                    if (m.getPlayer1Id() != null && m.getPlayer2Id() != null && m.getRoundStartTime() == null) {
+                        m.setRoundStartTime(now);
+                        matchRepository.save(m);
+                    }
+                }
+            }
+            checkAndAdvanceRound(tournament);
+        }
+    }
+
+    private void advanceWinner(Long tournamentId, int currentRound, int matchIndex, Long winnerId) {
+        int nextRound = currentRound + 1;
+        int nextIndex = matchIndex / 2;
+        boolean isPlayer1 = matchIndex % 2 == 0;
+
+        if (currentRound < 3) {
+            PhysicalTournamentMatch nextMatch = matchRepository
+                    .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, nextRound, nextIndex);
+            PhysicalTournamentMatch currentMatch = matchRepository
+                    .findByTournamentIdAndRoundNumberAndMatchIndex(tournamentId, currentRound, matchIndex);
+
+            if (nextMatch != null && currentMatch != null) {
+                Long pWinner = null;
+                Long pWinnerPartner = null;
+
+                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
+                    pWinner = currentMatch.getPlayer1Id();
+                    pWinnerPartner = currentMatch.getPlayer1PartnerId();
+                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
+                    pWinner = currentMatch.getPlayer2Id();
+                    pWinnerPartner = currentMatch.getPlayer2PartnerId();
+                }
+
+                if (isPlayer1) {
+                    nextMatch.setPlayer1Id(pWinner);
+                    nextMatch.setPlayer1PartnerId(pWinnerPartner);
+                } else {
+                    nextMatch.setPlayer2Id(pWinner);
+                    nextMatch.setPlayer2PartnerId(pWinnerPartner);
+                }
+                matchRepository.save(nextMatch);
+            }
+        }
+    }
 }
+

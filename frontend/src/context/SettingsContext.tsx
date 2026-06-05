@@ -323,12 +323,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           className="toast-notification"
           onClick={() => {
             if (activeNotification.type === 'message' && activeNotification.meta) {
-              // Trigger lobby private chat redirect
-              localStorage.setItem('enbido_trigger_chat_with_friend_id', String(activeNotification.meta.friendId));
-              localStorage.setItem('enbido_trigger_chat_with_friend_username', activeNotification.meta.username);
-              window.dispatchEvent(new Event('storage')); // fire storage event locally
-              window.location.href = '/jugar';
+              // Open global chat window instead of navigating
+              window.dispatchEvent(new CustomEvent('enbido_open_chat', {
+                detail: {
+                  friendId: activeNotification.meta.friendId,
+                  username: activeNotification.meta.username
+                }
+              }));
             } else if (activeNotification.type === 'friend') {
+              // For friend requests, just dismiss - user can check in /jugar
               window.location.href = '/jugar';
             }
             dismissNotification();

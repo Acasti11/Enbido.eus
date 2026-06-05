@@ -17,13 +17,24 @@
     "accountProfile": "Perfil de Cuenta"
   },
   "home": {
-    "tagline": "🏆 LA CASA DEL MAESTRO DEL ENBIDO 🏆",
     "title": "Jugar al Mus Online",
     "titleSub": "Juega al Mus en la Mayor Comunidad",
     "subtitle": "Compite contra los mejores jugadores o crea una mesa privada para tus amigos.",
     "onlinePlayers": "En línea",
     "gamesToday": "Partidas hoy",
     "playNow": "Jugar Ahora",
+    "howToPlayTitle": "¿Cómo funciona?",
+    "step1Title": "1. Crea tu Cuenta",
+    "step1Desc": "Regístrate gratis, consigue tus monedas iniciales y personaliza tu perfil.",
+    "step2Title": "2. Elige tu Modo",
+    "step2Desc": "Juega con amigos en salas privadas, compite en emparejamientos rápidos o practica contra bots.",
+    "step3Title": "3. Sube en el Ranking",
+    "step3Desc": "Gana partidas, acumula puntos ELO y demuestra quién es el mayor Maestro de Enbido.",
+    "topPlayersTitle": "Podio de Campeones",
+    "topPlayersDesc": "Los mejores jugadores del ranking general de Euskadi Mus Arena. ¡Sube tu ELO para competir contra ellos!",
+    "rankEnbidoMaisu": "Enbido Maisu",
+    "rankExpert": "Experto",
+    "rankBeginner": "Principiante",
     "joinTournaments": "Unirse a Torneos",
     "findMeetups": "Buscar Quedadas",
     "featurePlay": "Jugar",
@@ -91,6 +102,9 @@
     "codeExpired": "El código ha expirado. Regresa para generar otro.",
     "verifyAndEnter": "Verificar y Entrar",
     "invalidCode": "Introduce un código de 6 dígitos",
+    "agePromptTitle": "¡Completa tu perfil!",
+    "agePromptDesc": "Por favor, introduce tu fecha de nacimiento para calcular tu ELO inicial en base a tu edad según nuestro estudio estadístico.",
+    "agePromptSubmit": "Guardar y Empezar",
     "wrongCode": "Código de seguridad incorrecto",
     "passwordMinLength": "Debe tener al menos 8 caracteres",
     "passwordUppercase": "Debe contener una letra mayúscula",
@@ -98,7 +112,16 @@
     "passwordNumber": "Debe contener un número",
     "passwordMismatch": "Las contraseñas no coinciden",
     "confirmPassword": "Confirmar contraseña",
-    "placeholderConfirmPassword": "Repite la contraseña"
+    "placeholderConfirmPassword": "Repite la contraseña",
+    "error": {
+      "invalidCredentials": "El email o la contraseña son incorrectos",
+      "accountNotFound": "Esta cuenta no existe. ¿Quieres registrarte?",
+      "tooManyAttempts": "Demasiados intentos. Espera 5 minutos.",
+      "accountLocked": "Tu cuenta está bloqueada. Contacta con soporte.",
+      "usernameRequired": "Introduce tu usuario o email",
+      "passwordRequired": "Introduce tu contraseña",
+      "accountNotFoundHint": "¿No tienes cuenta?"
+    }
   },
   "meetup": {
     "title": "Encontrar Partida Física",
@@ -412,6 +435,9 @@
     "eloGained": "Has ganado {{elo}} ELO",
     "eloLost": "Has perdido {{elo}} ELO",
     "eloNoChange": "Sin cambios de ELO",
+    "coinsGained": "Has ganado {{coins}} monedas",
+    "coinsLost": "Has perdido {{coins}} monedas",
+    "coinsNoChange": "Sin cambios de monedas",
     "finalScore": "Puntos del último chico",
     "chicasLabel": "Chicos (Chicas): {{rounds}}",
     "botLabel": "Bot",
@@ -512,6 +538,20 @@
     "youParenthesis": "(Tú)"
   },
   "premiumLobby": {
+    "createTournament": "+ Crear Torneo",
+    "createTourneyTitle": "Crear Torneo Virtual",
+    "tourneyName": "Nombre del Torneo",
+    "dateTimeLabel": "Fecha y Hora de Inicio",
+    "coinsFeeLabel": "Cuota de inscripción (Monedas)",
+    "coinsRewardLabel": "Premio del ganador (Monedas)",
+    "maxTeamsLabel": "Aforo (Jugadores)",
+    "locationLabel": "Ubicación del Servidor",
+    "creating": "Creando...",
+    "create": "Crear",
+    "errorTourneyNameRequired": "El nombre del torneo es obligatorio.",
+    "errorTourneyDateTimeRequired": "La fecha y la hora son obligatorias.",
+    "createTourneySuccess": "Torneo creado con éxito",
+    "createTourneyError": "Error al crear el torneo",
     "registeredPlayer": "JUGADOR REGISTRADO",
     "hello": "¡Hola, {{username}}!",
     "rankPoints": "Puntos de Rango",
@@ -693,7 +733,18 @@
     "deleteFriend": "Eliminar Amigo",
     "blockUser": "Bloquear",
     "unblockUser": "Desbloquear",
-    "blockedTab": "Bloqueado"
+    "blockedTab": "Bloqueado",
+    "yourActiveMatch": "Tu Partida Activa",
+    "readyBtn": "Estoy Listo",
+    "cancelReadyBtn": "Cancelar Listo",
+    "countdownMsg": "La ronda comienza o expira en: {{seconds}}s",
+    "disqualificationWarning": "¡Advertencia: Serás descalificado si no confirmas a tiempo!",
+    "bothReadyRedirecting": "¡Ambos jugadores listos! Redirigiendo a la partida...",
+    "playerReadyStatus": "Listo",
+    "playerNotReadyStatus": "No Listo",
+    "bye": "BYE",
+    "wo": "W/O",
+    "dnp": "DNP"
   },
   "usersList": {
     "title": "Usuarios",
@@ -726,5 +777,47 @@
     "gameKeywords": "jugar mus, mus online, emparejamiento mus, salas mus, jugar mus online gratis",
     "gameOgTitle": "Lobby de Mus - Enbido",
     "gamePlatform": "Navegador Web"
+  },
+  "register": {
+    "confirmPassword": "Confirmar contraseña",
+    "placeholderConfirmPassword": "Repite tu contraseña",
+    "success": "¡Cuenta creada! Redirigiendo al inicio de sesión...",
+    "errorGeneric": "Error al crear la cuenta",
+    "errorUsernameOrEmailExists": "El usuario o email ya están registrados",
+    "password": {
+      "showRequirements": "Ver requisitos de seguridad",
+      "requirements": {
+        "minLength": "Mínimo 8 caracteres",
+        "uppercase": "Al menos 1 mayúscula (A-Z)",
+        "lowercase": "Al menos 1 minúscula (a-z)",
+        "number": "Al menos 1 número (0-9)",
+        "specialChar": "Al menos 1 carácter especial (!@#$%^&*...)"
+      },
+      "strength": {
+        "weak": "Débil",
+        "fair": "Aceptable",
+        "good": "Buena",
+        "strong": "Fuerte"
+      }
+    },
+    "validation": {
+      "nameRequired": "El nombre es obligatorio",
+      "nameMinLength": "El nombre debe tener al menos 2 caracteres",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Introduce un email válido (ejemplo@correo.com)",
+      "usernameRequired": "El nombre de usuario es obligatorio",
+      "usernameMinLength": "El nombre de usuario debe tener al menos 3 caracteres",
+      "usernameNoSpaces": "El nombre de usuario no puede contener espacios",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "passwordUppercase": "Debe contener al menos una mayúscula",
+      "passwordLowercase": "Debe contener al menos una minúscula",
+      "passwordNumber": "Debe contener al menos un número",
+      "passwordSpecialChar": "Debe contener al menos un carácter especial",
+      "confirmPasswordRequired": "Confirma tu contraseña",
+      "passwordsMismatch": "Las contraseñas no coinciden",
+      "birthDateRequired": "La fecha de nacimiento es obligatoria",
+      "birthDateInvalid": "La fecha de nacimiento debe ser en el pasado"
+    }
   }
 }

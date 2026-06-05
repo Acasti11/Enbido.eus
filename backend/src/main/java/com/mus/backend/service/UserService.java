@@ -1,8 +1,10 @@
 package com.mus.backend.service;
 
-import com.mus.backend.model.Usuario;
+import com.mus.backend.model.User;
+import com.mus.backend.model.LocalAuth;
 import com.mus.backend.model.UserGameProfile;
-import com.mus.backend.repository.UsuarioRepository;
+import com.mus.backend.repository.UserRepository;
+import com.mus.backend.repository.LocalAuthRepository;
 import com.mus.backend.repository.UserGameProfileRepository;
 import com.mus.backend.dto.UserRegisterDto;
 import com.mus.backend.dto.LoginResponseDto;
@@ -14,18 +16,21 @@ import java.time.LocalDateTime;
 @Service
 public class UserService {
 
-    private final UsuarioRepository usuarioRepository;
+    private final UserRepository userRepository;
+    private final LocalAuthRepository localAuthRepository;
     private final UserGameProfileRepository userGameProfileRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
-    public UserService(UsuarioRepository usuarioRepository,
+    public UserService(UserRepository userRepository,
+                       LocalAuthRepository localAuthRepository,
                        UserGameProfileRepository userGameProfileRepository,
                        JwtService jwtService,
                        PasswordEncoder passwordEncoder,
                        MailService mailService) {
-        this.usuarioRepository = usuarioRepository;
+        this.userRepository = userRepository;
+        this.localAuthRepository = localAuthRepository;
         this.userGameProfileRepository = userGameProfileRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -33,37 +38,56 @@ public class UserService {
     }
 
     // ============================================
-    // REGISTRO: crea usuario + perfil de juego
+    // REGISTRO: crea usuario + local_auth + perfil de juego
     // ============================================
     @Transactional
     public String registrarUsuario(UserRegisterDto dto) {
-        if (usuarioRepository.existsByUsername(dto.getUsername())) {
-            throw new IllegalArgumentException("Username ya existe");
+        // Validaciones de negocio
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
         }
-        if (usuarioRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email ya existe");
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setUsername(dto.getUsername());
-        usuario.setName(dto.getName());
-        usuario.setSurname(dto.getSurname());
-        usuario.setEmail(dto.getEmail());
-        usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
-        usuario.setPhoneNumber(dto.getPhoneNumber());
-        usuario.setBirthDate(dto.getBirthDate());
-        usuario.setPostalCode(dto.getPostalCode());
-        usuario.setRole("USER");
-        usuario.setIsBanned(false);
-        usuario.setCreatedAt(LocalDateTime.now());
+        try {
+            User user = new User();
+            user.setUsername(dto.getUsername());
+            user.setName(dto.getName());
+            user.setSurname(dto.getSurname());
+            user.setEmail(dto.getEmail());
+            user.setPhoneNumber(dto.getPhoneNumber());
+            user.setBirthDate(dto.getBirthDate());
+            user.setPostalCode(dto.getPostalCode());
+            user.setRole(User.Role.user);
+            user.setIsBanned(false);
+            user.setCreatedAt(LocalDateTime.now());
 
-        Usuario savedUser = usuarioRepository.save(usuario);
+            User savedUser = userRepository.save(user);
 
-        // Crear perfil de juego con monedas iniciales
-        UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
-        userGameProfileRepository.save(profile);
+            // Crear local_auth con password
+            LocalAuth localAuth = new LocalAuth();
+            localAuth.setUser(savedUser);
+            localAuth.setPassword(passwordEncoder.encode(dto.getPassword()));
+            localAuthRepository.save(localAuth);
 
-        return "Usuario registrado correctamente";
+            // Crear perfil de juego con monedas iniciales
+            UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
+            if (savedUser.getBirthDate() != null) {
+                int age = java.time.LocalDate.now().getYear() - savedUser.getBirthDate().getYear();
+                int elo = (int) Math.round(1000.5769 + 30.0668 * age - 0.26948 * age * age);
+                elo = Math.max(500, Math.min(2000, elo));
+                profile.setElo(elo);
+            }
+            userGameProfileRepository.save(profile);
+
+            return "Usuario registrado correctamente";
+            
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Username or email already exists");
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating user: " + e.getMessage(), e);
+        }
     }
 
     // ============================================
@@ -71,35 +95,38 @@ public class UserService {
     // ============================================
     @Transactional
     public LoginResponseDto authenticate(String username, String password) {
-        Usuario usuario = usuarioRepository.findByUsername(username)
-            .or(() -> usuarioRepository.findByEmail(username))
+        User user = userRepository.findByUsername(username)
+            .or(() -> userRepository.findByEmail(username))
             .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+        LocalAuth localAuth = localAuthRepository.findByUser_UserId(user.getUserId())
+            .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
+
+        if (!passwordEncoder.matches(password, localAuth.getPassword())) {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        if (usuario.getIsBanned()) {
+        if (Boolean.TRUE.equals(user.getIsBanned())) {
             throw new RuntimeException("Usuario baneado");
         }
 
-        if (Boolean.TRUE.equals(usuario.getTwoFactorEnabled())) {
+        if (Boolean.TRUE.equals(localAuth.getTwoFactorEnabled())) {
             // Generar código aleatorio de 6 dígitos
             String code = String.format("%06d", new java.util.Random().nextInt(1000000));
-            usuario.setTwoFactorCode(code);
-            usuario.setTwoFactorCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
-            usuarioRepository.save(usuario);
+            localAuth.setTwoFactorCode(code);
+            localAuth.setTwoFactorCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
+            localAuthRepository.save(localAuth);
 
             // Enviar correo
-            mailService.sendTwoFactorCode(usuario.getEmail(), usuario.getUsername(), code);
+            mailService.sendTwoFactorCode(user.getEmail(), user.getUsername(), code);
 
-            return new LoginResponseDto(true, usuario.getUserId(), null);
+            return new LoginResponseDto(true, user.getUserId(), null);
         }
 
         String token = jwtService.generateToken(
-            usuario.getUserId(),
-            usuario.getUsername(),
-            usuario.getRole()
+            user.getUserId(),
+            user.getUsername(),
+            user.getRole().name()
         );
         return new LoginResponseDto(false, null, token);
     }
@@ -109,26 +136,29 @@ public class UserService {
     // ============================================
     @Transactional
     public String verify2Fa(Long userId, String code) {
-        Usuario usuario = usuarioRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (usuario.getTwoFactorCode() == null || !usuario.getTwoFactorCode().equals(code)) {
+        LocalAuth localAuth = localAuthRepository.findByUser_UserId(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (localAuth.getTwoFactorCode() == null || !localAuth.getTwoFactorCode().equals(code)) {
             throw new RuntimeException("Código de verificación incorrecto");
         }
 
-        if (usuario.getTwoFactorCodeExpiresAt() == null || usuario.getTwoFactorCodeExpiresAt().isBefore(LocalDateTime.now())) {
+        if (localAuth.getTwoFactorCodeExpiresAt() == null || localAuth.getTwoFactorCodeExpiresAt().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("El código de verificación ha expirado");
         }
 
         // Limpiar código de verificación usado
-        usuario.setTwoFactorCode(null);
-        usuario.setTwoFactorCodeExpiresAt(null);
-        usuarioRepository.save(usuario);
+        localAuth.setTwoFactorCode(null);
+        localAuth.setTwoFactorCodeExpiresAt(null);
+        localAuthRepository.save(localAuth);
 
         return jwtService.generateToken(
-            usuario.getUserId(),
-            usuario.getUsername(),
-            usuario.getRole()
+            user.getUserId(),
+            user.getUsername(),
+            user.getRole().name()
         );
     }
 
@@ -137,15 +167,18 @@ public class UserService {
     // ============================================
     @Transactional
     public boolean toggle2Fa(Long userId, boolean enabled) {
-        Usuario usuario = usuarioRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        usuario.setTwoFactorEnabled(enabled);
+        LocalAuth localAuth = localAuthRepository.findByUser_UserId(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        localAuth.setTwoFactorEnabled(enabled);
         if (!enabled) {
-            usuario.setTwoFactorCode(null);
-            usuario.setTwoFactorCodeExpiresAt(null);
+            localAuth.setTwoFactorCode(null);
+            localAuth.setTwoFactorCodeExpiresAt(null);
         }
-        usuarioRepository.save(usuario);
+        localAuthRepository.save(localAuth);
         return enabled;
     }
 
@@ -154,16 +187,19 @@ public class UserService {
     // ============================================
     @Transactional
     public void requestPasswordReset(String email, String frontendUrl) {
-        Usuario usuario = usuarioRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("No se encontró ningún usuario con ese correo electrónico / Ez da posta hori duen erabiltzailerik aurkitu"));
 
+        LocalAuth localAuth = localAuthRepository.findByUser_UserId(user.getUserId())
+            .orElseThrow(() -> new RuntimeException("No se encontró autenticación local para este usuario"));
+
         String token = java.util.UUID.randomUUID().toString();
-        usuario.setResetPasswordToken(token);
-        usuario.setResetPasswordTokenExpiresAt(LocalDateTime.now().plusMinutes(15));
-        usuarioRepository.save(usuario);
+        localAuth.setResetPasswordToken(token);
+        localAuth.setResetPasswordTokenExpiresAt(LocalDateTime.now().plusMinutes(15));
+        localAuthRepository.save(localAuth);
 
         String resetLink = frontendUrl + "?token=" + token;
-        mailService.sendResetPasswordEmail(usuario.getEmail(), usuario.getUsername(), resetLink);
+        mailService.sendResetPasswordEmail(user.getEmail(), user.getUsername(), resetLink);
     }
 
     // ============================================
@@ -171,16 +207,16 @@ public class UserService {
     // ============================================
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        Usuario usuario = usuarioRepository.findByResetPasswordToken(token)
+        LocalAuth localAuth = localAuthRepository.findByResetPasswordToken(token)
             .orElseThrow(() -> new RuntimeException("El enlace de recuperación no es válido / Berreskuratze esteka ez da baliozkoa"));
 
-        if (usuario.getResetPasswordTokenExpiresAt() == null || usuario.getResetPasswordTokenExpiresAt().isBefore(LocalDateTime.now())) {
+        if (localAuth.getResetPasswordTokenExpiresAt() == null || localAuth.getResetPasswordTokenExpiresAt().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("El enlace de recuperación ha expirado / Berreskuratze esteka iraungi egin da");
         }
 
-        usuario.setPassword(passwordEncoder.encode(newPassword));
-        usuario.setResetPasswordToken(null);
-        usuario.setResetPasswordTokenExpiresAt(null);
-        usuarioRepository.save(usuario);
+        localAuth.setPassword(passwordEncoder.encode(newPassword));
+        localAuth.setResetPasswordToken(null);
+        localAuth.setResetPasswordTokenExpiresAt(null);
+        localAuthRepository.save(localAuth);
     }
 }

@@ -236,6 +236,37 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         }
         
         broadcastRoomState(room);
+
+        // Si es una sala de torneo, iniciar la partida automáticamente cuando todos los jugadores reales estén conectados
+        if (roomId.startsWith("TORNEO-")) {
+            boolean allHumanPlayersConnected = true;
+            for (int i = 0; i < 4; i++) {
+                GamePlayer gp = room.getPlayers().get(i);
+                if (gp != null && !gp.isBot() && gp.getUserId() != null) {
+                    boolean connected = false;
+                    for (UserConnection c : activeConnections.values()) {
+                        if (roomId.equalsIgnoreCase(c.roomId) && gp.getUserId().equals(c.userId) && c.session.isOpen()) {
+                            connected = true;
+                            break;
+                        }
+                    }
+                    if (!connected) {
+                        allHumanPlayersConnected = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allHumanPlayersConnected && !room.isPlaying()) {
+                // Persistir la partida en la Base de Datos antes de empezar
+                sessionManager.saveNewGameToDb(room);
+                
+                room.startMatch();
+                broadcastRoomState(room);
+                triggerBotTurnsRecursively(room);
+                startTurnTimer(room);
+            }
+        }
     }
 
     private void handleMatchmakingJoin(UserConnection conn, Map<String, Object> data) {
