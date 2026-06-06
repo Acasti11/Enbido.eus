@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/create-ad-page.css';
+import { useTranslation } from 'react-i18next';
+
 
 // Corregir imágenes de marcadores rotos en Leaflet con Vite
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -43,6 +45,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
   const [longitude, setLongitude] = useState<number>(-2.9350);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSearchingLocation, setIsSearchingLocation] = useState<boolean>(false);
+  const { t } = useTranslation();
 
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -50,7 +53,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
   useEffect(() => {
     // Inicializar mapa de selección
     const map = L.map('create-map', {
-      center: [43.2630, -2.9350],
+      center: [43.063339, -2.505854],
       zoom: 12,
       zoomControl: true,
     });
@@ -163,7 +166,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
         <form onSubmit={handleFormSubmit}>
 
           <div className="form-group create-location-gorup">
-            <label className="form-label">Ubicación (Bar, Local, Ciudad): *</label>
+            <label className="form-label"> {t('meetup.locationLabel')}</label>
             <div className="create-location-row">
               <input
                 type="text"
@@ -198,24 +201,27 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
 
           <div className="form-group create-map-section">
             <div className="create-map-header">
-              <label className="form-label create-map-label">Ubica la partida en el mapa (Mueve el pin o haz clic):</label>
+              <label className="form-label create-map-label">{t('meetup.locateAnnouncement')}</label>
               <button
                 type="button"
                 onClick={handleUseCurrentLocation}
                 className="btn-gps-locate"
-              >
-                🎯 Usar mi ubicación actual
+              >{t('meetup.useCurrentLocation')}
               </button>
             </div>
             <div id="create-map" className="create-map-box"></div>
             <span className="create-map-coordinates-label">
-              Latitud: {latitude.toFixed(6)} | Longitud: {longitude.toFixed(6)}
+              {t("meetup.coordinates", {
+                lat: latitude.toFixed(6),
+                lng: longitude.toFixed(6)
+              })}
+
             </span>
           </div>
 
           <div className="create-form-row">
             <div className="form-group create-form-column">
-              <label className="form-label">Fecha y Hora del encuentro: *</label>
+              <label className="form-label">{t('meetup.dateAndTime')}</label>
               <input
                 type="datetime-local"
                 name="scheduledAt"
@@ -227,7 +233,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
             </div>
 
             <div className="form-group create-form-column">
-              <label className="form-label">Tipo de establecimiento: *</label>
+              <label className="form-label"> {t('meetup.establishmentType')}</label>
               <select
                 name="establishmentType"
                 required
@@ -235,27 +241,27 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
                 value={formData.establishmentType || 'BAR'}
                 onChange={handleUpdateInput}
               >
-                <option value="BAR">🍻 Taberna / Bar</option>
-                <option value="TXOKO">🍽️ Sociedad Gastronómica / Txoko</option>
-                <option value="CAFE">☕ Cafetería</option>
-                <option value="OUTDOOR">🌳 Exterior / Parque</option>
+                <option value="BAR">{t('meetup.bar')}</option>
+                <option value="TXOKO">{t('meetup.txoko')}</option>
+                <option value="CAFE">{t('meetup.cafe')}</option>
+                <option value="OUTDOOR">{t('meetup.outdoor')}</option>
               </select>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Jugadores Faltantes: *</label>
+            <label className="form-label">{t('meetup.playersNeeded')}</label>
             <input type="number" name="missingPlayers" min="1" max="3" required className="form-input" value={formData.missingPlayers} onChange={handleUpdateInput} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Descripción de la partida: *</label>
+            <label className="form-label">{t('meetup.descriptionLabel')}</label>
             <textarea name="description" required className="form-textarea" placeholder="Reglas, nivel esperado, apuestas..." value={formData.description} onChange={handleUpdateInput} />
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-cancel-form" onClick={onCancel}>Cancelar</button>
-            <button type="submit" className="btn-submit-form">Publicar Anuncio</button>
+            <button type="button" className="btn-cancel-form" onClick={onCancel}>{t('meetup.cancel')}</button>
+            <button type="submit" className="btn-submit-form">{t('meetup.publish')}</button>
           </div>
 
         </form>

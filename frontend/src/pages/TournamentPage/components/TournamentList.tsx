@@ -36,7 +36,7 @@ const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.
         }}
       >
         <span style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 500 }}>
-          🏆 Si quieres unirte a un torneo virtual y ver/gestionar sus brackets, haz clic aquí.
+          {t('tournament.spanText')}
         </span>
         <button 
           className="btn-action" 
