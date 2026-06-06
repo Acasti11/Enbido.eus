@@ -6,7 +6,7 @@ const LANGUAGE_OPTIONS = [
   { code: 'es', label: 'ES' },
   { code: 'en', label: 'EN' },
   { code: 'fr', label: 'FR' },
-  { code: 'eus', label: 'EUS' },
+  { code: 'eu', label: 'EUS' },
 ];
 
 const LanguageSwitcher: React.FC = (): React.JSX.Element => {
