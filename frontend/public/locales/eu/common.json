@@ -115,8 +115,9 @@
       "usernameRequired": "Sartu zure erabiltzaile-izena edo posta elektronikoa",
       "passwordRequired": "Sartu zure pasahitza",
       "accountNotFoundHint": "Ez duzu konturik?"
-    },
-    "meetup": {
+    }
+  },
+  "meetup": {
       "title": "Aurkitu Partida Fisikoa",
       "subtitle": "Aurkitu zure inguruan leku libreak dituzten mahaiak",
       "createAd": "+ Sortu Iragarkia",
@@ -752,5 +753,4 @@
         "birthDateInvalid": "Jaiotze-datak iraganekoa izan behar du"
       }
     }
-  }
 }

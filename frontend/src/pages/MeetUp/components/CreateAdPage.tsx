@@ -97,7 +97,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
     if (!query) return;
     try {
       setIsSearchingLocation(true);
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', España')}&format=json&limit=5`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Espana')}&format=json&limit=5`);
       const data = await res.json();
       setSuggestions(data);
     } catch (err) {
@@ -112,7 +112,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
     const lng = parseFloat(s.lon);
     const shortName = s.display_name.split(',')[0] || s.display_name;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       location: shortName
     }));
@@ -132,7 +132,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
   const handleUseCurrentLocation = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!navigator.geolocation) {
-      alert('La geolocalización no está soportada por tu navegador');
+      alert(t('meetup.geoNotSupported'));
       return;
     }
     navigator.geolocation.getCurrentPosition((position) => {
@@ -147,7 +147,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
       }
     }, (error) => {
       console.error(error);
-      alert('No se pudo acceder a tu ubicación real. Por favor, actívala en tu navegador.');
+      alert(t('meetup.geoError'));
     });
   };
 
@@ -173,7 +173,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
                 name="location"
                 required
                 className="form-input create-location-input"
-                placeholder="Ej: Taberna El Botxo"
+                placeholder={t('meetup.locationPlaceholder')}
                 value={formData.location}
                 onChange={handleUpdateInput}
               />
@@ -183,7 +183,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
                 className="btn-search-osm"
                 disabled={isSearchingLocation}
               >
-                {isSearchingLocation ? 'Buscando...' : '🔍 Buscar en Mapa'}
+                {isSearchingLocation ? t('meetup.searching') : t('meetup.searchMap')}
               </button>
             </div>
 
@@ -256,7 +256,7 @@ const CreateAdPage: React.FC<CreateAdPageProps> = ({ onCancel, onSubmit }): Reac
 
           <div className="form-group">
             <label className="form-label">{t('meetup.descriptionLabel')}</label>
-            <textarea name="description" required className="form-textarea" placeholder="Reglas, nivel esperado, apuestas..." value={formData.description} onChange={handleUpdateInput} />
+            <textarea name="description" required className="form-textarea" placeholder={t('meetup.descriptionPlaceholder')}value={formData.description} onChange={handleUpdateInput} />
           </div>
 
           <div className="form-actions">
