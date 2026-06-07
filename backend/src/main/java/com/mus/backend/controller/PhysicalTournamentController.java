@@ -191,11 +191,20 @@ public class PhysicalTournamentController {
         Long[] teamLeaders = new Long[numTeams];
         Long[] teamPartners = new Long[numTeams];
         int playerIdx = 0;
-        for (int i = 0; i < numTeams && playerIdx < parts.size(); i++) {
-            teamLeaders[i] = parts.get(playerIdx++).getUserId();
+        long botIdCounter = -1;
+        for (int i = 0; i < numTeams; i++) {
+            if (playerIdx < parts.size()) {
+                teamLeaders[i] = parts.get(playerIdx++).getUserId();
+            } else {
+                teamLeaders[i] = botIdCounter--;
+            }
         }
-        for (int i = 0; i < numTeams && playerIdx < parts.size(); i++) {
-            teamPartners[i] = parts.get(playerIdx++).getUserId();
+        for (int i = 0; i < numTeams; i++) {
+            if (playerIdx < parts.size()) {
+                teamPartners[i] = parts.get(playerIdx++).getUserId();
+            } else {
+                teamPartners[i] = botIdCounter--;
+            }
         }
 
         List<PhysicalTournamentMatch> existing = matchRepository.findByTournamentId(id);
@@ -219,10 +228,10 @@ public class PhysicalTournamentController {
                 match.setPlayer1PartnerId(p1Partner);
                 match.setPlayer2Id(p2);
                 match.setPlayer2PartnerId(p2Partner);
-                match.setPlayer1Ready(false);
-                match.setPlayer1PartnerReady(false);
-                match.setPlayer2Ready(false);
-                match.setPlayer2PartnerReady(false);
+                match.setPlayer1Ready(p1 != null && p1 < 0);
+                match.setPlayer1PartnerReady(p1Partner != null && p1Partner < 0);
+                match.setPlayer2Ready(p2 != null && p2 < 0);
+                match.setPlayer2PartnerReady(p2Partner != null && p2Partner < 0);
                 match.setIsCompleted(false);
                 matchRepository.save(match);
             }
@@ -244,10 +253,10 @@ public class PhysicalTournamentController {
                 match.setPlayer1PartnerId(p1Partner);
                 match.setPlayer2Id(p2);
                 match.setPlayer2PartnerId(p2Partner);
-                match.setPlayer1Ready(false);
-                match.setPlayer1PartnerReady(false);
-                match.setPlayer2Ready(false);
-                match.setPlayer2PartnerReady(false);
+                match.setPlayer1Ready(p1 != null && p1 < 0);
+                match.setPlayer1PartnerReady(p1Partner != null && p1Partner < 0);
+                match.setPlayer2Ready(p2 != null && p2 < 0);
+                match.setPlayer2PartnerReady(p2Partner != null && p2Partner < 0);
                 match.setIsCompleted(false);
                 matchRepository.save(match);
             }
@@ -268,10 +277,10 @@ public class PhysicalTournamentController {
             match.setPlayer1PartnerId(p1Partner);
             match.setPlayer2Id(p2);
             match.setPlayer2PartnerId(p2Partner);
-            match.setPlayer1Ready(false);
-            match.setPlayer1PartnerReady(false);
-            match.setPlayer2Ready(false);
-            match.setPlayer2PartnerReady(false);
+            match.setPlayer1Ready(p1 != null && p1 < 0);
+            match.setPlayer1PartnerReady(p1Partner != null && p1Partner < 0);
+            match.setPlayer2Ready(p2 != null && p2 < 0);
+            match.setPlayer2PartnerReady(p2Partner != null && p2Partner < 0);
             match.setIsCompleted(false);
             matchRepository.save(match);
         }
@@ -336,7 +345,14 @@ public class PhysicalTournamentController {
         for (PhysicalTournamentMatch m : matches) {
             if (m.getRoundNumber() == activeRound && (m.getIsCompleted() == null || !m.getIsCompleted())) {
                 if (m.getPlayer1Id() != null && m.getPlayer2Id() != null) {
-                    if (m.getRoundStartTime() == null) {
+                    if (m.getPlayer1Id() < 0 && m.getPlayer2Id() < 0) {
+                        m.setIsCompleted(true);
+                        m.setWinnerId(m.getPlayer1Id());
+                        m.setScore("3-0");
+                        matchRepository.save(m);
+                        advanceWinner(tournamentId, activeRound, m.getMatchIndex(), m.getPlayer1Id());
+                        stateChanged = true;
+                    } else if (m.getRoundStartTime() == null) {
                         m.setRoundStartTime(now);
                         matchRepository.save(m);
                         stateChanged = true;
@@ -415,21 +431,15 @@ public class PhysicalTournamentController {
                     }
 
                     if (w1 != null) {
-                        final Long winner1 = w1;
-
-                        UserGameProfile profile = profileRepository.findById(winner1)
-                                .orElseGet(() -> new UserGameProfile(winner1));
-
+                        final Long fw1 = w1;
+                        UserGameProfile profile = profileRepository.findById(fw1).orElseGet(() -> new UserGameProfile(fw1));
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
 
                     if (w2 != null) {
-                        final Long winner2 = w2;
-
-                        UserGameProfile profile = profileRepository.findById(winner2)
-                                .orElseGet(() -> new UserGameProfile(winner2));
-
+                        final Long fw2 = w2;
+                        UserGameProfile profile = profileRepository.findById(fw2).orElseGet(() -> new UserGameProfile(fw2));
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
@@ -513,9 +523,13 @@ public class PhysicalTournamentController {
                 if (isPlayer1) {
                     nextMatch.setPlayer1Id(pWinner);
                     nextMatch.setPlayer1PartnerId(pWinnerPartner);
+                    nextMatch.setPlayer1Ready(pWinner != null && pWinner < 0);
+                    nextMatch.setPlayer1PartnerReady(pWinnerPartner != null && pWinnerPartner < 0);
                 } else {
                     nextMatch.setPlayer2Id(pWinner);
                     nextMatch.setPlayer2PartnerId(pWinnerPartner);
+                    nextMatch.setPlayer2Ready(pWinner != null && pWinner < 0);
+                    nextMatch.setPlayer2PartnerReady(pWinnerPartner != null && pWinnerPartner < 0);
                 }
                 matchRepository.save(nextMatch);
             }
