@@ -313,6 +313,21 @@ public class PhysicalTournamentController {
                     } else {
                         t.setStatus("cancelled");
                         tournamentRepository.save(t);
+
+                        // Refund registration fees to participants when the tournament is cancelled
+                        int fee = t.getCoinsFee() != null ? t.getCoinsFee() : 0;
+                        if (fee > 0) {
+                            for (PhysicalTournamentParticipant p : parts) {
+                                try {
+                                    profileRepository.findById(p.getUserId()).ifPresent(profile -> {
+                                        profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + fee);
+                                        profileRepository.save(profile);
+                                    });
+                                } catch (Exception ex) {
+                                    System.err.println("Error refunding coins for user " + p.getUserId() + ": " + ex.getMessage());
+                                }
+                            }
+                        }
                     }
                 }
             } else if ("playing".equalsIgnoreCase(t.getStatus())) {
@@ -588,15 +603,23 @@ public class PhysicalTournamentController {
                 session.getConfig().setReyesOption("8");
                 session.getConfig().setMaxRounds(3);
 
-                String uname1 = userRepository.findById(match.getPlayer1Id())
-                        .map(com.mus.backend.model.User::getUsername).orElse("Jugador 1");
-                session.addPlayer(0, match.getPlayer1Id(), uname1);
+                if (match.getPlayer1Id() != null && match.getPlayer1Id() > 0) {
+                    String uname1 = userRepository.findById(match.getPlayer1Id())
+                            .map(com.mus.backend.model.User::getUsername).orElse("Jugador 1");
+                    session.addPlayer(0, match.getPlayer1Id(), uname1);
+                } else {
+                    session.addBot(0);
+                }
 
-                String uname2 = userRepository.findById(match.getPlayer2Id())
-                        .map(com.mus.backend.model.User::getUsername).orElse("Jugador 2");
-                session.addPlayer(1, match.getPlayer2Id(), uname2);
+                if (match.getPlayer2Id() != null && match.getPlayer2Id() > 0) {
+                    String uname2 = userRepository.findById(match.getPlayer2Id())
+                            .map(com.mus.backend.model.User::getUsername).orElse("Jugador 2");
+                    session.addPlayer(1, match.getPlayer2Id(), uname2);
+                } else {
+                    session.addBot(1);
+                }
 
-                if (match.getPlayer1PartnerId() != null) {
+                if (match.getPlayer1PartnerId() != null && match.getPlayer1PartnerId() > 0) {
                     String uname1P = userRepository.findById(match.getPlayer1PartnerId())
                             .map(com.mus.backend.model.User::getUsername).orElse("Compañero 1");
                     session.addPlayer(2, match.getPlayer1PartnerId(), uname1P);
@@ -604,7 +627,7 @@ public class PhysicalTournamentController {
                     session.addBot(2);
                 }
 
-                if (match.getPlayer2PartnerId() != null) {
+                if (match.getPlayer2PartnerId() != null && match.getPlayer2PartnerId() > 0) {
                     String uname2P = userRepository.findById(match.getPlayer2PartnerId())
                             .map(com.mus.backend.model.User::getUsername).orElse("Compañero 2");
                     session.addPlayer(3, match.getPlayer2PartnerId(), uname2P);
