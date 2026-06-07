@@ -560,18 +560,14 @@ public class GameSessionManager {
                     }
 
                     if (w1 != null) {
-                        final Long winner1 = w1;
-
-                        UserGameProfile profile = profileRepository.findById(winner1)
-                                .orElseGet(() -> new UserGameProfile(winner1));
+                        final Long fw1 = w1;
+                        UserGameProfile profile = profileRepository.findById(fw1).orElseGet(() -> new UserGameProfile(fw1));
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
                     if (w2 != null) {
-                        final Long winner2 = w2;
-
-                        UserGameProfile profile = profileRepository.findById(winner2)
-                                .orElseGet(() -> new UserGameProfile(winner2));
+                        final Long fw2 = w2;
+                        UserGameProfile profile = profileRepository.findById(fw2).orElseGet(() -> new UserGameProfile(fw2));
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
