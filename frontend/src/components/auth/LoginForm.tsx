@@ -205,7 +205,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover, on2FaStatusCha
           <h2 className="auth-2fa__title">🔑 {t('login.twoFactorTitle')}</h2>
           <p className="auth-2fa__description">{t('login.twoFactorDescription')}</p>
 
-          <div className="auth-input__wrapper" style={{ justifyContent: 'center' }}>
+          <div className="auth-input__wrapper">
             <input
               type="text"
               className="auth-input auth-input--2fa"

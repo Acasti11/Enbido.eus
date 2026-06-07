@@ -43,7 +43,7 @@ const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.
           onClick={() => navigate('/jugar')}
           style={{ padding: '8px 16px', fontSize: '0.85rem', boxShadow: 'none' }}
         >
-          Torneos Virtuales
+          {t('tournament.virtualTournamentButton')}
         </button>
       </div>
 

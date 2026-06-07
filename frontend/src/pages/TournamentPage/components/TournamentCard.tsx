@@ -26,11 +26,15 @@ const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Elem
         </div>
 
         <div className="card-body tournament-card-body">
-          <p className="tournament-card-body-text">📍 <strong>Ubicación:</strong> {tournamentData.tournamentLocation}</p>
-          <p className="tournament-card-body-text">🗓️ <strong>Fecha:</strong> {tournamentData.tournamentDate} a las {tournamentData.tournamentTime}</p>
-          {tournamentData.contactEmail && (
-            <p className="tournament-card-body-text">✉️ <strong>Contacto:</strong> {tournamentData.contactEmail}</p>
-          )}
+          <p className="tournament-card-body-text">
+            <strong>{t('tournament.location')}</strong> {tournamentData.tournamentLocation}
+          </p>          <p className="tournament-card-body-text">
+            <strong>{t('tournament.dateDetail')}</strong> {tournamentData.tournamentDate} {t('tournament.atTime')} {tournamentData.tournamentTime}
+          </p>          {tournamentData.contactEmail && (
+            <p className="tournament-card-body-text">
+              <strong>{t('tournament.contactDetail')}</strong> {tournamentData.contactEmail}
+            </p>)}
+
         </div>
       </div>
     </article>

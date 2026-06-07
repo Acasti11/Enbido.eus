@@ -88,7 +88,7 @@ const TournamentPage = (): React.JSX.Element => {
         return {
           id: t.tournamentId,
           tournamentName: t.title,
-          contactEmail: t.organizer?.email || 'harreman@mus.eus',
+          contactEmail: t.organizer?.email || 'enbidoeus@gmail.com',
           tournamentLocation: t.specificLocation + (t.city ? `, ${t.city}` : ''),
           tournamentStructure: 'professional',
           tournamentDate: local.date,
@@ -139,7 +139,7 @@ const TournamentPage = (): React.JSX.Element => {
       const newTournament: TournamentDto = {
         id: saved.tournamentId,
         tournamentName: saved.title,
-        contactEmail: saved.organizer?.email || newTournamentData.contactEmail || 'harreman@mus.eus',
+        contactEmail: saved.organizer?.email || newTournamentData.contactEmail || 'enbidoeus@gmail.com',
         tournamentLocation: saved.specificLocation + (saved.city ? `, ${saved.city}` : ''),
         tournamentStructure: newTournamentData.tournamentStructure || 'professional',
         tournamentDate: savedLocal.date,

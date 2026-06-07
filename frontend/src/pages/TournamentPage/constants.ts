@@ -2,7 +2,7 @@ import type { TournamentFormState, TournamentDto } from '../../types/tournament'
 
 export const CONST_VIEW_LIST = 'LIST';
 export const CONST_VIEW_PUBLISH = 'PUBLISH';
-export const CONST_CONTACT_EMAIL = 'harreman@mus.eus';
+export const CONST_CONTACT_EMAIL = 'enbidoeus@gmail.com';
 
 export const CONST_INITIAL_FORM_STATE: TournamentFormState = {
   tournamentName: '',

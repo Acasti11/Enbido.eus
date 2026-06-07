@@ -34,7 +34,7 @@ const PublishForm = ({ onAddTournament, onCancelPublish }: PublishFormProps): Re
         <PublishFormFields formState={formState} onChange={handleChange} />
         <div className="form-actions">
           <button type="button" className="btn-cancel" onClick={onCancelPublish}>
-          {t('tournament.cancel')}
+            {t('tournament.cancel')}
           </button>
           <button type="submit" className="btn-submit">
             {t('tournament.publish')}
@@ -42,9 +42,11 @@ const PublishForm = ({ onAddTournament, onCancelPublish }: PublishFormProps): Re
         </div>
       </form>
       <div className="contact-footer">
-        t('contactFooter') : {' '}
-        <a href="mailto:harreman@mus.eus" className="contact-link">harreman@mus.eus</a>
-      </div> 
+        {t('tournament.contactFooter')}{' '}
+        <a href="mailto:enbidoeus@gmail.com" className="contact-link">
+          enbidoeus@gmail.com
+        </a>
+      </div>
     </div>
   );
 };
