@@ -46,7 +46,6 @@ public class PhysicalTournamentController {
     @Autowired
     private GameSessionManager sessionManager;
 
-
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<PhysicalTournament>> getAllTournaments() {
@@ -88,8 +87,7 @@ public class PhysicalTournamentController {
         List<PhysicalTournamentMatch> matches = matchRepository.findByTournamentId(id);
 
         TournamentDetailDto dto = new TournamentDetailDto(
-                tournament, partInfos, matches
-        );
+                tournament, partInfos, matches);
         return ResponseEntity.ok(dto);
     }
 
@@ -128,7 +126,8 @@ public class PhysicalTournamentController {
                     .orElseGet(() -> new UserGameProfile(userId));
             int userCoins = profile.getCoins() != null ? profile.getCoins() : 0;
             if (userCoins < fee) {
-                return ResponseEntity.badRequest().body("No tienes suficientes monedas (tx) para inscribirte. Requieres " + fee + " tx");
+                return ResponseEntity.badRequest()
+                        .body("No tienes suficientes monedas (tx) para inscribirte. Requieres " + fee + " tx");
             }
             profile.setCoins(userCoins - fee);
             profileRepository.save(profile);
@@ -301,10 +300,12 @@ public class PhysicalTournamentController {
         for (PhysicalTournament t : tournaments) {
             if ("open".equalsIgnoreCase(t.getStatus())) {
                 if (t.getStartDatetime() != null && t.getStartDatetime().isBefore(now)) {
-                    List<PhysicalTournamentParticipant> parts = participantRepository.findByTournamentId(t.getTournamentId());
+                    List<PhysicalTournamentParticipant> parts = participantRepository
+                            .findByTournamentId(t.getTournamentId());
                     if (parts.size() >= 2) {
                         try {
-                            System.out.println("Auto-starting tournament ID: " + t.getTournamentId() + " (" + t.getTitle() + ")");
+                            System.out.println(
+                                    "Auto-starting tournament ID: " + t.getTournamentId() + " (" + t.getTitle() + ")");
                             startTournamentInternal(t, parts);
                         } catch (Exception e) {
                             System.err.println("Error auto-starting tournament: " + e.getMessage());
@@ -358,9 +359,11 @@ public class PhysicalTournamentController {
                     } else if (m.getGameRoomId() == null) {
                         if (m.getRoundStartTime().plusMinutes(5).isBefore(now)) {
                             boolean t1Ready = (m.getPlayer1Ready() != null && m.getPlayer1Ready()) &&
-                                              (m.getPlayer1PartnerId() == null || (m.getPlayer1PartnerReady() != null && m.getPlayer1PartnerReady()));
+                                    (m.getPlayer1PartnerId() == null
+                                            || (m.getPlayer1PartnerReady() != null && m.getPlayer1PartnerReady()));
                             boolean t2Ready = (m.getPlayer2Ready() != null && m.getPlayer2Ready()) &&
-                                              (m.getPlayer2PartnerId() == null || (m.getPlayer2PartnerReady() != null && m.getPlayer2PartnerReady()));
+                                    (m.getPlayer2PartnerId() == null
+                                            || (m.getPlayer2PartnerReady() != null && m.getPlayer2PartnerReady()));
 
                             m.setIsCompleted(true);
                             if (t1Ready && !t2Ready) {
@@ -428,14 +431,21 @@ public class PhysicalTournamentController {
                     }
 
                     if (w1 != null) {
-                        final Long fw1 = w1;
-                        UserGameProfile profile = profileRepository.findById(fw1).orElseGet(() -> new UserGameProfile(fw1));
+                        final Long winner1 = w1;
+
+                        UserGameProfile profile = profileRepository.findById(winner1)
+                                .orElseGet(() -> new UserGameProfile(winner1));
+
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
+
                     if (w2 != null) {
-                        final Long fw2 = w2;
-                        UserGameProfile profile = profileRepository.findById(fw2).orElseGet(() -> new UserGameProfile(fw2));
+                        final Long winner2 = w2;
+
+                        UserGameProfile profile = profileRepository.findById(winner2)
+                                .orElseGet(() -> new UserGameProfile(winner2));
+
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
@@ -506,10 +516,12 @@ public class PhysicalTournamentController {
                 Long pWinner = null;
                 Long pWinnerPartner = null;
 
-                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
+                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null
+                        && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
                     pWinner = currentMatch.getPlayer1Id();
                     pWinnerPartner = currentMatch.getPlayer1PartnerId();
-                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
+                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null
+                        && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
                     pWinner = currentMatch.getPlayer2Id();
                     pWinnerPartner = currentMatch.getPlayer2PartnerId();
                 }
@@ -552,7 +564,7 @@ public class PhysicalTournamentController {
         }
 
         if (!userId.equals(match.getPlayer1Id()) && !userId.equals(match.getPlayer2Id()) &&
-            !userId.equals(match.getPlayer1PartnerId()) && !userId.equals(match.getPlayer2PartnerId())) {
+                !userId.equals(match.getPlayer1PartnerId()) && !userId.equals(match.getPlayer2PartnerId())) {
             return ResponseEntity.status(403).body("No eres participante de esta partida.");
         }
 
@@ -570,8 +582,10 @@ public class PhysicalTournamentController {
 
         boolean p1Ready = match.getPlayer1Ready() != null && match.getPlayer1Ready();
         boolean p2Ready = match.getPlayer2Ready() != null && match.getPlayer2Ready();
-        boolean p1PartnerReady = match.getPlayer1PartnerId() == null || (match.getPlayer1PartnerReady() != null && match.getPlayer1PartnerReady());
-        boolean p2PartnerReady = match.getPlayer2PartnerId() == null || (match.getPlayer2PartnerReady() != null && match.getPlayer2PartnerReady());
+        boolean p1PartnerReady = match.getPlayer1PartnerId() == null
+                || (match.getPlayer1PartnerReady() != null && match.getPlayer1PartnerReady());
+        boolean p2PartnerReady = match.getPlayer2PartnerId() == null
+                || (match.getPlayer2PartnerReady() != null && match.getPlayer2PartnerReady());
 
         if (p1Ready && p2Ready && p1PartnerReady && p2PartnerReady && match.getGameRoomId() == null) {
             String roomCode = "TORNEO-" + id + "-M" + matchId;
@@ -642,7 +656,7 @@ public class PhysicalTournamentController {
         }
 
         if (!userId.equals(match.getPlayer1Id()) && !userId.equals(match.getPlayer2Id()) &&
-            !userId.equals(match.getPlayer1PartnerId()) && !userId.equals(match.getPlayer2PartnerId())) {
+                !userId.equals(match.getPlayer1PartnerId()) && !userId.equals(match.getPlayer2PartnerId())) {
             return ResponseEntity.status(403).body("No eres participante de esta partida.");
         }
 
@@ -712,4 +726,3 @@ public class PhysicalTournamentController {
         return userId;
     }
 }
-

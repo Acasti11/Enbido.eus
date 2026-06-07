@@ -18,7 +18,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameSessionManager {
 
     private final Map<String, GameSession> sessions = new ConcurrentHashMap<>();
-    
+
     // Cola de Matchmaking Online segmentada
     private final List<MatchmakerEntry> matchmakingQueue4 = new ArrayList<>();
     private final List<MatchmakerEntry> matchmakingQueue8 = new ArrayList<>();
@@ -46,7 +45,6 @@ public class GameSessionManager {
 
     @Autowired
     private PhysicalTournamentMatchRepository matchRepository;
-
 
     public static class MatchmakerEntry {
         public Long userId;
@@ -98,25 +96,25 @@ public class GameSessionManager {
         if (reyesOption == null || (!reyesOption.equals("4") && !reyesOption.equals("8"))) {
             reyesOption = "8";
         }
-        
+
         List<MatchmakerEntry> targetQueue = "4".equals(reyesOption) ? matchmakingQueue4 : matchmakingQueue8;
-        
+
         // Evitamos duplicados en ambas colas
         matchmakingQueue4.removeIf(entry -> entry.userId.equals(userId));
         matchmakingQueue8.removeIf(entry -> entry.userId.equals(userId));
-        
+
         // Cargar estadísticas Glicko-2 del jugador
         UserGameProfile profile = profileRepository.findById(userId)
                 .orElseGet(() -> new UserGameProfile(userId));
-        
+
         // Validar penalización de ban de emparejamiento
         if (profile.getMatchmakingBanUntil() != null && profile.getMatchmakingBanUntil().isAfter(LocalDateTime.now())) {
             throw new RuntimeException("Estás temporalmente baneado de buscar partidas.");
         }
-        
+
         double userElo = profile.getElo().doubleValue();
         double userRd = profile.getRatingDeviation();
-        
+
         targetQueue.add(new MatchmakerEntry(userId, username, userElo, userRd, reyesOption));
         return null; // El Scheduler asíncrono se encargará del matching
     }
@@ -127,79 +125,81 @@ public class GameSessionManager {
         matchedRooms.addAll(matchQueue("4", matchmakingQueue4));
         return matchedRooms;
     }
-    
+
     private List<Map<String, Object>> matchQueue(String reyesOption, List<MatchmakerEntry> queue) {
         List<Map<String, Object>> matched = new ArrayList<>();
         long now = System.currentTimeMillis();
-        
+
         boolean foundGroup = true;
         while (foundGroup && queue.size() >= 4) {
             foundGroup = false;
-            
+
             for (int i = 0; i < queue.size(); i++) {
                 MatchmakerEntry pA = queue.get(i);
                 // Ventana expande a +15 ELO por segundo
                 double deltaA = 100.0 + ((now - pA.entryTime) / 1000.0) * 15.0;
-                
+
                 List<Integer> candidateIndices = new ArrayList<>();
                 candidateIndices.add(i);
-                
+
                 for (int j = 0; j < queue.size(); j++) {
-                    if (i == j) continue;
+                    if (i == j)
+                        continue;
                     MatchmakerEntry pB = queue.get(j);
                     double deltaB = 100.0 + ((now - pB.entryTime) / 1000.0) * 15.0;
-                    
+
                     double eloDiff = Math.abs(pA.elo - pB.elo);
                     if (eloDiff <= Math.max(deltaA, deltaB)) {
                         candidateIndices.add(j);
                     }
-                    
+
                     if (candidateIndices.size() == 4) {
                         break;
                     }
                 }
-                
+
                 if (candidateIndices.size() == 4) {
                     List<MatchmakerEntry> group = new ArrayList<>();
                     Collections.sort(candidateIndices, Collections.reverseOrder());
                     for (int idx : candidateIndices) {
                         group.add(queue.remove(idx));
                     }
-                    
+
                     // Ordenar por ELO descendente para balancear equipos
                     group.sort((o1, o2) -> Double.compare(o2.elo, o1.elo));
-                    
+
                     MatchmakerEntry p1 = group.get(0);
                     MatchmakerEntry p2 = group.get(1);
                     MatchmakerEntry p3 = group.get(2);
                     MatchmakerEntry p4 = group.get(3);
-                    
-                    String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-") + (int)Math.floor(100 + Math.random() * 900);
+
+                    String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-")
+                            + (int) Math.floor(100 + Math.random() * 900);
                     GameSession session = createRoom(autoRoomId);
                     session.getConfig().setReyesOption(reyesOption);
                     session.getConfig().setMaxRounds(3);
-                    
+
                     // Asignación balanceada de equipos (Parejas: 0 y 2 vs 1 y 3)
                     // Equipo A = p1 (máx ELO) + p4 (mín ELO)
                     session.addPlayer(0, p1.userId, p1.username);
                     session.addPlayer(2, p4.userId, p4.username);
-                    
+
                     // Equipo B = p2 + p3
                     session.addPlayer(1, p2.userId, p2.username);
                     session.addPlayer(3, p3.userId, p3.username);
-                    
+
                     saveNewGameToDb(session);
-                    
+
                     Map<String, Object> matchInfo = new HashMap<>();
                     matchInfo.put("roomId", autoRoomId);
-                    
+
                     List<Long> playerIds = new ArrayList<>();
                     playerIds.add(p1.userId);
                     playerIds.add(p2.userId);
                     playerIds.add(p3.userId);
                     playerIds.add(p4.userId);
                     matchInfo.put("playerIds", playerIds);
-                    
+
                     matched.add(matchInfo);
                     foundGroup = true;
                     break;
@@ -248,7 +248,7 @@ public class GameSessionManager {
             pg.setGameStateId(1); // 1 = En Progreso
             pg.setGameModeId(1); // 1 = 4 Jugadores Normal
             pg.setCreatedAt(LocalDateTime.now());
-            
+
             PlayGame saved = playGameRepository.save(pg);
             session.setGameDatabaseId(saved.getGameId());
             session.appendLog("[BD] Partida registrada ID: " + saved.getGameId());
@@ -259,11 +259,12 @@ public class GameSessionManager {
     }
 
     public void logActionToDb(GameSession session, int playerIdx, String action) {
-        if (session.getGameDatabaseId() == null) return;
+        if (session.getGameDatabaseId() == null)
+            return;
         try {
             GamePlayer p = session.getPlayers().get(playerIdx);
             Long uId = p != null ? p.getUserId() : null; // null represents Bot
-            
+
             GameActionLog log = new GameActionLog(session.getGameDatabaseId(), uId, action);
             actionLogRepository.save(log);
         } catch (Exception e) {
@@ -272,12 +273,13 @@ public class GameSessionManager {
     }
 
     public void updateGameScoresInDb(GameSession session) {
-        if (session.getGameDatabaseId() == null) return;
+        if (session.getGameDatabaseId() == null)
+            return;
         try {
             playGameRepository.findById(session.getGameDatabaseId()).ifPresent(pg -> {
                 pg.setPointsTeam12(session.getRoundsWonUs());
                 pg.setPointsTeam34(session.getRoundsWonThem());
-                
+
                 boolean isOver = !session.isPlaying();
                 if (isOver) {
                     pg.setGameStateId(2); // 2 = Finalizada
@@ -333,7 +335,8 @@ public class GameSessionManager {
     }
 
     public void cancelGameInDb(GameSession session) {
-        if (session.getGameDatabaseId() == null) return;
+        if (session.getGameDatabaseId() == null)
+            return;
         try {
             playGameRepository.findById(session.getGameDatabaseId()).ifPresent(pg -> {
                 pg.setGameStateId(3); // 3 = Cancelada
@@ -354,7 +357,7 @@ public class GameSessionManager {
             // Fallback for early abandonment
             team1Won = session.getScoreUs() >= 30;
         }
-        
+
         // Resolver ELOs y RDs actuales para los 4 asientos
         double ratingA0 = 1500.0;
         double rdA0 = 350.0;
@@ -366,7 +369,7 @@ public class GameSessionManager {
                 rdA0 = prof.getRatingDeviation();
             }
         }
-        
+
         double ratingA2 = 1500.0;
         double rdA2 = 350.0;
         GamePlayer gp2 = session.getPlayers().get(2);
@@ -377,7 +380,7 @@ public class GameSessionManager {
                 rdA2 = prof.getRatingDeviation();
             }
         }
-        
+
         double ratingB1 = 1500.0;
         double rdB1 = 350.0;
         GamePlayer gp1 = session.getPlayers().get(1);
@@ -388,7 +391,7 @@ public class GameSessionManager {
                 rdB1 = prof.getRatingDeviation();
             }
         }
-        
+
         double ratingB3 = 1500.0;
         double rdB3 = 350.0;
         GamePlayer gp3 = session.getPlayers().get(3);
@@ -403,7 +406,7 @@ public class GameSessionManager {
         // Ratings y RDs compuestos de los equipos
         double ratingTeamA = (ratingA0 + ratingA2) / 2.0;
         double rdTeamA = (rdA0 + rdA2) / 2.0;
-        
+
         double ratingTeamB = (ratingB1 + ratingB3) / 2.0;
         double rdTeamB = (rdB1 + rdB3) / 2.0;
 
@@ -418,41 +421,40 @@ public class GameSessionManager {
                 boolean isTeamA = (chair % 2 == 0);
                 boolean didWin = (isTeamA == team1Won);
                 double outcome = isTeamA ? scoreTeamA : scoreTeamB;
-                
+
                 double oppTeamRating = isTeamA ? ratingTeamB : ratingTeamA;
                 double oppTeamRd = isTeamA ? rdTeamB : rdTeamA;
 
                 try {
                     UserGameProfile profile = profileRepository.findById(uId)
                             .orElseGet(() -> new UserGameProfile(uId));
-                    
+
                     profile.setTotalGamesPlayed(profile.getTotalGamesPlayed() + 1);
                     if (didWin) {
                         profile.setTotalGamesWon(profile.getTotalGamesWon() + 1);
                     }
-                    
+
                     // Ejecutar actualización de Glicko-2
                     Glicko2Calculator.GlickoResult res = Glicko2Calculator.update(
-                        profile.getElo().doubleValue(),
-                        profile.getRatingDeviation(),
-                        profile.getVolatility(),
-                        oppTeamRating,
-                        oppTeamRd,
-                        outcome
-                    );
-                    
+                            profile.getElo().doubleValue(),
+                            profile.getRatingDeviation(),
+                            profile.getVolatility(),
+                            oppTeamRating,
+                            oppTeamRd,
+                            outcome);
+
                     int oldElo = profile.getElo();
                     profile.setElo((int) Math.max(0, Math.round(res.rating)));
                     profile.setRatingDeviation(res.ratingDeviation);
                     profile.setVolatility(res.volatility);
-                    
+
                     // Recompensa de monedas
                     int coinsGained = didWin ? 25 : 5;
                     profile.setCoins(profile.getCoins() + coinsGained);
-                    
+
                     profileRepository.save(profile);
-                    session.appendLog(String.format("[BD] Perfil de %s actualizado: ELO %d -> %d (RD: %.1f)", 
-                        gp.getUsername(), oldElo, profile.getElo(), profile.getRatingDeviation()));
+                    session.appendLog(String.format("[BD] Perfil de %s actualizado: ELO %d -> %d (RD: %.1f)",
+                            gp.getUsername(), oldElo, profile.getElo(), profile.getRatingDeviation()));
                 } catch (Exception e) {
                     System.err.println("Error updating user statistics in DB: " + e.getMessage());
                 }
@@ -468,10 +470,11 @@ public class GameSessionManager {
     public void initDatabaseDefaults() {
         try {
             Number countLat = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'latitude'"
-            ).getSingleResult();
+                    "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'latitude'")
+                    .getSingleResult();
             if (countLat != null && countLat.intValue() == 0) {
-                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN latitude DOUBLE NULL").executeUpdate();
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN latitude DOUBLE NULL")
+                        .executeUpdate();
             }
         } catch (Exception e) {
             System.err.println("Migration check warning (latitude): " + e.getMessage());
@@ -479,10 +482,11 @@ public class GameSessionManager {
 
         try {
             Number countLng = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'longitude'"
-            ).getSingleResult();
+                    "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'longitude'")
+                    .getSingleResult();
             if (countLng != null && countLng.intValue() == 0) {
-                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN longitude DOUBLE NULL").executeUpdate();
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN longitude DOUBLE NULL")
+                        .executeUpdate();
             }
         } catch (Exception e) {
             System.err.println("Migration check warning (longitude): " + e.getMessage());
@@ -490,10 +494,11 @@ public class GameSessionManager {
 
         try {
             Number countSched = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'scheduled_at'"
-            ).getSingleResult();
+                    "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'scheduled_at'")
+                    .getSingleResult();
             if (countSched != null && countSched.intValue() == 0) {
-                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN scheduled_at TIMESTAMP NULL").executeUpdate();
+                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN scheduled_at TIMESTAMP NULL")
+                        .executeUpdate();
             }
         } catch (Exception e) {
             System.err.println("Migration check warning (scheduled_at): " + e.getMessage());
@@ -501,10 +506,13 @@ public class GameSessionManager {
 
         try {
             Number countType = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'establishment_type'"
-            ).getSingleResult();
+                    "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'local_meetup_ad' AND COLUMN_NAME = 'establishment_type'")
+                    .getSingleResult();
             if (countType != null && countType.intValue() == 0) {
-                entityManager.createNativeQuery("ALTER TABLE local_meetup_ad ADD COLUMN establishment_type VARCHAR(50) DEFAULT 'BAR'").executeUpdate();
+                entityManager
+                        .createNativeQuery(
+                                "ALTER TABLE local_meetup_ad ADD COLUMN establishment_type VARCHAR(50) DEFAULT 'BAR'")
+                        .executeUpdate();
             }
         } catch (Exception e) {
             System.err.println("Migration check warning (establishment_type): " + e.getMessage());
@@ -552,14 +560,18 @@ public class GameSessionManager {
                     }
 
                     if (w1 != null) {
-                        final Long fw1 = w1;
-                        UserGameProfile profile = profileRepository.findById(fw1).orElseGet(() -> new UserGameProfile(fw1));
+                        final Long winner1 = w1;
+
+                        UserGameProfile profile = profileRepository.findById(winner1)
+                                .orElseGet(() -> new UserGameProfile(winner1));
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
                     if (w2 != null) {
-                        final Long fw2 = w2;
-                        UserGameProfile profile = profileRepository.findById(fw2).orElseGet(() -> new UserGameProfile(fw2));
+                        final Long winner2 = w2;
+
+                        UserGameProfile profile = profileRepository.findById(winner2)
+                                .orElseGet(() -> new UserGameProfile(winner2));
                         profile.setCoins((profile.getCoins() != null ? profile.getCoins() : 0) + prize);
                         profileRepository.save(profile);
                     }
@@ -630,10 +642,12 @@ public class GameSessionManager {
                 Long pWinner = null;
                 Long pWinnerPartner = null;
 
-                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
+                if (winnerId.equals(currentMatch.getPlayer1Id()) || (currentMatch.getPlayer1PartnerId() != null
+                        && winnerId.equals(currentMatch.getPlayer1PartnerId()))) {
                     pWinner = currentMatch.getPlayer1Id();
                     pWinnerPartner = currentMatch.getPlayer1PartnerId();
-                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
+                } else if (winnerId.equals(currentMatch.getPlayer2Id()) || (currentMatch.getPlayer2PartnerId() != null
+                        && winnerId.equals(currentMatch.getPlayer2PartnerId()))) {
                     pWinner = currentMatch.getPlayer2Id();
                     pWinnerPartner = currentMatch.getPlayer2PartnerId();
                 }
@@ -654,4 +668,3 @@ public class GameSessionManager {
         }
     }
 }
-
