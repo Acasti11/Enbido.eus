@@ -31,6 +31,8 @@ const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Elem
           {tournamentData.contactEmail && (
             <p className="tournament-card-body-text">✉️ <strong>Contacto:</strong> {tournamentData.contactEmail}</p>
           )}
+          <p className="tournament-card-body-text">💰 <strong>Fecha:</strong> {tournamentData.tournamentDate} a las {tournamentData.tournamentTime}</p>
+
         </div>
       </div>
     </article>

@@ -3,29 +3,38 @@ import type { TournamentFormState } from '../../../types/tournament';
 import TextInput from '../../../components/ui/TextInput';
 import RadioGroup from '../../../components/ui/RadioGroup';
 import FileInput from '../../../components/ui/FileInput'
+import { useTranslation } from 'react-i18next';
+
 
 interface PublishFormFieldsProps {
   formState: TournamentFormState;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const structureOptions = [
-  { value: 'association', label: 'Elkartea / Asociación' },
-  { value: 'professional', label: 'Profesionala / Profesional' }
-];
+
+
+
 
 const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): React.JSX.Element => {
+   const { t } = useTranslation();
+
+ 
+const structureOptions = [
+  { value: 'association', label: t('tournament.association')},
+  { value: 'professional', label: t('tournament.professional')},
+];
+ 
   return (
     <>
       <TextInput
-        label="Txapelketaren izena / Nombre del torneo"
+        label={t('tournament.tournamentName')}
         name="tournamentName"
         value={formState.tournamentName}
         onChange={onChange}
         isRequired
       />
       <TextInput
-        label="Kontaktu emaila / Email de contacto"
+        label={t('tournament.tournamentContactEmail')}
         name="contactEmail"
         type="email"
         value={formState.contactEmail}
@@ -33,22 +42,22 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
         isRequired
       />
       <TextInput
-        label="Kokapena / Ubicación"
+        label={t('tournament.tournamentlocation')}
         name="tournamentLocation"
         value={formState.tournamentLocation}
         onChange={onChange}
         isRequired
       />
       <RadioGroup
-        label="Egitura / Estructura"
+        label={t('tournament.tournamentStructure')}
         name="tournamentStructure"
         value={formState.tournamentStructure}
         options={structureOptions}
         onChange={onChange}
         isRequired
-      />
+      /> 
       <TextInput
-        label="Data / Fecha"
+        label={t('tournament.tournamentDate')}
         name="tournamentDate"
         type="date"
         value={formState.tournamentDate}
@@ -56,7 +65,7 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
         isRequired
       />
       <TextInput
-        label="Ordua / Hora"
+        label={t('tournament.tournamentTime')}
         name="tournamentTime"
         type="time"
         value={formState.tournamentTime}
@@ -64,7 +73,7 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
         isRequired
       />
       <TextInput
-        label="Parte-hartzaile kopuru maximoa / Máx. participantes"
+        label={t('tournament.maxParticipants')}
         name="maxParticipants"
         type="number"
         value={formState.maxParticipants}
@@ -73,7 +82,7 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
       />
       <div className="form-row">
         <TextInput
-          label="Izen-ematea (Monedas / tx)"
+        label={t('tournament.coinsFee')}
           name="coinsFee"
           type="number"
           value={formState.coinsFee || '0'}
@@ -81,7 +90,7 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
           isRequired
         />
         <TextInput
-          label="Saria Txapeldunarentzat (Monedas / tx)"
+        label={t('tournament.coinsReward')}
           name="coinsReward"
           type="number"
           value={formState.coinsReward || '0'}
@@ -89,28 +98,29 @@ const PublishFormFields = ({ formState, onChange }: PublishFormFieldsProps): Rea
           isRequired
         />
       </div>
-      <TextInput
-        label="Izen-emate prezioa / Precio inscripción (€)"
+            <TextInput
+        label={t('tournament.coinsFee')}
         name="inscriptionPrice"
         type="number"
         value={formState.inscriptionPrice}
         onChange={onChange}
         isRequired
       />
-      <TextInput
-        label="Sariak / Premios"
+            <TextInput
+        label={t('tournament.tournamentPrizes')}
         name="tournamentPrizes"
         value={formState.tournamentPrizes}
         onChange={onChange}
       />
+
       <TextInput
-        label="Beste xehetasunak / Otros detalles"
+        label={t('tournament.otherDetails')}
         name="otherDetails"
         value={formState.otherDetails}
         onChange={onChange}
       />
       <FileInput
-        label="Kartela / Cartel"
+        label={t('tournament.posterImage')}
         name="posterImage"
         onChange={onChange}
       />
