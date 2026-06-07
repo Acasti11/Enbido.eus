@@ -330,6 +330,11 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
 
   const getTourneyUsernameById = (id: number | null): string => {
     if (!id || !tourneyDetails) return t('premiumLobby.waitingEllipsis');
+    if (id < 0) {
+      const botNames = ['MusLar-99', 'AnderMus', 'AmaiaTxapeldun', 'PatxiBot', 'MusAdikto', 'KoldoBot', 'MirenBot', 'NereaBot'];
+      const index = Math.abs(id) - 1;
+      return botNames[index % botNames.length];
+    }
     const match = tourneyDetails.participants.find((p: any) => p.userId === id);
     return match ? match.username : t('premiumLobby.playerId', { id });
   };
