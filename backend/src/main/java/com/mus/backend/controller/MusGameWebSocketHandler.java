@@ -763,55 +763,62 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     profile.setIsLowPriority(true);
                     profile.setMatchmakingBanUntil(LocalDateTime.now().plusMinutes(5));
 
-                    // Calcular pérdida de ELO duplicada (Derrota Glicko-2 * 2)
-                    double ratingA0 = 1500.0; double rdA0 = 350.0;
-                    GamePlayer gp0 = room.getPlayers().get(0);
-                    if (gp0 != null && !gp0.isBot()) {
-                        UserGameProfile prof = profileRepository.findById(gp0.getUserId()).orElse(null);
-                        if (prof != null) { ratingA0 = prof.getElo().doubleValue(); rdA0 = prof.getRatingDeviation(); }
+                    boolean isRanked = "MATCHMAKING".equals(room.getGameType());
+
+                    if (isRanked) {
+                        // Calcular pérdida de ELO duplicada (Derrota Glicko-2 * 2)
+                        double ratingA0 = 1500.0; double rdA0 = 350.0;
+                        GamePlayer gp0 = room.getPlayers().get(0);
+                        if (gp0 != null && !gp0.isBot()) {
+                            UserGameProfile prof = profileRepository.findById(gp0.getUserId()).orElse(null);
+                            if (prof != null) { ratingA0 = prof.getElo().doubleValue(); rdA0 = prof.getRatingDeviation(); }
+                        }
+                        double ratingA2 = 1500.0; double rdA2 = 350.0;
+                        GamePlayer gp2 = room.getPlayers().get(2);
+                        if (gp2 != null && !gp2.isBot()) {
+                            UserGameProfile prof = profileRepository.findById(gp2.getUserId()).orElse(null);
+                            if (prof != null) { ratingA2 = prof.getElo().doubleValue(); rdA2 = prof.getRatingDeviation(); }
+                        }
+                        double ratingB1 = 1500.0; double rdB1 = 350.0;
+                        GamePlayer gp1 = room.getPlayers().get(1);
+                        if (gp1 != null && !gp1.isBot()) {
+                            UserGameProfile prof = profileRepository.findById(gp1.getUserId()).orElse(null);
+                            if (prof != null) { ratingB1 = prof.getElo().doubleValue(); rdB1 = prof.getRatingDeviation(); }
+                        }
+                        double ratingB3 = 1500.0; double rdB3 = 350.0;
+                        GamePlayer gp3 = room.getPlayers().get(3);
+                        if (gp3 != null && !gp3.isBot()) {
+                            UserGameProfile prof = profileRepository.findById(gp3.getUserId()).orElse(null);
+                            if (prof != null) { ratingB3 = prof.getElo().doubleValue(); rdB3 = prof.getRatingDeviation(); }
+                        }
+
+                        double oppTeamRating = isTeamA ? (ratingB1 + ratingB3) / 2.0 : (ratingA0 + ratingA2) / 2.0;
+                        double oppTeamRd = isTeamA ? (rdB1 + rdB3) / 2.0 : (rdA0 + rdA2) / 2.0;
+
+                        com.mus.backend.engine.Glicko2Calculator.GlickoResult res = com.mus.backend.engine.Glicko2Calculator.update(
+                            profile.getElo().doubleValue(),
+                            profile.getRatingDeviation(),
+                            profile.getVolatility(),
+                            oppTeamRating,
+                            oppTeamRd,
+                            0.0 // Derrota
+                        );
+
+                        int oldElo = profile.getElo();
+                        int expectedLoss = (int) Math.round(profile.getElo() - res.rating);
+                        if (expectedLoss <= 0) expectedLoss = 15;
+                        int penalization = expectedLoss * 2;
+
+                        profile.setElo((int) Math.max(0, oldElo - penalization));
+                        profile.setRatingDeviation(res.ratingDeviation);
+                        profile.setVolatility(res.volatility);
+
+                        profileRepository.save(profile);
+                        room.appendLog("[BD] Desertor " + username + " penalizado: ELO " + oldElo + " -> " + profile.getElo() + " (-" + penalization + " ELO)");
+                    } else {
+                        profileRepository.save(profile);
+                        room.appendLog("[BD] Desertor " + username + " en partida amistosa: ELO sin cambios, ban de matchmaking aplicado");
                     }
-                    double ratingA2 = 1500.0; double rdA2 = 350.0;
-                    GamePlayer gp2 = room.getPlayers().get(2);
-                    if (gp2 != null && !gp2.isBot()) {
-                        UserGameProfile prof = profileRepository.findById(gp2.getUserId()).orElse(null);
-                        if (prof != null) { ratingA2 = prof.getElo().doubleValue(); rdA2 = prof.getRatingDeviation(); }
-                    }
-                    double ratingB1 = 1500.0; double rdB1 = 350.0;
-                    GamePlayer gp1 = room.getPlayers().get(1);
-                    if (gp1 != null && !gp1.isBot()) {
-                        UserGameProfile prof = profileRepository.findById(gp1.getUserId()).orElse(null);
-                        if (prof != null) { ratingB1 = prof.getElo().doubleValue(); rdB1 = prof.getRatingDeviation(); }
-                    }
-                    double ratingB3 = 1500.0; double rdB3 = 350.0;
-                    GamePlayer gp3 = room.getPlayers().get(3);
-                    if (gp3 != null && !gp3.isBot()) {
-                        UserGameProfile prof = profileRepository.findById(gp3.getUserId()).orElse(null);
-                        if (prof != null) { ratingB3 = prof.getElo().doubleValue(); rdB3 = prof.getRatingDeviation(); }
-                    }
-
-                    double oppTeamRating = isTeamA ? (ratingB1 + ratingB3) / 2.0 : (ratingA0 + ratingA2) / 2.0;
-                    double oppTeamRd = isTeamA ? (rdB1 + rdB3) / 2.0 : (rdA0 + rdA2) / 2.0;
-
-                    com.mus.backend.engine.Glicko2Calculator.GlickoResult res = com.mus.backend.engine.Glicko2Calculator.update(
-                        profile.getElo().doubleValue(),
-                        profile.getRatingDeviation(),
-                        profile.getVolatility(),
-                        oppTeamRating,
-                        oppTeamRd,
-                        0.0 // Derrota
-                    );
-
-                    int oldElo = profile.getElo();
-                    int expectedLoss = (int) Math.round(profile.getElo() - res.rating);
-                    if (expectedLoss <= 0) expectedLoss = 15;
-                    int penalization = expectedLoss * 2;
-
-                    profile.setElo((int) Math.max(0, oldElo - penalization));
-                    profile.setRatingDeviation(res.ratingDeviation);
-                    profile.setVolatility(res.volatility);
-
-                    profileRepository.save(profile);
-                    room.appendLog("[BD] Desertor " + username + " penalizado: ELO " + oldElo + " -> " + profile.getElo() + " (-" + penalization + " ELO)");
                    }
                } catch (Exception e) {
                    System.err.println("Error penalizando abandono: " + e.getMessage());

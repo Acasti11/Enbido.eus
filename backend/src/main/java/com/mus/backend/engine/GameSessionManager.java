@@ -176,6 +176,7 @@ public class GameSessionManager {
                     String autoRoomId = "PARTIDA-" + (reyesOption.equals("4") ? "4R-" : "8R-")
                             + (int) Math.floor(100 + Math.random() * 900);
                     GameSession session = createRoom(autoRoomId);
+                    session.setGameType("MATCHMAKING");
                     session.getConfig().setReyesOption(reyesOption);
                     session.getConfig().setMaxRounds(3);
 
@@ -348,6 +349,8 @@ public class GameSessionManager {
     }
 
     private void syncUserStatsPostGame(GameSession session) {
+        boolean isRanked = "MATCHMAKING".equals(session.getGameType());
+
         boolean team1Won;
         if (session.getRoundsWonUs() >= session.getConfig().getMaxRounds()) {
             team1Won = true;
@@ -434,27 +437,33 @@ public class GameSessionManager {
                         profile.setTotalGamesWon(profile.getTotalGamesWon() + 1);
                     }
 
-                    // Ejecutar actualización de Glicko-2
-                    Glicko2Calculator.GlickoResult res = Glicko2Calculator.update(
-                            profile.getElo().doubleValue(),
-                            profile.getRatingDeviation(),
-                            profile.getVolatility(),
-                            oppTeamRating,
-                            oppTeamRd,
-                            outcome);
+                    if (isRanked) {
+                        // Ejecutar actualización de Glicko-2 solo en partidas ranked
+                        Glicko2Calculator.GlickoResult res = Glicko2Calculator.update(
+                                profile.getElo().doubleValue(),
+                                profile.getRatingDeviation(),
+                                profile.getVolatility(),
+                                oppTeamRating,
+                                oppTeamRd,
+                                outcome);
 
-                    int oldElo = profile.getElo();
-                    profile.setElo((int) Math.max(0, Math.round(res.rating)));
-                    profile.setRatingDeviation(res.ratingDeviation);
-                    profile.setVolatility(res.volatility);
+                        int oldElo = profile.getElo();
+                        profile.setElo((int) Math.max(0, Math.round(res.rating)));
+                        profile.setRatingDeviation(res.ratingDeviation);
+                        profile.setVolatility(res.volatility);
 
-                    // Recompensa de monedas
+                        profileRepository.save(profile);
+                        session.appendLog(String.format("[BD] Perfil de %s actualizado: ELO %d -> %d (RD: %.1f)",
+                                gp.getUsername(), oldElo, profile.getElo(), profile.getRatingDeviation()));
+                    } else {
+                        session.appendLog(String.format("[BD] Perfil de %s: Partida amistosa, ELO sin cambios (%d)",
+                                gp.getUsername(), profile.getElo()));
+                    }
+
+                    // Recompensa de monedas (siempre, incluso en amistosas)
                     int coinsGained = didWin ? 25 : 5;
                     profile.setCoins(profile.getCoins() + coinsGained);
-
                     profileRepository.save(profile);
-                    session.appendLog(String.format("[BD] Perfil de %s actualizado: ELO %d -> %d (RD: %.1f)",
-                            gp.getUsername(), oldElo, profile.getElo(), profile.getRatingDeviation()));
                 } catch (Exception e) {
                     System.err.println("Error updating user statistics in DB: " + e.getMessage());
                 }

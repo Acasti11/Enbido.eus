@@ -633,6 +633,7 @@ public class PhysicalTournamentController {
             String roomCode = "TORNEO-" + id + "-M" + matchId;
             try {
                 com.mus.backend.engine.GameSession session = sessionManager.createRoom(roomCode);
+                session.setGameType("TOURNAMENT");
                 session.getConfig().setReyesOption("8");
                 session.getConfig().setMaxRounds(3);
 

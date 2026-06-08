@@ -8,6 +8,7 @@ public class GameSession {
 
     private String roomId;
     private Long gameDatabaseId; // ID in play_game table
+    private String gameType = "PRIVATE"; // MATCHMAKING, PRIVATE, TOURNAMENT
     private List<GamePlayer> players = new ArrayList<>(Arrays.asList(null, null, null, null)); // Chairs 0 to 3
     private boolean isPlaying = false;
     private String phase = "init"; // init, dealing, mus-check, discarding, betting, round-over
