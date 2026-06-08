@@ -42,6 +42,10 @@ export const useMusGame = (userId: number) => {
   const [activeSigns, setActiveSigns] = useState<{ [chair: number]: string }>({});
   const [dealerIdx, setDealerIdx] = useState<number>(-1);
   
+  // Round transition state (between hands)
+  const [roundTransition, setRoundTransition] = useState<any>(null);
+  const [roundTransitionDeadline, setRoundTransitionDeadline] = useState<number>(0);
+  
   // States for king configuration and round marker
   const [reyesOption, setReyesOption] = useState<'4' | '8'>('8');
   const [maxRounds, setMaxRounds] = useState<number>(3);
@@ -147,6 +151,8 @@ export const useMusGame = (userId: number) => {
           setTurnDeadline(data.turnDeadline || 0);
           setDealerIdx(data.dealerIdx !== undefined ? data.dealerIdx : -1);
           setLeaveVotes(data.leaveVotes || []);
+          setRoundTransition(data.roundTransition || null);
+          setRoundTransitionDeadline(data.roundTransitionDeadline || 0);
           setIsSearching(false);
         } 
         else if (type === 'GAME_CANCELLED') {
@@ -396,6 +402,8 @@ export const useMusGame = (userId: number) => {
     turnDeadline,
     activeTurnIdx,
     dealerIdx,
+    roundTransition,
+    roundTransitionDeadline,
     
     handleStartMatch,
     startNewHand,

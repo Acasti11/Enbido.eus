@@ -41,6 +41,10 @@ public class GameSession {
     private Map<String, LanceBet> apuestas = new HashMap<>();
     private GameConfig config = new GameConfig(); // Dynamic game settings
     private final Set<Integer> leaveVotes = new HashSet<>();
+    
+    // Round transition state (between hands)
+    private Map<String, Object> roundTransition = null;
+    private long roundTransitionDeadline = 0;
 
     public GameSession(String roomId) {
         this.roomId = roomId;
@@ -167,6 +171,10 @@ public class GameSession {
     }
 
     public void startNewHand() {
+        // Clear round transition state
+        roundTransition = null;
+        roundTransitionDeadline = 0;
+        
         if (scoreUs >= 30 || scoreThem >= 30) {
             scoreUs = 0;
             scoreThem = 0;
@@ -400,6 +408,47 @@ public class GameSession {
 
         appendLog(String.format("Puntos sumados en el chico -> Nosotros: %d | Rivales: %d", pointsRoundUs, pointsRoundThem));
         
+        // Determine chico/match outcome for transition screen
+        boolean chicoOver = scoreUs >= 30 || scoreThem >= 30;
+        boolean matchOver = false;
+        if (chicoOver) {
+            int newRoundsWonUs = roundsWonUs + (scoreUs >= 30 ? 1 : 0);
+            int newRoundsWonThem = roundsWonThem + (scoreThem >= 30 ? 1 : 0);
+            matchOver = newRoundsWonUs >= config.getMaxRounds() || newRoundsWonThem >= config.getMaxRounds();
+        }
+        
+        // Build round transition data for frontend
+        roundTransition = new HashMap<>();
+        roundTransition.put("pointsUs", pointsRoundUs);
+        roundTransition.put("pointsThem", pointsRoundThem);
+        roundTransition.put("scoreUs", scoreUs);
+        roundTransition.put("scoreThem", scoreThem);
+        roundTransition.put("roundsWonUs", roundsWonUs + (scoreUs >= 30 ? 1 : 0));
+        roundTransition.put("roundsWonThem", roundsWonThem + (scoreThem >= 30 ? 1 : 0));
+        roundTransition.put("chicoOver", chicoOver);
+        roundTransition.put("matchOver", matchOver);
+        roundTransition.put("isPlaying", isPlaying);
+        
+        // Per-lance breakdown
+        List<Map<String, Object>> lanceResults = new ArrayList<>();
+        String[] lanceNames = {"grande", "chica", "pares", "juego"};
+        for (String lance : lanceNames) {
+            LanceBet lb = apuestas.get(lance);
+            Map<String, Object> lr = new HashMap<>();
+            lr.put("lance", lance);
+            lr.put("winner", lb.getGanadaPor());
+            int gain = lb.getDeje() > 0 ? lb.getDeje() : (lb.getPuntos() == 0 ? 1 : lb.getPuntos());
+            lr.put("points", gain);
+            lr.put("betPoints", lb.getPuntos());
+            lr.put("deje", lb.getDeje());
+            lr.put("esPunto", lb.isEsPunto());
+            lanceResults.add(lr);
+        }
+        roundTransition.put("lanceResults", lanceResults);
+        
+        // Set 5-second transition deadline
+        roundTransitionDeadline = System.currentTimeMillis() + 5000;
+        
         // Check chico over
         if (scoreUs >= 30 || scoreThem >= 30) {
             if (scoreUs >= 30) {
@@ -457,6 +506,8 @@ public class GameSession {
         state.put("chatMessages", clientChat);
         state.put("activeTurnIdx", activeTurnIdx);
         state.put("dealerIdx", dealerIdx);
+        state.put("roundTransition", roundTransition);
+        state.put("roundTransitionDeadline", roundTransitionDeadline);
         state.put("betState", betState);
         state.put("currentBetSize", currentBetSize);
         state.put("reyesOption", config.getReyesOption());

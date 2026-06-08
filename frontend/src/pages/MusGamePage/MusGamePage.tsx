@@ -13,6 +13,7 @@ import api from '../../services/api';
 import './styles/mus-game.css';
 import { useSeo } from '../../hooks/useSeo';
 import GameOverModal from '../../components/layout/GameOverModal';
+import { RoundTransitionOverlay } from './components/RoundTransitionOverlay';
 
 const getSignEmojiOnly = (signKey: string): string => {
   const mapping: { [key: string]: string } = {
@@ -391,6 +392,7 @@ const MusGamePage: React.FC = () => {
     onAddBot, onRemoveBot, onJoinRoom, onCreateRoom, onStartMatchmaking, onCancelMatchmaking, onLeaveRoom,
     reyesOption, maxRounds, updateRoomConfig, sendChatMessage, sendSign,
     activeSigns, turnDeadline, activeTurnIdx, dealerIdx,
+    roundTransition, roundTransitionDeadline,
     leaveVotes, sendLeaveVote
   } = useMusGame(currentUserId);
 
@@ -606,6 +608,11 @@ const MusGamePage: React.FC = () => {
     else handleStartMatch();
   };
 
+  const handleTransitionComplete = () => {
+    // Auto-start is handled by backend timer, but user can click through
+    if (phase === 'round-over') startNewHand();
+  };
+
   const executeDiscardsLocal = () => handleExecuteDiscards(selectedCards);
 
   const handleBetLocal = (action: 'Paso' | 'Envido' | 'Ordago' | 'Quiero' | 'No Quiero') => {
@@ -698,6 +705,16 @@ const MusGamePage: React.FC = () => {
                   : t('musGame.voteExit')}
               </button>
             </div>
+          )}
+
+          {/* Round transition overlay */}
+          {roundTransition && phase === 'round-over' && (
+            <RoundTransitionOverlay
+              transition={roundTransition}
+              deadline={roundTransitionDeadline}
+              onComplete={handleTransitionComplete}
+              t={t}
+            />
           )}
 
           <div className="game-felt-board">
