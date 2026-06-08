@@ -55,7 +55,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
   const location = useLocation();
   const { settings, updateSetting, saveSettingsToDb, playSfx } = useSettings();
   const { t } = useTranslation();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -201,6 +201,8 @@ const Navbar: React.FC = (): React.JSX.Element => {
     { label: t('nav.meetups'), to: '/quedadas' },
   ];
 
+
+
   const renderNavLinks = (): React.JSX.Element[] => {
     return navLinks.map((link) => {
       const isActive = location.pathname === link.to;
@@ -331,6 +333,20 @@ const Navbar: React.FC = (): React.JSX.Element => {
                   <span className="navbar__dropdown-icon">👤</span>
                   <span className="navbar__dropdown-text">{t('nav.accountProfile')}</span>
                 </Link>
+
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="navbar__dropdown-item"
+                    onClick={() => {
+                      playSfx('click');
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <span className="navbar__dropdown-icon">⚙️</span>
+                    <span className="navbar__dropdown-text">Panel Admin</span>
+                  </Link>
+                )}
 
                 <div className="navbar__dropdown-divider" />
 

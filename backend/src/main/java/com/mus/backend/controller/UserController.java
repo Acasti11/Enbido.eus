@@ -216,6 +216,32 @@ public class UserController {
     }
 
     // ============================================
+    // ADMIN: Banear usuario
+    // ============================================
+    @PostMapping("/{id}/ban")
+    @PreAuthorize("hasRole('admin')")
+    public ResponseEntity<?> banUser(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        user.setIsBanned(true);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Usuario baneado correctamente"));
+    }
+
+    // ============================================
+    // ADMIN: Desbanear usuario
+    // ============================================
+    @PostMapping("/{id}/unban")
+    @PreAuthorize("hasRole('admin')")
+    public ResponseEntity<?> unbanUser(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        user.setIsBanned(false);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Usuario desbaneado correctamente"));
+    }
+
+    // ============================================
     // PROTEGIDO: Buscar usuarios por username (para añadir amigos)
     // ============================================
     @GetMapping("/search")

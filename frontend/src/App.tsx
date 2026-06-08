@@ -12,6 +12,7 @@ import HomePage from './pages/HomePage/HomePage';
 import RulesPage from './pages/RulesPage/RulesPage';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
 import AccountPage from './pages/AccountPage/AccountPage';
+import AdminPage from './pages/AdminPage/AdminPage';
 import GlobalChatWindow from './components/chat/GlobalChatWindow';
 import { ChatProvider } from './context/ChatContext';
 
@@ -42,6 +43,7 @@ const App: React.FC = (): React.JSX.Element => {
               <Route path="/perfil" element={<ProfilePage />} />
               <Route path="/cuenta" element={<AccountPage />} />
               <Route path="/reglas" element={<RulesPage />} />
+              <Route path="/admin" element={<AdminPage />} />
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
