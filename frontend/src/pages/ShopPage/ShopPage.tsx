@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import { useShopData } from './hooks/useShopData';
 import ShopToast from './components/ShopToast';
 import ShopHero from './components/ShopHero';
@@ -118,7 +119,8 @@ const ShopPage: React.FC = (): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<ShopCategory>('profiles');
   const [sortByPrice, setSortByPrice] = useState<'none' | 'asc' | 'desc'>('none');
 
-  const username = localStorage.getItem('username') || t('shop.defaultUsername');
+  const { user } = useAuth();
+  const username = user?.username || t('shop.defaultUsername');
   const initials = username.slice(0, 2).toUpperCase();
 
   const mappedItems: ShopItem[] = useMemo(() => {

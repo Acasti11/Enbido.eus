@@ -42,7 +42,6 @@ public class UserService {
     // ============================================
     @Transactional
     public String registrarUsuario(UserRegisterDto dto) {
-        // Validaciones de negocio
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -65,13 +64,11 @@ public class UserService {
 
             User savedUser = userRepository.save(user);
 
-            // Crear local_auth con password
             LocalAuth localAuth = new LocalAuth();
             localAuth.setUser(savedUser);
             localAuth.setPassword(passwordEncoder.encode(dto.getPassword()));
             localAuthRepository.save(localAuth);
 
-            // Crear perfil de juego con monedas iniciales
             UserGameProfile profile = new UserGameProfile(savedUser.getUserId());
             if (savedUser.getBirthDate() != null) {
                 int age = java.time.LocalDate.now().getYear() - savedUser.getBirthDate().getYear();
@@ -91,7 +88,7 @@ public class UserService {
     }
 
     // ============================================
-    // LOGIN: maneja Doble Factor o devuelve token directo
+    // LOGIN: maneja Doble Factor o devuelve login directo
     // ============================================
     @Transactional
     public LoginResponseDto authenticate(String username, String password) {
@@ -111,31 +108,24 @@ public class UserService {
         }
 
         if (Boolean.TRUE.equals(localAuth.getTwoFactorEnabled())) {
-            // Generar código aleatorio de 6 dígitos
             String code = String.format("%06d", new java.util.Random().nextInt(1000000));
             localAuth.setTwoFactorCode(code);
             localAuth.setTwoFactorCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
             localAuthRepository.save(localAuth);
 
-            // Enviar correo
             mailService.sendTwoFactorCode(user.getEmail(), user.getUsername(), code);
 
-            return new LoginResponseDto(true, user.getUserId(), null);
+            return new LoginResponseDto(true, user.getUserId());
         }
 
-        String token = jwtService.generateToken(
-            user.getUserId(),
-            user.getUsername(),
-            user.getRole().name()
-        );
-        return new LoginResponseDto(false, null, token);
+        return new LoginResponseDto(false, null);
     }
 
     // ============================================
-    // VERIFICAR 2FA: valida código y devuelve JWT
+    // VERIFICAR 2FA: valida código
     // ============================================
     @Transactional
-    public String verify2Fa(Long userId, String code) {
+    public void verify2Fa(Long userId, String code) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -150,16 +140,9 @@ public class UserService {
             throw new RuntimeException("El código de verificación ha expirado");
         }
 
-        // Limpiar código de verificación usado
         localAuth.setTwoFactorCode(null);
         localAuth.setTwoFactorCodeExpiresAt(null);
         localAuthRepository.save(localAuth);
-
-        return jwtService.generateToken(
-            user.getUserId(),
-            user.getUsername(),
-            user.getRole().name()
-        );
     }
 
     // ============================================
@@ -183,7 +166,7 @@ public class UserService {
     }
 
     // ============================================
-    // RECUPERAR CONTRASEÑA: genera token y envía mail
+    // RECUPERAR CONTRASEÑA
     // ============================================
     @Transactional
     public void requestPasswordReset(String email, String frontendUrl) {
@@ -203,7 +186,7 @@ public class UserService {
     }
 
     // ============================================
-    // RESTABLECER CONTRASEÑA: valida token y cambia pass
+    // RESTABLECER CONTRASEÑA
     // ============================================
     @Transactional
     public void resetPassword(String token, String newPassword) {

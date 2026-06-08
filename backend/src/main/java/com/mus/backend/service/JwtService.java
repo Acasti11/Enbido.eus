@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -17,6 +18,9 @@ public class JwtService {
     
     @Value("${jwt.expiration:900000}") // 15 min
     private long expiration;
+
+    @Value("${jwt.refresh-expiration:604800000}") // 7 days
+    private long refreshExpiration;
     
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -71,5 +75,36 @@ public class JwtService {
 
     public String extractRole(String token) {
         return validateToken(token).get("role", String.class);
+    }
+
+    // ============================================
+    // Refresh token
+    // ============================================
+    public String generateRefreshToken() {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + refreshExpiration);
+
+        return Jwts.builder()
+                .id(UUID.randomUUID().toString())
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public boolean isRefreshTokenValid(String token) {
+        try {
+            return !validateToken(token).getExpiration().before(new Date());
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Devuelve el tiempo de expiración de un token en milisegundos desde epoch.
+     * Útil para calcular el TTL de la blacklist.
+     */
+    public long getExpirationMillis(String token) {
+        return validateToken(token).getExpiration().getTime();
     }
 }

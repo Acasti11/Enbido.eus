@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import '../styles/meetup-ad-card.css';
 import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
+import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 export interface LocalMeetupAd {
@@ -34,8 +35,8 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   const [newMessageText, setNewMessageText] = useState<string>('');
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
-  const currentUserId = Number(localStorage.getItem('userId') || '0');
-  const isLoggedIn = !!localStorage.getItem('token');
+  const { user, isAuthenticated } = useAuth();
+  const currentUserId = user?.userId || 0;
   const { t } = useTranslation();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -43,7 +44,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   const { joinMeetup, leaveMeetup, registerMeetupCallback, unregisterMeetupCallback, sendMeetupMessage } = useChatWebSocket();
 
   const handleContactOrganizer = () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       alert(t('meetup.loginToContact'));
       return;
     }
@@ -54,7 +55,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       totalGamesPlayed: 12,
       totalGamesWon: 5
     };
-    localStorage.setItem('enbido_open_dm_target', JSON.stringify(target));
+    sessionStorage.setItem('enbido_open_dm_target', JSON.stringify(target));
     navigate('/jugar');
   };
 
@@ -118,7 +119,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   }, [messages]);
 
   const handleJoin = async () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       alert(t('meetup.loginToJoin'));
       return;
     }
@@ -134,7 +135,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
   };
 
   const handleLeave = async () => {
-    if (!isLoggedIn) return;
+    if (!isAuthenticated) return;
     try {
       const res = await api.post(`/meetups/${adState.adId}/leave`);
       setAdState(res.data);
@@ -268,7 +269,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
           <button
             className="btn-join"
             onClick={handleJoin}
-            disabled={isCreator || isFull || !isLoggedIn}
+            disabled={isCreator || isFull || !isAuthenticated}
           >
             {isCreator
               ? t('meetup.organizer')
@@ -364,7 +365,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
             <div ref={chatEndRef} />
           </div>
 
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <form onSubmit={handleSendMessage} className="meetup-chat-form">
               <input
                 type="text"

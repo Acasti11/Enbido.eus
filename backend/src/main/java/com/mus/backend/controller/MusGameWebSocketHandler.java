@@ -48,6 +48,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         String roomId;
         int chair; // -1 if not seated yet
         String reyesOption; // null if not in matchmaking queue
+        boolean authenticated;
     }
 
     @Override
@@ -55,6 +56,16 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         UserConnection conn = new UserConnection();
         conn.session = session;
         conn.chair = -1;
+
+        // Read auth from handshake attributes (set by JwtHandshakeInterceptor)
+        Map<String, Object> attributes = session.getAttributes();
+        Boolean authenticated = (Boolean) attributes.get("authenticated");
+        if (Boolean.TRUE.equals(authenticated)) {
+            conn.authenticated = true;
+            conn.userId = (Long) attributes.get("userId");
+            conn.username = (String) attributes.get("username");
+        }
+
         activeConnections.put(session.getId(), conn);
     }
 
@@ -68,9 +79,15 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             UserConnection conn = activeConnections.get(session.getId());
             if (conn == null) return;
 
+            // All actions require authentication
+            if (!conn.authenticated && !("JOIN".equals(type) || "MATCHMAKING_JOIN".equals(type))) {
+                sendErrorMessage(conn.session, "No autorizado: sesión no autenticada.");
+                return;
+            }
+
             if ("JOIN".equals(type)) {
                 handleJoinAction(conn, data);
-            } 
+            }
             else if ("MATCHMAKING_JOIN".equals(type)) {
                 handleMatchmakingJoin(conn, data);
             }
@@ -79,19 +96,19 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             }
             else if ("ADD_BOT".equals(type)) {
                 handleAddBot(conn, data);
-            } 
+            }
             else if ("REMOVE_BOT".equals(type)) {
                 handleRemoveBot(conn, data);
             }
             else if ("START_GAME".equals(type)) {
                 handleStartGame(conn);
-            } 
+            }
             else if ("DECISION_MUS".equals(type)) {
                 handleMusDecision(conn, data);
-            } 
+            }
             else if ("DISCARD".equals(type)) {
                 handleDiscard(conn, data);
-            } 
+            }
             else if ("BET".equals(type)) {
                 handleBet(conn, data);
             }
@@ -156,7 +173,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     } else {
                         room.removePlayer(conn.chair);
                         broadcastRoomState(room);
-                        
+
                         // Si la sala está vacía de jugadores reales, la eliminamos
                         boolean hasRealPlayers = false;
                         for (GamePlayer gp : room.getPlayers()) {
@@ -183,21 +200,20 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
     private void handleJoinAction(UserConnection conn, Map<String, Object> data) {
         String roomId = ((String) data.get("roomId")).toUpperCase().trim();
-        
-        String token = (String) data.get("token");
-        if (token == null || !jwtService.isTokenValid(token)) {
-            sendErrorMessage(conn.session, "No autorizado: token inválido o ausente.");
+
+        // Auth is now from handshake; if not authenticated, reject
+        if (!conn.authenticated || conn.userId == null) {
+            sendErrorMessage(conn.session, "No autorizado: sesión no autenticada.");
             return;
         }
-        Long userId = jwtService.extractUserId(token);
-        String username = jwtService.extractUsername(token);
 
-        conn.userId = userId;
-        conn.username = username;
+        Long userId = conn.userId;
+        String username = conn.username;
+
         conn.roomId = roomId;
 
         GameSession room = sessionManager.createRoom(roomId);
-        
+
         // Evitamos que el mismo jugador se siente dos veces
         int seatedChair = -1;
         for (int i = 0; i < 4; i++) {
@@ -219,13 +235,13 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         }
 
         conn.chair = seatedChair;
-        
+
         // Cancelar temporizador de desconexión temporal si el jugador vuelve
         String timerKey = roomId + "_" + userId;
         ScheduledFuture<?> activeDcTimer = leaverTimers.remove(timerKey);
         if (activeDcTimer != null) {
             activeDcTimer.cancel(false);
-            
+
             // Informar reconexión a la mesa
             Map<String, Object> rcEvent = new HashMap<>();
             rcEvent.put("type", "PLAYER_RECONNECTED");
@@ -234,7 +250,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             rcEvent.put("chair", seatedChair);
             broadcastToRoom(room, rcEvent);
         }
-        
+
         broadcastRoomState(room);
 
         // Si es una sala de torneo, iniciar la partida automáticamente cuando todos los jugadores reales estén conectados
@@ -260,7 +276,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             if (allHumanPlayersConnected && !room.isPlaying()) {
                 // Persistir la partida en la Base de Datos antes de empezar
                 sessionManager.saveNewGameToDb(room);
-                
+
                 room.startMatch();
                 broadcastRoomState(room);
                 triggerBotTurnsRecursively(room);
@@ -270,17 +286,16 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleMatchmakingJoin(UserConnection conn, Map<String, Object> data) {
-        String token = (String) data.get("token");
-        if (token == null || !jwtService.isTokenValid(token)) {
-            sendErrorMessage(conn.session, "No autorizado: token inválido o ausente.");
+        // Auth is now from handshake
+        if (!conn.authenticated || conn.userId == null) {
+            sendErrorMessage(conn.session, "No autorizado: sesión no autenticada.");
             return;
         }
-        Long userId = jwtService.extractUserId(token);
-        String username = jwtService.extractUsername(token);
+
+        Long userId = conn.userId;
+        String username = conn.username;
         String reyesOption = data.containsKey("reyesOption") ? (String) data.get("reyesOption") : "8";
-        
-        conn.userId = userId;
-        conn.username = username;
+
         conn.reyesOption = reyesOption;
 
         try {
@@ -317,7 +332,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             Map<String, Object> leaveEvent = new HashMap<>();
             leaveEvent.put("type", "LEAVED_QUEUE");
             sendJsonMessage(conn.session, leaveEvent);
-            
+
             if (conn.reyesOption != null) {
                 String reyes = conn.reyesOption;
                 conn.reyesOption = null;
@@ -369,7 +384,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
         room.startMatch();
         broadcastRoomState(room);
-        
+
         // Si le toca a un Bot, lo automatizamos
         triggerBotTurnsRecursively(room);
         startTurnTimer(room);
@@ -381,10 +396,10 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         if (room == null || conn.chair != room.getActiveTurnIdx()) return;
 
         boolean wantsMus = (Boolean) data.get("wantsMus");
-        
+
         // Log action
         sessionManager.logActionToDb(room, conn.chair, wantsMus ? "Mus" : "Corto");
-        
+
         room.handleMusDecision(conn.chair, wantsMus);
         broadcastRoomState(room);
 
@@ -399,7 +414,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         if (room == null || conn.chair != room.getActiveTurnIdx()) return;
 
         List<String> cardIds = (List<String>) data.get("cardIds");
-        
+
         // Log action
         sessionManager.logActionToDb(room, conn.chair, "Se descarta de " + cardIds.size() + " cartas.");
 
@@ -416,15 +431,15 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         if (room == null || conn.chair != room.getActiveTurnIdx()) return;
 
         String action = (String) data.get("action");
-        
+
         // Log action
         sessionManager.logActionToDb(room, conn.chair, "Apuesta: " + action);
 
         room.handleBetAction(conn.chair, action);
-        
+
         // Sincronizar puntuación si termina la ronda
         sessionManager.updateGameScoresInDb(room);
-        
+
         broadcastRoomState(room);
 
         triggerBotTurnsRecursively(room);
@@ -453,23 +468,23 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
-                
+
                 int preTurnIdx = room.getActiveTurnIdx();
                 String prePhase = room.getPhase();
-                
+
                 // Intentamos ejecutar el turno del Bot en el motor
                 acted = room.runBotTurnIfActive();
-                
+
                 if (acted) {
                     // Log del Bot en BD
                     sessionManager.logActionToDb(room, preTurnIdx, "Bot auto-actúa en " + prePhase);
-                    
+
                     // Sincronizar puntuaciones si ha cambiado a round-over
                     sessionManager.updateGameScoresInDb(room);
-                    
+
                     // Notificamos a todos el nuevo estado
                     broadcastRoomState(room);
-                    
+
                     // Turn advanced, reset timer for human player if next
                     startTurnTimer(room);
                 }
@@ -486,7 +501,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     // Genera estado a la medida de la silla para evitar trampas
                     Map<String, Object> state = room.toClientState(conn.chair);
                     state.put("type", "ROOM_STATE");
-                    
+
                     String json = mapper.writeValueAsString(state);
                     synchronized (conn.session) {
                         if (conn.session.isOpen()) {
@@ -531,7 +546,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
     private void startTurnTimer(GameSession room) {
         String roomId = room.getRoomId();
-        
+
         // Cancel existing timer
         ScheduledFuture<?> oldTimer = activeTimers.remove(roomId);
         if (oldTimer != null) {
@@ -554,7 +569,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         int limitSeconds = 10;
         long deadline = System.currentTimeMillis() + (limitSeconds * 1000);
         room.setTurnDeadline(deadline);
-        
+
         // Broadcast immediately so clients get the new turnDeadline
         broadcastRoomState(room);
 
@@ -579,12 +594,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             actionDesc = "Corto (Tiempo expirado)";
             sessionManager.logActionToDb(room, playerIdx, actionDesc);
             room.handleMusDecision(playerIdx, false); // Wants mus = false -> Corto
-        } 
+        }
         else if ("discarding".equals(phase)) {
             actionDesc = "Descarte 0 (Tiempo expirado)";
             sessionManager.logActionToDb(room, playerIdx, actionDesc);
             room.handleDiscards(playerIdx, new ArrayList<>()); // Discard 0
-        } 
+        }
         else if ("betting".equals(phase)) {
             if (room.getBetState() > 0) {
                 actionDesc = "No Quiero (Tiempo expirado)";
@@ -675,7 +690,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
             if (future != null) {
                 future.cancel(false);
             }
-            
+
             // Clean up the room after a delay
             timerScheduler.schedule(() -> {
                 sessionManager.removeRoom(conn.roomId);
@@ -710,7 +725,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
     private void handleAbandonment(String roomId, Long userId, String username, int chair) {
         leaverTimers.remove(roomId + "_" + userId);
-        
+
         // Verificar si el jugador ya se reconectó
         boolean reconnected = false;
         for (UserConnection activeConn : activeConnections.values()) {
@@ -719,15 +734,15 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 break;
             }
         }
-        
+
         if (reconnected) {
             return; // Ya se reconectó
         }
-        
+
         GameSession room = sessionManager.getRoom(roomId);
         if (room != null && room.isPlaying()) {
             room.appendLog("⚠️ " + username + " abandonó la partida.");
-            
+
             // Declarar ganadores a los rivales (Parejas: 0 y 2 vs 1 y 3)
             boolean isTeamA = (chair % 2 == 0);
             if (isTeamA) {
@@ -738,7 +753,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                 room.setScoreThem(Math.min(room.getScoreThem(), 29));
             }
             room.setPlaying(false);
-            
+
             // Aplicar penalización por abandono en base de datos
             try {
                 UserGameProfile profile = profileRepository.findById(userId).orElse(null);
@@ -747,7 +762,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     profile.setAbandonedGamesCount(profile.getAbandonedGamesCount() + 1);
                     profile.setIsLowPriority(true);
                     profile.setMatchmakingBanUntil(LocalDateTime.now().plusMinutes(5));
-                    
+
                     // Calcular pérdida de ELO duplicada (Derrota Glicko-2 * 2)
                     double ratingA0 = 1500.0; double rdA0 = 350.0;
                     GamePlayer gp0 = room.getPlayers().get(0);
@@ -773,10 +788,10 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                         UserGameProfile prof = profileRepository.findById(gp3.getUserId()).orElse(null);
                         if (prof != null) { ratingB3 = prof.getElo().doubleValue(); rdB3 = prof.getRatingDeviation(); }
                     }
-                    
+
                     double oppTeamRating = isTeamA ? (ratingB1 + ratingB3) / 2.0 : (ratingA0 + ratingA2) / 2.0;
                     double oppTeamRd = isTeamA ? (rdB1 + rdB3) / 2.0 : (rdA0 + rdA2) / 2.0;
-                    
+
                     com.mus.backend.engine.Glicko2Calculator.GlickoResult res = com.mus.backend.engine.Glicko2Calculator.update(
                         profile.getElo().doubleValue(),
                         profile.getRatingDeviation(),
@@ -785,33 +800,33 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                         oppTeamRd,
                         0.0 // Derrota
                     );
-                    
+
                     int oldElo = profile.getElo();
                     int expectedLoss = (int) Math.round(profile.getElo() - res.rating);
                     if (expectedLoss <= 0) expectedLoss = 15;
                     int penalization = expectedLoss * 2;
-                    
+
                     profile.setElo((int) Math.max(0, oldElo - penalization));
                     profile.setRatingDeviation(res.ratingDeviation);
                     profile.setVolatility(res.volatility);
-                    
+
                     profileRepository.save(profile);
                     room.appendLog("[BD] Desertor " + username + " penalizado: ELO " + oldElo + " -> " + profile.getElo() + " (-" + penalization + " ELO)");
                    }
                } catch (Exception e) {
                    System.err.println("Error penalizando abandono: " + e.getMessage());
                }
-               
+
                // Persistir puntuación final
                sessionManager.updateGameScoresInDb(room);
-               
+
                // Notificar
                Map<String, Object> abEvent = new HashMap<>();
                abEvent.put("type", "GAME_OVER_ABANDON");
                abEvent.put("leaverUserId", userId);
                abEvent.put("leaverUsername", username);
                broadcastToRoom(room, abEvent);
-               
+
                // Limpiar la sala con retardo
                timerScheduler.schedule(() -> {
                    sessionManager.removeRoom(roomId);
@@ -829,14 +844,14 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
            // Broadcast the new queue sizes to remaining players since some got matched and removed
            broadcastQueueSize("8");
            broadcastQueueSize("4");
-           
+
            for (Map<String, Object> match : matches) {
                String roomId = (String) match.get("roomId");
                List<Long> playerIds = (List<Long>) match.get("playerIds");
-               
+
                GameSession room = sessionManager.getRoom(roomId);
                if (room == null) continue;
-               
+
                // Assign WebSocket connections to their chairs in the room
                for (UserConnection otherConn : activeConnections.values()) {
                    if (otherConn.roomId == null && otherConn.userId != null) {
@@ -849,23 +864,23 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                                    break;
                                }
                            }
-                           
+
                            if (chair != -1) {
                                otherConn.roomId = roomId;
                                otherConn.chair = chair;
                                otherConn.reyesOption = null;
-                               
+
                                Map<String, Object> matchEvent = new HashMap<>();
                                matchEvent.put("type", "MATCHED");
                                matchEvent.put("roomId", roomId);
                                matchEvent.put("chair", chair);
-                               
+
                                sendJsonMessage(otherConn.session, matchEvent);
                            }
                        }
                    }
                }
-               
+
                // Start the match now that all players are assigned
                room.startMatch();
                broadcastRoomState(room);

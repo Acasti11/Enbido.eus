@@ -114,12 +114,6 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   // --- CONECTAR AL WEBSOCKET ---
 
   const connect = useCallback(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setConnected(false);
-      return;
-    }
-
     if (socketRef.current) {
       socketRef.current.close();
     }
@@ -133,10 +127,12 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     socket.onopen = () => {
       console.log('Conexión con /ws-chat establecida de forma segura.');
-      // Identificarse enviando el token JWT
+      // NOTE: WebSocket auth now relies on cookie being sent during handshake.
+      // The backend should read the access_token cookie from the HTTP upgrade request.
+      // For now, we send a placeholder IDENTIFY; the backend handler will need updating
+      // to authenticate via cookie instead of token in message payload.
       socket.send(JSON.stringify({
-        type: 'IDENTIFY',
-        token
+        type: 'IDENTIFY'
       }));
     };
 
@@ -159,7 +155,7 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
           // Si es un mensaje recibido y NO estamos chateando con esa persona, lanzar un toast
           if (type === 'DM_RECEIVED') {
-            const activeChatUserId = localStorage.getItem('enbido_active_chat_user_id');
+            const activeChatUserId = sessionStorage.getItem('enbido_active_chat_user_id');
             const isWindowActive = activeChatUserId === String(message.senderId);
 
             if (!isWindowActive) {
@@ -209,12 +205,10 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(`Conexión con /ws-chat cerrada. Código: ${event.code}. Razón: ${event.reason}`);
       setConnected(false);
 
-      // Intentar reconexión automática en 5 segundos si el usuario sigue logueado
-      if (localStorage.getItem('token')) {
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, 5000);
-      }
+      // Intentar reconexión automática en 5 segundos
+      reconnectTimeoutRef.current = setTimeout(() => {
+        connect();
+      }, 5000);
     };
 
     socket.onerror = (err) => {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import './navbar.css';
 
 import { useSettings } from '../../context/SettingsContext';
@@ -52,12 +53,10 @@ const SettingsIcon: React.FC = () => (
 
 const Navbar: React.FC = (): React.JSX.Element => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { settings, updateSetting, saveSettingsToDb, playSfx } = useSettings();
   const { t } = useTranslation();
+  const { user, isAuthenticated, logout } = useAuth();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isGameActive, setIsGameActive] = useState(false);
@@ -95,41 +94,25 @@ const Navbar: React.FC = (): React.JSX.Element => {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUsername = localStorage.getItem('username');
-
-    if (token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLoggedIn(true);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUsername(storedUsername || '');
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLoggedIn(false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUsername('');
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && localStorage.getItem('enbido_age_checked') !== 'true') {
+    if (isAuthenticated && !sessionStorage.getItem('enbido_age_checked')) {
       api.get('/usuarios/me')
         .then(res => {
           setCurrentUserDetails(res.data);
           if (!res.data.birthDate) {
             setShowAgeModal(true);
           } else {
-            localStorage.setItem('enbido_age_checked', 'true');
+            sessionStorage.setItem('enbido_age_checked', 'true');
           }
         })
         .catch(err => {
           console.error('Error checking user age on login:', err);
         });
     }
-  }, [isLoggedIn, location.pathname]);
+  }, [isAuthenticated, location.pathname]);
 
   const handleAgeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,7 +147,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
         birthDate: birthDateInput
       });
 
-      localStorage.setItem('enbido_age_checked', 'true');
+      sessionStorage.setItem('enbido_age_checked', 'true');
       setShowAgeModal(false);
       window.dispatchEvent(new Event('enbido_login'));
     } catch (err) {
@@ -186,16 +169,9 @@ const Navbar: React.FC = (): React.JSX.Element => {
     };
   }, [isDrawerOpen]);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
-    localStorage.removeItem('enbido_age_checked');
-    console.log("logged out");
-    setIsLoggedIn(false);
-    navigate('/login');
-  }, [navigate]);
+  const handleLogout = useCallback(async () => {
+    await logout();
+  }, [logout]);
 
   const handleToggleDrawer = useCallback(() => {
     playSfx('click');
@@ -291,7 +267,7 @@ const Navbar: React.FC = (): React.JSX.Element => {
 
         <LanguageSwitcher />
 
-        {isLoggedIn ? (
+        {isAuthenticated ? (
           <div className="navbar__profile" ref={dropdownRef}>
             <button
               className="navbar__profile-trigger"
@@ -299,12 +275,12 @@ const Navbar: React.FC = (): React.JSX.Element => {
                 playSfx('click');
                 setIsDropdownOpen(prev => !prev);
               }}
-              title={username}
+              title={user?.username}
             >
               <div className="navbar__profile-avatar">
                 <UserAvatarIcon />
               </div>
-              <span className="navbar__profile-name">{username || t('nav.profile')}</span>
+              <span className="navbar__profile-name">{user?.username || t('nav.profile')}</span>
               <svg
                 className={`navbar__profile-caret ${isDropdownOpen ? 'navbar__profile-caret--open' : ''}`}
                 width="12"

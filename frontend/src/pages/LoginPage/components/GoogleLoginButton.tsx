@@ -6,7 +6,6 @@ import api from '../../../services/api';
 import '../styles/login-form.css';
 
 interface GoogleAuthResponse {
-  token: string;
   user: {
     id: number;
     email: string;
@@ -36,25 +35,10 @@ const GoogleLoginButton: React.FC = (): React.JSX.Element => {
         return;
       }
 
-      const response = await api.post<GoogleAuthResponse>('/auth/google', {
+      // Backend sets HttpOnly cookies automatically via withCredentials
+      await api.post<GoogleAuthResponse>('/auth/google', {
         idToken,
       });
-
-      const { token, user } = response.data;
-
-      // Same storage pattern as traditional login
-      localStorage.setItem('token', token);
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      localStorage.setItem('userId', String(payload.sub));
-      localStorage.setItem('username', payload.username);
-      localStorage.setItem('role', payload.role);
-
-      // Store user info for profile display
-      localStorage.setItem('userName', user.name);
-      localStorage.setItem('userEmail', user.email);
-      if (user.profilePicture) {
-        localStorage.setItem('userPicture', user.profilePicture);
-      }
 
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');

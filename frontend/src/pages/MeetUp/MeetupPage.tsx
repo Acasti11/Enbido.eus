@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import MeetupAdCard, { type LocalMeetupAd } from './components/MeetupAdCard';
 import CreateAdPage, { type CreateAdFormState } from './components/CreateAdPage';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import './styles/meetup-page.css';
 import './styles/meetup-map.css';
 import { useTranslation } from 'react-i18next';
@@ -52,8 +53,9 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
   const [filterOnlyAvailable, setFilterOnlyAvailable] = useState<boolean>(false);
   const [filterOnlyMine, setFilterOnlyMine] = useState<boolean>(false);
 
-  const currentUserId = Number(localStorage.getItem('userId') || '0');
-  const username = localStorage.getItem('username') || t('meetup.currentUserFallback');
+  const { user, isAuthenticated } = useAuth();
+  const currentUserId = user?.userId || 0;
+  const username = user?.username || t('meetup.currentUserFallback');
 
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<number, L.Marker>>(new Map());
@@ -239,7 +241,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
         chatBtn.style.border = '1px solid rgba(212, 175, 55, 0.4)';
         chatBtn.innerText = t('meetup.writePrivate');
         chatBtn.onclick = () => {
-          if (!localStorage.getItem('token')) {
+          if (!isAuthenticated) {
             alert(t('meetup.loginToContact'));
             return;
           }
@@ -250,7 +252,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
             totalGamesPlayed: 15,
             totalGamesWon: 7
           };
-          localStorage.setItem('enbido_open_dm_target', JSON.stringify(target));
+          sessionStorage.setItem('enbido_open_dm_target', JSON.stringify(target));
           navigate('/jugar');
         };
         popupDiv.appendChild(chatBtn);

@@ -51,8 +51,8 @@ export const useMusGame = (userId: number) => {
 
   const socketRef = useRef<WebSocket | null>(null);
 
-  // Get username stored in localStorage
-  const username = localStorage.getItem('username') || `User-${userId}`;
+  // Username is passed as prop; fallback for safety
+  const username = `User-${userId}`;
 
   const appendLog = useCallback((message: string) => {
     setLogs((prev) => [{ id: Math.random().toString(), message }, ...prev]);
@@ -80,12 +80,10 @@ export const useMusGame = (userId: number) => {
 
     socket.onopen = () => {
       console.log('Socket connection established with Spring Boot.');
-      const token = localStorage.getItem('token');
-      
+      // NOTE: WebSocket auth via cookie handshake. Backend needs to read access_token cookie.
       if (joinAsMatchmaker) {
         socket.send(JSON.stringify({
           type: 'MATCHMAKING_JOIN',
-          token,
           userId,
           username,
           reyesOption: chosenReyes
@@ -94,7 +92,6 @@ export const useMusGame = (userId: number) => {
         socket.send(JSON.stringify({
           type: 'JOIN',
           roomId: targetRoomId,
-          token,
           userId,
           username
         }));
@@ -182,12 +179,10 @@ export const useMusGame = (userId: number) => {
           // Send a JOIN on the same socket so the server confirms our seat
           // and broadcasts the full ROOM_STATE to us (handles edge cases
           // where the initial broadcast might not reach us).
-          const token = localStorage.getItem('token');
           if (socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({
               type: 'JOIN',
               roomId: data.roomId,
-              token,
               userId,
               username
             }));

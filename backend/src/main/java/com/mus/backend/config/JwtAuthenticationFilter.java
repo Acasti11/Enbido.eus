@@ -1,96 +1,106 @@
 package com.mus.backend.config;
 
+import com.mus.backend.service.FriendshipService;
+import com.mus.backend.service.JwtService;
+import com.mus.backend.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import com.mus.backend.service.JwtService;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    
+
     private final JwtService jwtService;
-    
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    private final UserDetailsServiceImpl userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    public JwtAuthenticationFilter(JwtService jwtService,
+                                   UserDetailsServiceImpl userDetailsService,
+                                   TokenBlacklistService tokenBlacklistService) {
         this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
-    
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
-                                    FilterChain filterChain) throws ServletException, IOException {
-        
-        String path = request.getRequestURI();
-        String method = request.getMethod();
-        
-        if (isPublicPath(path, method)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        
-        String token = getTokenFromRequest(request);
-        
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        String token = extractToken(request);
+
         if (StringUtils.hasText(token)) {
             try {
+                // Check blacklist first
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 if (jwtService.isTokenValid(token)) {
                     Long userId = jwtService.extractUserId(token);
                     String username = jwtService.extractUsername(token);
-                    
-                    // Guardar userId como atributo del request para que los controllers lo lean
+
+                    // Mantener compatibilidad: guardar userId como atributo del request
                     request.setAttribute("userId", userId);
-                    com.mus.backend.service.FriendshipService.updateSessionActivity(userId);
-                    // ==================================
-                    
-                    UsernamePasswordAuthenticationToken auth = 
+
+                    // Actualizar actividad de sesión
+                    FriendshipService.updateSessionActivity(userId);
+
+                    // Cargar UserDetails con roles desde la base de datos
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                    UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                            userId,
+                            userDetails,
                             null,
-                            Collections.emptyList()
+                            userDetails.getAuthorities()
                         );
-                    
-                    auth.setDetails(username);
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
-                // Token inválido
+                SecurityContextHolder.clearContext();
             }
         }
-        
+
         filterChain.doFilter(request, response);
     }
-    
-    private boolean isPublicPath(String path, String method) {
-        if ("GET".equalsIgnoreCase(method)) {
-            if (path.startsWith("/api/meetups") || 
-                path.startsWith("/api/tournaments") || 
-                path.startsWith("/api/shop/items") ||
-                path.equals("/api/usuarios/leaderboard")) {
-                return true;
+
+    /**
+     * Extrae el token JWT en este orden de prioridad:
+     * 1. Cookie HttpOnly "access_token"
+     * 2. Header Authorization: Bearer <token>
+     */
+    private String extractToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("access_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
             }
         }
-        if ("POST".equalsIgnoreCase(method)) {
-            if (path.equals("/api/usuarios") || 
-                path.startsWith("/api/usuarios/login")) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private String getTokenFromRequest(HttpServletRequest request) {
+
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
         return null;
     }
 }

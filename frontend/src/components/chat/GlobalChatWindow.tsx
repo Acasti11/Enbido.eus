@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { useChat } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import './global-chat.css';
 
@@ -15,8 +16,9 @@ const GlobalChatWindow: React.FC = () => {
   } = useChat();
   
   const { t } = useTranslation();
+  const { user } = useAuth();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
-  const currentUserId = Number(localStorage.getItem('userId')) || 0;
+  const currentUserId = user?.userId || 0;
 
   useEffect(() => {
     if (chatEndRef.current) {

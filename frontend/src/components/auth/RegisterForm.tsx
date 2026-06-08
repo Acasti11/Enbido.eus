@@ -38,7 +38,6 @@ interface RegisterFormData extends Record<string, unknown> {
 }
 
 interface GoogleAuthResponse {
-  token: string;
   user: {
     id: number;
     email: string;
@@ -212,19 +211,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }): React.J
         return;
       }
 
-      const response = await api.post<GoogleAuthResponse>('/auth/google', { idToken });
-      const { token, user } = response.data;
-
-      localStorage.setItem('token', token);
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      localStorage.setItem('userId', String(payload.sub));
-      localStorage.setItem('username', payload.username);
-      localStorage.setItem('role', payload.role);
-      localStorage.setItem('userName', user.name);
-      localStorage.setItem('userEmail', user.email);
-      if (user.profilePicture) {
-        localStorage.setItem('userPicture', user.profilePicture);
-      }
+      await api.post<GoogleAuthResponse>('/auth/google', { idToken });
 
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');

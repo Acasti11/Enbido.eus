@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import ProfileCard from './components/ProfileCard';
 import BackgroundCards from './components/BackgroundCards';
@@ -45,7 +46,8 @@ const ProfilePageContent: React.FC<ProfilePageContentProps> = ({
 
 const ProfilePage: React.FC = (): React.JSX.Element => {
   const { t } = useTranslation();
-  const username = localStorage.getItem('username') || t('shop.defaultUsername');
+  const { user } = useAuth();
+  const username = user?.username || t('shop.defaultUsername');
   const initials = username.slice(0, 2).toUpperCase();
   const [profile, setProfile] = useState<UserProfile | null>(null);
 

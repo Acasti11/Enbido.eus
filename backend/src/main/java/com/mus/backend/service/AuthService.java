@@ -1,7 +1,6 @@
 package com.mus.backend.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.mus.backend.dto.AuthResponse;
 import com.mus.backend.dto.UserDTO;
 import com.mus.backend.model.LocalAuth;
 import com.mus.backend.model.OAuthAuth;
@@ -19,29 +18,27 @@ public class AuthService {
     private final UserRepository userRepository;
     private final LocalAuthRepository localAuthRepository;
     private final OAuthAuthRepository oauthAuthRepository;
-    private final JwtService jwtService;
     private final GoogleAuthService googleAuthService;
     private final PasswordEncoder passwordEncoder;
 
     public AuthService(UserRepository userRepository,
                        LocalAuthRepository localAuthRepository,
                        OAuthAuthRepository oauthAuthRepository,
-                       JwtService jwtService,
                        GoogleAuthService googleAuthService,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.localAuthRepository = localAuthRepository;
         this.oauthAuthRepository = oauthAuthRepository;
-        this.jwtService = jwtService;
         this.googleAuthService = googleAuthService;
         this.passwordEncoder = passwordEncoder;
     }
 
     // ============================================================
     // LOGIN TRADICIONAL: email + password
+    // Returns UserDTO only (cookies are set by controller)
     // ============================================================
     @Transactional(readOnly = true)
-    public AuthResponse loginTraditional(String email, String password) {
+    public UserDTO loginTraditional(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
@@ -56,20 +53,15 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(
-                user.getUserId(),
-                user.getUsername(),
-                user.getRole().name()
-        );
-
-        return new AuthResponse(token, mapToUserDTO(user));
+        return mapToUserDTO(user);
     }
 
     // ============================================================
     // LOGIN GOOGLE: valida token, encuentra o crea usuario
+    // Returns UserDTO only (cookies are set by controller)
     // ============================================================
     @Transactional
-    public AuthResponse loginGoogle(String idToken) {
+    public UserDTO loginGoogle(String idToken) {
         GoogleIdToken.Payload payload = googleAuthService.verifyGoogleToken(idToken);
 
         String email = payload.getEmail();
@@ -99,19 +91,13 @@ public class AuthService {
             if (Boolean.TRUE.equals(user.getIsBanned())) {
                 throw new RuntimeException("User is banned");
             }
-            String token = jwtService.generateToken(
-                    user.getUserId(),
-                    user.getUsername(),
-                    user.getRole().name()
-            );
-            return new AuthResponse(token, mapToUserDTO(user));
+            return mapToUserDTO(user);
         }
 
         // 2. No existe en oauth_auth → buscar en users por email
         user = userRepository.findByEmail(email).orElse(null);
 
         if (user != null) {
-            // Usuario existe pero sin vinculación OAuth → vincular
             if (Boolean.TRUE.equals(user.getIsBanned())) {
                 throw new RuntimeException("User is banned");
             }
@@ -122,13 +108,7 @@ public class AuthService {
             createOAuthAuth(user, "google", googleUserId, email, null, null);
         }
 
-        String token = jwtService.generateToken(
-                user.getUserId(),
-                user.getUsername(),
-                user.getRole().name()
-        );
-
-        return new AuthResponse(token, mapToUserDTO(user));
+        return mapToUserDTO(user);
     }
 
     // ============================================================
@@ -149,7 +129,6 @@ public class AuthService {
 
         String googleUserId = payload.getSubject();
 
-        // Check if this Google account is already linked to another user
         if (oauthAuthRepository.existsByProviderAndProviderUserId("google", googleUserId)) {
             throw new RuntimeException("This Google account is already linked to another user");
         }
@@ -169,7 +148,6 @@ public class AuthService {
         user.setRole(User.Role.user);
         user.setIsBanned(false);
 
-        // Generate a unique username from email prefix
         String baseUsername = email.split("@")[0];
         String username = baseUsername;
         int suffix = 1;
@@ -194,7 +172,7 @@ public class AuthService {
         return oauthAuthRepository.save(oauthAuth);
     }
 
-    private UserDTO mapToUserDTO(User user) {
+    public UserDTO mapToUserDTO(User user) {
         return new UserDTO(
                 user.getUserId(),
                 user.getEmail(),

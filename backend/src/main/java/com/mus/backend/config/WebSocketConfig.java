@@ -18,12 +18,17 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private ChatWebSocketHandler chatWebSocketHandler;
 
+    @Autowired
+    private JwtHandshakeInterceptor jwtHandshakeInterceptor;
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(musGameWebSocketHandler, "/ws-mus")
-                .setAllowedOrigins("*");
-        
+                .setAllowedOrigins("https://enbido.eus", "https://www.enbido.eus", "http://localhost:5173")
+                .addInterceptors(jwtHandshakeInterceptor);
+
         registry.addHandler(chatWebSocketHandler, "/ws-chat")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("https://enbido.eus", "https://www.enbido.eus", "http://localhost:5173")
+                .addInterceptors(jwtHandshakeInterceptor);
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import './auth-forms.css';
@@ -109,7 +109,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover, on2FaStatusCha
         password,
       });
 
-      const { twoFactorRequired: requires2Fa, tempUserId: userId, accessToken } = response.data;
+      const { twoFactorRequired: requires2Fa, tempUserId: userId } = response.data;
 
       if (requires2Fa) {
         setTempUserId(userId);
@@ -120,12 +120,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover, on2FaStatusCha
         return;
       }
 
-      localStorage.setItem('token', accessToken);
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      localStorage.setItem('userId', payload.sub);
-      localStorage.setItem('username', payload.username);
-      localStorage.setItem('role', payload.role);
-
+      // Cookies are set by backend automatically
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');
     } catch (err: unknown) {
@@ -148,19 +143,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover, on2FaStatusCha
     setIsLoading(true);
 
     try {
-      const response = await api.post('/usuarios/login/verify-2fa', {
+      await api.post('/usuarios/login/verify-2fa', {
         userId: tempUserId,
         code: verificationCode.trim(),
       });
 
-      const { accessToken } = response.data;
-      localStorage.setItem('token', accessToken);
-
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      localStorage.setItem('userId', payload.sub);
-      localStorage.setItem('username', payload.username);
-      localStorage.setItem('role', payload.role);
-
+      // Cookies are set by backend automatically
       window.dispatchEvent(new Event('enbido_login'));
       navigate('/jugar');
     } catch (err: unknown) {
@@ -331,31 +319,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRecover, on2FaStatusCha
           <AlertCircle size={16} />
           <div className="auth-alert__content">
             <span>{loginError.message}</span>
-            {loginError.type === 'accountNotFound' && (
-              <Link to="/login" className="auth-link" onClick={() => {
-                // Trigger register view via URL state or parent callback if needed
-                // Since LoginPage manages view state, we dispatch a custom event or use localStorage hack
-                // For simplicity, we rely on the user clicking the register link at bottom
-              }}>
-                {/* The register link is already at the bottom of the card; we can add a specific link here */}
-              </Link>
-            )}
           </div>
         </div>
-      )}
-
-      {loginError?.type === 'accountNotFound' && (
-        <p className="auth-hint">
-          {t('login.error.accountNotFoundHint')}{' '}
-          <button type="button" className="auth-link" onClick={() => {
-            // Dispatch a custom event that LoginPage can listen to, or use window location
-            // Since LoginPage uses useState, we can't directly call setView.
-            // We'll use a simple approach: the parent card already has a register link.
-            // For now, show a helpful inline message.
-          }}>
-            {/* Intentionally empty - the switch is handled by the card's bottom link */}
-          </button>
-        </p>
       )}
 
       {/* Submit */}

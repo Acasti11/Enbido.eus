@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import GameScoreBoard from './components/GameScoreBoard';
 import GameConsoleLogs from './components/GameConsoleLogs';
 import ActionPanel from './components/ActionPanel';
@@ -368,7 +369,8 @@ const MusGamePage: React.FC = () => {
     }
   });
 
-  const currentUserId = Number(localStorage.getItem('userId') || '1');
+  const { user } = useAuth();
+  const currentUserId = user?.userId || 1;
   const [profile, setProfile] = useState<any>(null);
 
   // New states for Game Over Pop-up summary

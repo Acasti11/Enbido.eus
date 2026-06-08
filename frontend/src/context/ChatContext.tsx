@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useChatWebSocket } from './ChatWebSocketContext';
+import { useAuth } from './AuthContext';
 import api from '../services/api';
 
 export interface ChatMessage {
@@ -47,8 +48,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isInGame, setIsInGame] = useState(false);
   
-  const currentUserId = Number(localStorage.getItem('userId')) || 0;
-  const activeUsername = localStorage.getItem('username') || 'User';
+  const { user } = useAuth();
+  const currentUserId = user?.userId || 0;
+  const activeUsername = user?.username || 'User';
   
   const {
     registerDmCallback,

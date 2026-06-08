@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../../services/api';
 import '../styles/premium-lobby.css';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../context/AuthContext';
 import { useChatWebSocket } from '../../../context/ChatWebSocketContext';
 import { useChat } from '../../../context/ChatContext';
 
@@ -109,9 +110,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   onStartMatchmaking,
   onCancelMatchmaking,
 }) => {
-  const currentUserId = Number(localStorage.getItem('userId') || '1');
+  const { user } = useAuth();
+  const currentUserId = user?.userId || 1;
   const { t } = useTranslation();
-  const activeUsername = localStorage.getItem('username') || t('shop.defaultUsername');
+  const activeUsername = user?.username || t('shop.defaultUsername');
 
   // WebSocket Chat Context Methods
   const {

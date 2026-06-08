@@ -120,9 +120,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // 3. Load preferences from Database if user logged in
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     const loadSettingsFromDb = async () => {
       try {
         const res = await api.get('/usuarios/me/profile');
@@ -156,9 +153,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Persist settings to backend
   const saveSettingsToDb = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
       // Fetch latest profile state first to prevent overwriting ELO, coins, etc.
       const getProfile = await api.get('/usuarios/me/profile');
@@ -262,9 +256,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // 6. Polling Engine for Real-Time Background Notifications
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     const pollNotifications = async () => {
       try {
         // B. Poll Friend Requests

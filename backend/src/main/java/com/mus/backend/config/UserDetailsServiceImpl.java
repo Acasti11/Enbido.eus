@@ -12,25 +12,27 @@ import java.util.Collections;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-    
+
     private final UserRepository userRepository;
-    
+
     public UserDetailsServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-    
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
-        
+
+        boolean isNotBanned = !Boolean.TRUE.equals(user.getIsBanned());
+
         return new org.springframework.security.core.userdetails.User(
             user.getUsername(),
             "",  // Password not stored in User entity; handled separately via LocalAuth
-            user.getIsBanned() ? false : true,  // enabled
-            true,  // accountNonExpired
-            true,  // credentialsNonExpired
-            user.getIsBanned() ? false : true,  // accountNonLocked
+            isNotBanned,       // enabled
+            true,              // accountNonExpired
+            true,              // credentialsNonExpired
+            isNotBanned,       // accountNonLocked
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }
