@@ -809,6 +809,12 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                         if (expectedLoss <= 0) expectedLoss = 15;
                         int penalization = expectedLoss * 2;
 
+                        // Cap maximum ELO loss from abandonment to prevent excessive punishment
+                        int maxPenalization = 50;
+                        if (penalization > maxPenalization) {
+                            penalization = maxPenalization;
+                        }
+
                         profile.setElo((int) Math.max(0, oldElo - penalization));
                         profile.setRatingDeviation(res.ratingDeviation);
                         profile.setVolatility(res.volatility);

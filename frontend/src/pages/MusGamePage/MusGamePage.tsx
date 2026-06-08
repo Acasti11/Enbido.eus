@@ -118,19 +118,6 @@ const TimerCircle: React.FC<{ timeLeft: number; isActive: boolean }> = ({ timeLe
   );
 };
 
-const MiniDeckToken: React.FC<{ size?: number; className?: string }> = ({ size = 28, className }) => {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={`mini-deck-token ${className || ''}`}>
-      <rect x="5" y="7" width="14" height="11" rx="1.5" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.8" />
-      <rect x="4.5" y="6" width="14" height="11" rx="1.5" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.8" />
-      <rect x="4" y="5" width="14" height="11" rx="1.5" fill="#c2410c" stroke="#ffffff" strokeWidth="1" />
-      <line x1="4.5" y1="5.5" x2="17.5" y2="15.5" stroke="rgba(255,255,255,0.25)" strokeWidth="0.8" />
-      <line x1="4.5" y1="15.5" x2="17.5" y2="5.5" stroke="rgba(255,255,255,0.25)" strokeWidth="0.8" />
-      <circle cx="11" cy="10.5" r="2.5" stroke="#ffedd5" strokeWidth="0.6" fill="none" opacity="0.5" />
-    </svg>
-  );
-};
-
 const PlayerPosition: React.FC<{
   position: 'north' | 'west' | 'east' | 'south';
   index: number;
@@ -174,7 +161,9 @@ const PlayerPosition: React.FC<{
   const absChair = seats[index]?.chair;
   const isTurnActive = absChair !== undefined && activeTurnIdx === absChair;
   const signType = absChair !== undefined ? activeSigns[absChair] : undefined;
-  const isDealer = absChair !== undefined && dealerIdx === absChair;
+  // In Mus, "mano" is the player to the right of dealer (starts speaking first)
+  const manoIdx = (dealerIdx + 1) % 4;
+  const isMano = absChair !== undefined && manoIdx === absChair;
 
   let avatarSkinClass = '';
   if (profile?.equippedAvatarItemId === 1) avatarSkinClass = 'avatar-ring-gold';
@@ -208,6 +197,12 @@ const PlayerPosition: React.FC<{
                 <span className="mus-sign-badge-text">
                   {getSignEmojiOnly(signType)}
                 </span>
+              </div>
+            )}
+            {isMano && (
+              <div className="mano-badge" title={t('musGame.manoTooltip')}>
+                <span className="mano-badge__label">{t('musGame.manoLabel')}</span>
+                <span className="mano-badge__sub">{t('musGame.manoSub')}</span>
               </div>
             )}
           </div>
@@ -271,11 +266,6 @@ const PlayerPosition: React.FC<{
           equippedDeckItemId={profile?.equippedDeckItemId}
         />
       </div>
-      {isDealer && (
-        <div className="dealer-baraja-token" title={t('musGame.dealerTooltip')}>
-          <MiniDeckToken />
-        </div>
-      )}
       {speechBubbles[index] && <div className="speech-bubble show">{speechBubbles[index]}</div>}
     </div>
   );

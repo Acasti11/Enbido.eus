@@ -448,7 +448,19 @@ public class GameSessionManager {
                                 outcome);
 
                         int oldElo = profile.getElo();
-                        profile.setElo((int) Math.max(0, Math.round(res.rating)));
+                        int newElo = (int) Math.max(0, Math.round(res.rating));
+
+                        // Cap maximum ELO change per game to prevent extreme swings
+                        // Especially for new players with high RD (Rating Deviation)
+                        int eloChange = newElo - oldElo;
+                        int maxChange = 32; // Maximum +/- ELO points per game
+                        if (eloChange > maxChange) {
+                            newElo = oldElo + maxChange;
+                        } else if (eloChange < -maxChange) {
+                            newElo = oldElo - maxChange;
+                        }
+
+                        profile.setElo(newElo);
                         profile.setRatingDeviation(res.ratingDeviation);
                         profile.setVolatility(res.volatility);
 

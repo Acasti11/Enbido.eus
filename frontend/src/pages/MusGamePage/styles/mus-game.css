@@ -276,51 +276,57 @@
 }
 
 /* =========================================
-   TOKEN DE DADOR / BARAJA DE CARTAS
+   BADGE MANO (indicador de jugador que empieza)
    ========================================= */
-.dealer-baraja-token {
+.mano-badge {
   position: absolute;
   z-index: 20;
-  cursor: help;
-  animation: float-baraja 3s ease-in-out infinite;
+  right: -52px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1a1a1a;
+  padding: 3px 8px;
+  border-radius: 8px;
+  min-width: 44px;
+  box-shadow: 0 2px 10px rgba(251, 191, 36, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: pulse-mano 2.2s ease-in-out infinite;
 }
 
-@keyframes float-baraja {
-  0% {
-    transform: translateY(0);
-  }
+.mano-badge__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  white-space: nowrap;
+}
 
+.mano-badge__sub {
+  display: block;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-top: 1px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+@keyframes pulse-mano {
+  0%, 100% {
+    box-shadow: 0 2px 10px rgba(251, 191, 36, 0.45);
+  }
   50% {
-    transform: translateY(-4px);
+    box-shadow: 0 4px 18px rgba(251, 191, 36, 0.75);
   }
-
-  100% {
-    transform: translateY(0);
-  }
-}
-
-.position-north .dealer-baraja-token {
-  left: -45px;
-  top: 55%;
-  transform: translateY(-50%);
-}
-
-.position-south .dealer-baraja-token {
-  right: -45px;
-  top: 55%;
-  transform: translateY(-50%);
-}
-
-.position-west .dealer-baraja-token {
-  top: -45px;
-  right: 50px;
-  transform: translateX(50%);
-}
-
-.position-east .dealer-baraja-token {
-  bottom: -45px;
-  left: 50px;
-  transform: translateX(-50%);
 }
 
 /* =========================================
@@ -1471,41 +1477,24 @@
     font-size: 0.6rem !important;
   }
 
-  /* Dealer token scaling */
-  .dealer-baraja-token {
-    transform: scale(0.65) !important;
-  }
-
-  .position-north .dealer-baraja-token {
-    left: -24px !important;
-    top: 50% !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: translateY(-50%) scale(0.65) !important;
-  }
-
-  .position-south .dealer-baraja-token {
-    right: -24px !important;
+  /* Mano badge mobile */
+  .mano-badge {
+    right: -38px !important;
     top: 50% !important;
     left: auto !important;
     bottom: auto !important;
-    transform: translateY(-50%) scale(0.65) !important;
+    transform: translateY(-50%) !important;
+    padding: 2px 5px !important;
+    min-width: 34px !important;
+    border-radius: 6px !important;
   }
 
-  .position-west .dealer-baraja-token {
-    top: 50% !important;
-    right: -24px !important;
-    left: auto !important;
-    bottom: auto !important;
-    transform: translateY(-50%) scale(0.65) !important;
+  .mano-badge__label {
+    font-size: 9px !important;
   }
 
-  .position-east .dealer-baraja-token {
-    top: 50% !important;
-    left: -24px !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: translateY(-50%) scale(0.65) !important;
+  .mano-badge__sub {
+    font-size: 7px !important;
   }
 
   /* Sidebar Panel Layout & Widgets */

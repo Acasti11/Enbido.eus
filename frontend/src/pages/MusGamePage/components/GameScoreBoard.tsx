@@ -21,16 +21,16 @@ const GameScoreBoard: React.FC<GameScoreBoardProps> = ({ score, maxRounds = 3 })
     <div className="scoreboard-widget">
 
       <div className="scoreboard-header">
-        <div className="scoreboard-team">
+        <div className="scoreboard-team scoreboard-team--us">
           <div className="team-meta">
-            <span className="team-name">{t('musGame.group1')}</span>
+            <span className="team-name team-name--us">{t('musGame.teamUs') || 'Nosotros'}</span>
             <span className="team-points">{score.us} pts</span>
           </div>
         </div>
         <div className="scoreboard-divider" ></div>
-        <div className="scoreboard-team">
+        <div className="scoreboard-team scoreboard-team--them">
           <div className="team-meta">
-            <span className="team-name" >{t('musGame.group2')}</span>
+            <span className="team-name team-name--them">{t('musGame.teamThem') || 'Rivales'}</span>
             <span className="team-points" >{score.them} pts</span>
           </div>
         </div>
