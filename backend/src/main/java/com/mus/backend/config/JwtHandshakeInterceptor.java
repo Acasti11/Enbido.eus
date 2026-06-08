@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.Arrays;
 import java.util.Map;
 
 @Component
@@ -32,21 +33,42 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         if (request instanceof ServletServerHttpRequest servletRequest) {
             HttpServletRequest httpRequest = servletRequest.getServletRequest();
 
+            String origin = httpRequest.getHeader("Origin");
+            String requestUri = httpRequest.getRequestURI();
+            System.out.println("[WS HANDSHAKE] URI=" + requestUri + " Origin=" + origin + " Remote=" + httpRequest.getRemoteAddr());
+
             String token = extractAccessTokenFromCookie(httpRequest);
 
-            if (token != null && jwtService.isTokenValid(token) && !tokenBlacklistService.isBlacklisted(token)) {
-                try {
-                    Long userId = jwtService.extractUserId(token);
-                    String username = jwtService.extractUsername(token);
-                    String role = jwtService.extractRole(token);
+            if (token != null) {
+                System.out.println("[WS HANDSHAKE] Token found, length=" + token.length());
+                if (jwtService.isTokenValid(token)) {
+                    if (!tokenBlacklistService.isBlacklisted(token)) {
+                        try {
+                            Long userId = jwtService.extractUserId(token);
+                            String username = jwtService.extractUsername(token);
+                            String role = jwtService.extractRole(token);
 
-                    attributes.put("userId", userId);
-                    attributes.put("username", username);
-                    attributes.put("role", role);
-                    attributes.put("authenticated", true);
-                    return true;
-                } catch (Exception e) {
-                    // Token parsing failed
+                            attributes.put("userId", userId);
+                            attributes.put("username", username);
+                            attributes.put("role", role);
+                            attributes.put("authenticated", true);
+                            System.out.println("[WS HANDSHAKE] Auth OK userId=" + userId + " username=" + username);
+                            return true;
+                        } catch (Exception e) {
+                            System.err.println("[WS HANDSHAKE] Token parsing failed: " + e.getMessage());
+                        }
+                    } else {
+                        System.err.println("[WS HANDSHAKE] Token is blacklisted");
+                    }
+                } else {
+                    System.err.println("[WS HANDSHAKE] Token is invalid");
+                }
+            } else {
+                System.err.println("[WS HANDSHAKE] No access_token cookie found. Cookies count=" + (httpRequest.getCookies() != null ? httpRequest.getCookies().length : 0));
+                if (httpRequest.getCookies() != null) {
+                    for (Cookie c : httpRequest.getCookies()) {
+                        System.out.println("[WS HANDSHAKE] Cookie: " + c.getName() + "=" + c.getValue().substring(0, Math.min(20, c.getValue().length())) + "...");
+                    }
                 }
             }
         }
@@ -54,6 +76,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         // Allow connection but mark as unauthenticated
         // The handlers can decide whether to close or allow anonymous connections
         attributes.put("authenticated", false);
+        System.out.println("[WS HANDSHAKE] Allowing unauthenticated connection");
         return true;
     }
 

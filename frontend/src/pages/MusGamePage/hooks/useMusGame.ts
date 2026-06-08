@@ -76,9 +76,14 @@ export const useMusGame = (userId: number) => {
     }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Production: WebSocket is on same host via nginx proxy (no port)
+    // Development: Backend runs on localhost:8080
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const wsHost = import.meta.env.VITE_WS_URL
       ? import.meta.env.VITE_WS_URL.replace(/^wss?:\/\//, '')
-      : `${window.location.hostname}:8080`;
+      : isLocalhost
+      ? `${window.location.hostname}:8080`
+      : window.location.host;
     const wsUrl = `${wsProtocol}//${wsHost}/ws-mus`;
 
     console.log('Conectando al WebSocket de Mus a: ' + wsUrl);
