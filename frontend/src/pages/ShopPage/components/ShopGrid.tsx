@@ -14,7 +14,7 @@ interface ShopGridProps {
 const ShopGrid: React.FC<ShopGridProps> = ({ items, initials, onBuy, onEquip, onUnequip }): React.JSX.Element => {
     const { t } = useTranslation();
     return (
-        <div className="shop-grid" aria-label={t('shop.gridAriaLabel')}>
+        <div className="shop-grid" role="region" aria-label={t('shop.gridAriaLabel')}>
         {items.map((item) => (
             <ShopCard
             key={item.id}

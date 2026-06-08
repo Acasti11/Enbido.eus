@@ -193,7 +193,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
               
               {/* Field group: Personal Details */}
               <div className="account-form-section">
-                <h3 className="account-form-section-title">👤 {t('account.personalDetails')}</h3>
+                <h2 className="account-form-section-title">👤 {t('account.personalDetails')}</h2>
                 
                 <div className="account-form-grid">
                   <div className="account-form-field">
@@ -224,7 +224,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
               {/* Field group: Read-only Access details */}
               <div className="account-form-section">
-                <h3 className="account-form-section-title">🔑 {t('account.accountDetails')}</h3>
+                <h2 className="account-form-section-title">🔑 {t('account.accountDetails')}</h2>
                 
                 <div className="account-form-grid">
                   <div className="account-form-field">

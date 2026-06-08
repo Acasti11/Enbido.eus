@@ -279,9 +279,9 @@ const Navbar: React.FC = (): React.JSX.Element => {
               }}
               title={user?.username}
             >
-              <div className="navbar__profile-avatar">
+              <span className="navbar__profile-avatar">
                 <UserAvatarIcon />
-              </div>
+              </span>
               <span className="navbar__profile-name">{user?.username || t('nav.profile')}</span>
               <svg
                 className={`navbar__profile-caret ${isDropdownOpen ? 'navbar__profile-caret--open' : ''}`}
