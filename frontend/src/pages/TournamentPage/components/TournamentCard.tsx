@@ -4,10 +4,14 @@ import { useTranslation } from 'react-i18next';
 
 interface TournamentCardProps {
   tournamentData: TournamentDto;
+  isAdmin?: boolean;
+  onDelete?: (id: number) => void;
 }
 
-const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Element => {
+const TournamentCard = ({ tournamentData, isAdmin, onDelete }: TournamentCardProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const isOnline = tournamentData.type === 'ONLINE';
+
   return (
     <article className="tournament-card">
       <div className="card-poster">
@@ -19,8 +23,8 @@ const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Elem
       </div>
       <div className="card-content">
         <div className="card-header tournament-card-header">
-          <span className="card-tag tournament-card-tag">
-            {t('tournament.inPerson')}
+          <span className={`card-tag tournament-card-tag ${isOnline ? 'badge-online' : 'badge-presencial'}`}>
+            {isOnline ? '🌐 Online' : t('tournament.inPerson')}
           </span>
           <h3 className="card-title tournament-card-title">{tournamentData.tournamentName}</h3>
         </div>
@@ -35,6 +39,25 @@ const TournamentCard = ({ tournamentData }: TournamentCardProps): React.JSX.Elem
               <strong>{t('tournament.contactDetail')}</strong> {tournamentData.contactEmail}
             </p>)}
 
+          {isAdmin && isOnline && onDelete && (
+            <div className="tournament-card-actions" style={{ marginTop: '12px' }}>
+              <button
+                className="btn-delete"
+                onClick={() => onDelete(tournamentData.id)}
+                style={{
+                  background: '#dc2626',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                🗑️ {t('tournament.delete') || 'Borrar'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </article>

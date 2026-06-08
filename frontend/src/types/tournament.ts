@@ -18,4 +18,5 @@ export interface TournamentDto extends TournamentFormState {
   id: number;
   status?: 'open' | 'playing' | 'finished' | 'cancelled';
   organizerId?: number;
+  type?: 'ONLINE' | 'PRESENCIAL';
 }

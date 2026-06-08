@@ -16,6 +16,7 @@ interface TournamentBackendDto {
   entryFee: number;
   maxTeams: number;
   status: string;
+  type?: string;
   coinsFee: number;
   coinsReward: number;
   organizerId: number;
@@ -25,6 +26,7 @@ interface TournamentBackendDto {
 }
 
 import { useSeo } from '../../hooks/useSeo';
+import { useAuth } from '../../context/AuthContext';
 
 const convertUtcToLocal = (utcString: string): { date: string; time: string } => {
   if (!utcString) return { date: '', time: '' };
@@ -98,6 +100,7 @@ const TournamentPage = (): React.JSX.Element => {
           coinsFee: String(t.coinsFee || 0),
           coinsReward: String(t.coinsReward || 0),
           status: t.status,
+          type: (t.type as 'ONLINE' | 'PRESENCIAL') || 'PRESENCIAL',
           organizerId: t.organizerId,
           tournamentPrizes: `1º: Txapela + ${t.coinsReward || 0} tx`,
           otherDetails: t.status === 'open' ? 'Inscripciones abiertas' : t.status === 'playing' ? 'En juego' : 'Finalizado',
@@ -117,6 +120,25 @@ const TournamentPage = (): React.JSX.Element => {
     fetchTournaments();
   }, []);
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
+  const handleDeleteTournament = async (id: number) => {
+    if (!window.confirm('¿Estás seguro de que quieres borrar este torneo?')) {
+      return;
+    }
+    try {
+      await api.delete(`/tournaments/${id}`);
+      setTournamentsList((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error('Error deleting tournament:', err);
+      const axiosErr = err as { response?: { data?: { message?: string } | string } };
+      const data = axiosErr?.response?.data;
+      const errorMsg = (typeof data === 'object' && data !== null && 'message' in data ? data.message : data) || 'Error al borrar el torneo';
+      alert(errorMsg);
+    }
+  };
+
   const handleSaveTournament = async (newTournamentData: TournamentFormState) => {
     try {
       const utcStartDatetime = convertLocalToUtc(newTournamentData.tournamentDate, newTournamentData.tournamentTime);
@@ -129,7 +151,8 @@ const TournamentPage = (): React.JSX.Element => {
         coinsFee: Number(newTournamentData.coinsFee || 0),
         coinsReward: Number(newTournamentData.coinsReward || 0),
         maxTeams: Number(newTournamentData.maxParticipants || 8),
-        status: 'open'
+        status: 'open',
+        type: 'PRESENCIAL'
       };
 
       const res = await api.post('/tournaments', payload);
@@ -177,6 +200,8 @@ const TournamentPage = (): React.JSX.Element => {
               <TournamentList
                 tournaments={tournamentsList}
                 onPublish={() => setCurrentView(CONST_VIEW_PUBLISH)}
+                isAdmin={isAdmin}
+                onDelete={handleDeleteTournament}
               />
             )}
             {currentView === CONST_VIEW_PUBLISH && (

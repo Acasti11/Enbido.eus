@@ -39,6 +39,12 @@ public class PhysicalTournament {
     @Column(name = "status")
     private String status = "open";
 
+    @Column(name = "type")
+    private String type = "PRESENCIAL";
+
+    @Column(name = "finished_at")
+    private LocalDateTime finishedAt;
+
     @Column(name = "coins_fee")
     private Integer coinsFee = 0;
 

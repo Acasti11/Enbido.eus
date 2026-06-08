@@ -1060,16 +1060,18 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
               </p>
             </div>
             <div className="tournaments-header-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  setShowCreateModal(true);
-                  setTimeToMinutesFromNow(1);
-                }}
-                className="btn-action tournaments-create-btn"
-                style={{ background: 'var(--color-gold)', color: '#000', fontWeight: 'bold' }}
-              >
-                {t('premiumLobby.createTournament')}
-              </button>
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => {
+                    setShowCreateModal(true);
+                    setTimeToMinutesFromNow(1);
+                  }}
+                  className="btn-action tournaments-create-btn"
+                  style={{ background: 'var(--color-gold)', color: '#000', fontWeight: 'bold' }}
+                >
+                  {t('premiumLobby.createTournament')}
+                </button>
+              )}
               <button
                 onClick={fetchOnlineTournaments}
                 className="btn-action tournaments-refresh-btn"

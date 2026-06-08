@@ -218,6 +218,8 @@ CREATE TABLE IF NOT EXISTS physical_tournament (
     entry_fee DECIMAL(10,2) DEFAULT 0,
     max_teams INT,
     status ENUM('open', 'playing', 'finished', 'cancelled') DEFAULT 'open',
+    type ENUM('ONLINE', 'PRESENCIAL') DEFAULT 'PRESENCIAL',
+    finished_at DATETIME,
     coins_fee INT DEFAULT 0,
     coins_reward INT DEFAULT 0
 );
@@ -437,11 +439,11 @@ INSERT IGNORE INTO user_game_profile (user_id, elo, coins, total_games_played, t
 (107, 235, 750, 22, 12);
 
 -- Insertar torneos de prueba
-INSERT IGNORE INTO physical_tournament (tournament_id, organizer_id, title, city, specific_location, start_datetime, entry_fee, max_teams, status, coins_fee, coins_reward) VALUES 
-(100, 100, 'Gran Copa Euskal Herria', 'Donostia', 'Gros Kiroldegia', '2026-06-15 18:00:00', 0, 8, 'open', 50, 400), 
-(101, 101, 'Kopa Bilbo Mus', 'Bilbo', 'Kasko Zaharra Cafe', '2026-05-30 19:30:00', 0, 8, 'playing', 100, 800),
-(102, 100, 'Txapelketa Gasteiz', 'Gasteiz', 'Zabalgana Kultur Etxea', '2026-05-20 17:00:00', 0, 8, 'finished', 75, 600),
-(103, 102, 'Torneo Rápido Eibar', 'Eibar', 'Unzaga Plaza Taberna', '2026-06-10 20:00:00', 0, 8, 'open', 40, 300);
+INSERT IGNORE INTO physical_tournament (tournament_id, organizer_id, title, city, specific_location, start_datetime, entry_fee, max_teams, status, type, finished_at, coins_fee, coins_reward) VALUES 
+(100, 100, 'Gran Copa Euskal Herria', 'Donostia', 'Gros Kiroldegia', '2026-06-15 18:00:00', 0, 8, 'open', 'PRESENCIAL', NULL, 50, 400), 
+(101, 101, 'Kopa Bilbo Mus', 'Bilbo', 'Kasko Zaharra Cafe', '2026-05-30 19:30:00', 0, 8, 'playing', 'PRESENCIAL', NULL, 100, 800),
+(102, 100, 'Txapelketa Gasteiz', 'Gasteiz', 'Zabalgana Kultur Etxea', '2026-05-20 17:00:00', 0, 8, 'finished', 'PRESENCIAL', '2026-05-20 20:00:00', 75, 600),
+(103, 102, 'Torneo Rápido Eibar', 'Eibar', 'Unzaga Plaza Taberna', '2026-06-10 20:00:00', 0, 8, 'open', 'PRESENCIAL', NULL, 40, 300);
 
 -- Insertar participantes de los torneos
 INSERT IGNORE INTO physical_tournament_participant (tournament_id, user_id) VALUES 

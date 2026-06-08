@@ -91,6 +91,7 @@
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/RefreshTokenService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/ShopService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/TokenBlacklistService.java
+/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/TournamentCleanupService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/UserProfileService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/UserService.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/service/UserServiceOAuth.java

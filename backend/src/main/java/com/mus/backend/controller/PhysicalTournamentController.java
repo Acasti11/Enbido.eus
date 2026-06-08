@@ -12,8 +12,11 @@ import com.mus.backend.repository.UserGameProfileRepository;
 import com.mus.backend.repository.UserRepository;
 import com.mus.backend.engine.GameSessionManager;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,6 +30,8 @@ import java.util.Map;
 @RequestMapping("/api/tournaments")
 @CrossOrigin(origins = "*")
 public class PhysicalTournamentController {
+
+    private static final Logger logger = LoggerFactory.getLogger(PhysicalTournamentController.class);
 
     @Autowired
     private PhysicalTournamentRepository tournamentRepository;
@@ -59,10 +64,37 @@ public class PhysicalTournamentController {
         if (userId == null) {
             return ResponseEntity.status(401).body("No autorizado: token inválido o ausente");
         }
+
+        if ("ONLINE".equalsIgnoreCase(tournament.getType())) {
+            com.mus.backend.model.User currentUser = userRepository.findById(userId).orElse(null);
+            if (currentUser == null || currentUser.getRole() != com.mus.backend.model.User.Role.admin) {
+                return ResponseEntity.status(403).body("Solo los administradores pueden crear torneos Online");
+            }
+        }
+
         tournament.setOrganizerId(userId);
         tournament.setStatus("open");
         PhysicalTournament saved = tournamentRepository.save(tournament);
         return ResponseEntity.ok(saved);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deleteTournament(@PathVariable Long id) {
+        PhysicalTournament tournament = tournamentRepository.findById(id).orElse(null);
+        if (tournament == null) {
+            return ResponseEntity.status(404).body("Torneo no encontrado");
+        }
+
+        if (!"ONLINE".equalsIgnoreCase(tournament.getType())) {
+            return ResponseEntity.status(403).body("Solo se pueden borrar torneos Online");
+        }
+
+        matchRepository.deleteAll(matchRepository.findByTournamentId(id));
+        participantRepository.deleteAll(participantRepository.findByTournamentId(id));
+        tournamentRepository.delete(tournament);
+        return ResponseEntity.ok(Map.of("message", "Torneo borrado correctamente"));
     }
 
     @GetMapping("/{id}/details")
@@ -304,11 +336,11 @@ public class PhysicalTournamentController {
                             .findByTournamentId(t.getTournamentId());
                     if (parts.size() >= 2) {
                         try {
-                            System.out.println(
-                                    "Auto-starting tournament ID: " + t.getTournamentId() + " (" + t.getTitle() + ")");
+                            logger.info(
+                                    "Auto-starting tournament ID: {} ({})", t.getTournamentId(), t.getTitle());
                             startTournamentInternal(t, parts);
                         } catch (Exception e) {
-                            System.err.println("Error auto-starting tournament: " + e.getMessage());
+                            logger.error("Error auto-starting tournament: {}", e.getMessage());
                         }
                     } else {
                         t.setStatus("cancelled");
@@ -324,7 +356,7 @@ public class PhysicalTournamentController {
                                         profileRepository.save(profile);
                                     });
                                 } catch (Exception ex) {
-                                    System.err.println("Error refunding coins for user " + p.getUserId() + ": " + ex.getMessage());
+                                    logger.error("Error refunding coins for user {}: {}", p.getUserId(), ex.getMessage());
                                 }
                             }
                         }
@@ -421,6 +453,7 @@ public class PhysicalTournamentController {
 
         if (activeRound == 4) {
             tournament.setStatus("finished");
+            tournament.setFinishedAt(java.time.LocalDateTime.now());
             tournamentRepository.save(tournament);
 
             PhysicalTournamentMatch finalMatch = matches.stream()
@@ -640,7 +673,7 @@ public class PhysicalTournamentController {
 
                 sessionManager.saveNewGameToDb(session);
             } catch (Exception e) {
-                System.err.println("Error creating tournament game room: " + e.getMessage());
+                logger.error("Error creating tournament game room: {}", e.getMessage());
             }
         }
 

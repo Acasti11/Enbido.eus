@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 interface TournamentListProps {
   tournaments: TournamentDto[];
   onPublish?: () => void;
+  isAdmin?: boolean;
+  onDelete?: (id: number) => void;
 }
 
-const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.JSX.Element => {
+const TournamentList = ({ tournaments, onPublish, isAdmin, onDelete }: TournamentListProps): React.JSX.Element => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   return (
@@ -52,7 +54,12 @@ const TournamentList = ({ tournaments, onPublish }: TournamentListProps): React.
           <p className="empty-msg">{t('tournament.empty')}</p>
         ) : (
           tournaments.map((t) => (
-            <TournamentCard key={t.id} tournamentData={t} />
+            <TournamentCard
+              key={t.id}
+              tournamentData={t}
+              isAdmin={isAdmin}
+              onDelete={onDelete}
+            />
           ))
         )}
       </section>
