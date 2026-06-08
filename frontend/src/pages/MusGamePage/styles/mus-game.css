@@ -2491,3 +2491,313 @@ btn-primary-action btn-action-bet {
   line-height: 1.5;
   margin: 0;
 }
+/* =========================================
+   ROUND TRANSITION OVERLAY (between hands)
+   ========================================= */
+.round-transition-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.35s ease;
+  backdrop-filter: blur(4px);
+}
+
+.round-transition-card {
+  background: linear-gradient(145deg, #1a2e1a 0%, #0f1a0f 100%);
+  border: 2px solid #d4af37;
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  max-width: 480px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.2), 0 8px 32px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.4s ease;
+}
+
+.round-transition-header h2 {
+  color: #d4af37;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Winner section */
+.round-transition-winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.round-transition-winner.winner-us {
+  background: rgba(45, 90, 61, 0.35);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.round-transition-winner.winner-them {
+  background: rgba(90, 45, 45, 0.35);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.round-transition-winner.winner-tie {
+  background: rgba(90, 90, 90, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.winner-trophy {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.winner-text {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.winner-points {
+  color: #d4af37;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Lance breakdown */
+.round-transition-lances {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.lance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.85rem;
+}
+
+.lance-row.us {
+  background: rgba(76, 175, 80, 0.1);
+  border-left: 3px solid #4caf50;
+}
+
+.lance-row.them {
+  background: rgba(244, 67, 54, 0.1);
+  border-left: 3px solid #f44336;
+}
+
+.lance-icon {
+  font-size: 1rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.lance-name {
+  flex: 1;
+  color: #ccc;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.lance-winner-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lance-winner-badge.us {
+  background: #2d5a3d;
+  color: #81c784;
+}
+
+.lance-winner-badge.them {
+  background: #5a3d3d;
+  color: #ef5350;
+}
+
+.lance-winner-badge.deje {
+  background: #4a4a2d;
+  color: #d4af37;
+}
+
+/* Score summary */
+.round-transition-score {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 70px;
+}
+
+.score-label {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.score-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.score-delta {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #d4af37;
+}
+
+.score-divider {
+  font-size: 1.2rem;
+  color: #555;
+  font-weight: 300;
+}
+
+/* Chicos count */
+.round-transition-chicos {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 1rem;
+}
+
+.chicos-us {
+  color: #81c784;
+  font-weight: 700;
+}
+
+.chicos-them {
+  color: #ef5350;
+  font-weight: 700;
+}
+
+/* Countdown */
+.round-transition-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.countdown-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.countdown-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.countdown-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 3;
+}
+
+.countdown-progress {
+  fill: none;
+  stroke: #d4af37;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.countdown-number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #d4af37;
+}
+
+.countdown-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .round-transition-card {
+    padding: 1.25rem 1rem;
+    max-width: 340px;
+  }
+
+  .round-transition-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .winner-trophy {
+    font-size: 1.8rem;
+  }
+
+  .winner-text {
+    font-size: 0.95rem;
+  }
+
+  .winner-points {
+    font-size: 1.2rem;
+  }
+
+  .lance-row {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .score-value {
+    font-size: 1.6rem;
+  }
+
+  .countdown-ring {
+    width: 48px;
+    height: 48px;
+  }
+
+  .countdown-number {
+    font-size: 1.2rem;
+  }
+}

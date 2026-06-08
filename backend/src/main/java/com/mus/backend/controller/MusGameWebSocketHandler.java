@@ -40,6 +40,7 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
     private final ScheduledExecutorService timerScheduler = Executors.newScheduledThreadPool(4);
     private final Map<String, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
     private final Map<String, ScheduledFuture<?>> leaverTimers = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> roundTransitionTimers = new ConcurrentHashMap<>();
 
     private static class UserConnection {
         WebSocketSession session;
@@ -371,6 +372,10 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
 
         if (room.isPlaying()) {
             if ("round-over".equals(room.getPhase())) {
+                // Cancel any pending auto-start timer
+                ScheduledFuture<?> oldTimer = roundTransitionTimers.remove(room.getRoomId());
+                if (oldTimer != null) oldTimer.cancel(false);
+                
                 room.startNewHand();
                 broadcastRoomState(room);
                 triggerBotTurnsRecursively(room);
@@ -425,6 +430,37 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         startTurnTimer(room);
     }
 
+    private void startRoundTransitionTimer(GameSession room) {
+        String roomId = room.getRoomId();
+        
+        // Cancel existing transition timer
+        ScheduledFuture<?> oldTimer = roundTransitionTimers.remove(roomId);
+        if (oldTimer != null) oldTimer.cancel(false);
+        
+        if (!room.isPlaying() || !"round-over".equals(room.getPhase())) return;
+        if (room.getRoundTransition() == null) return;
+        
+        long now = System.currentTimeMillis();
+        long deadline = room.getRoundTransitionDeadline();
+        long delayMs = Math.max(deadline - now, 100);
+        
+        ScheduledFuture<?> future = timerScheduler.schedule(() -> {
+            try {
+                GameSession currentRoom = sessionManager.getRoom(roomId);
+                if (currentRoom == null || !currentRoom.isPlaying() || !"round-over".equals(currentRoom.getPhase())) return;
+                
+                currentRoom.startNewHand();
+                broadcastRoomState(currentRoom);
+                triggerBotTurnsRecursively(currentRoom);
+                startTurnTimer(currentRoom);
+            } catch (Exception e) {
+                System.err.println("Error auto-starting next hand: " + e.getMessage());
+            }
+        }, delayMs, TimeUnit.MILLISECONDS);
+        
+        roundTransitionTimers.put(roomId, future);
+    }
+
     private void handleBet(UserConnection conn, Map<String, Object> data) {
         if (conn.roomId == null) return;
         GameSession room = sessionManager.getRoom(conn.roomId);
@@ -440,10 +476,15 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
         // Sincronizar puntuación si termina la ronda
         sessionManager.updateGameScoresInDb(room);
 
+        boolean wasRoundOver = "round-over".equals(room.getPhase());
         broadcastRoomState(room);
-
-        triggerBotTurnsRecursively(room);
-        startTurnTimer(room);
+        
+        if (wasRoundOver) {
+            startRoundTransitionTimer(room);
+        } else {
+            triggerBotTurnsRecursively(room);
+            startTurnTimer(room);
+        }
     }
 
     private void handleChat(UserConnection conn, Map<String, Object> data) {
@@ -482,11 +523,18 @@ public class MusGameWebSocketHandler extends TextWebSocketHandler {
                     // Sincronizar puntuaciones si ha cambiado a round-over
                     sessionManager.updateGameScoresInDb(room);
 
+                    boolean isNowRoundOver = "round-over".equals(room.getPhase());
+                    
                     // Notificamos a todos el nuevo estado
                     broadcastRoomState(room);
 
-                    // Turn advanced, reset timer for human player if next
-                    startTurnTimer(room);
+                    if (isNowRoundOver) {
+                        startRoundTransitionTimer(room);
+                        acted = false; // Stop bot recursion during transition
+                    } else {
+                        // Turn advanced, reset timer for human player if next
+                        startTurnTimer(room);
+                    }
                 }
             }
         }).start();
