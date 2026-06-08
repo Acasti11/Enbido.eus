@@ -375,7 +375,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
 
   return (
     <div className="page-container">
-      <main className="page-content">
+      <div className="page-content">
         {loading ? (
           <div className="meetup-loading">{t('meetup.loading')}</div>
         ) : (
@@ -453,7 +453,7 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 };

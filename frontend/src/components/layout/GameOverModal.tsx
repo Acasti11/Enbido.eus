@@ -206,7 +206,7 @@ const GameOverModal: React.FC<GameOverModalProps> = ({
           <p className="banner-subtitle">{t('musGame.gameOver')}</p>
         </header>
 
-        <main className="modal-content-body">
+        <div className="modal-content-body">
           {/* Match Score Summary */}
           <section className="score-summary-section">
             <div className="score-grid">
@@ -241,7 +241,7 @@ const GameOverModal: React.FC<GameOverModalProps> = ({
               {renderWinnerCard(winner2)}
             </div>
           </section>
-        </main>
+        </div>
 
         <footer className="modal-actions-footer">
           <button 

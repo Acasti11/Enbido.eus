@@ -81,7 +81,7 @@ const ResetPasswordPage: React.FC = (): React.JSX.Element => {
     <div className="reset-password-page">
       <BackgroundCards />
 
-      <main className="reset-password-page__main">
+      <div className="reset-password-page__main">
         <div className="login-card">
           <div className="login-card__header">
             <CardLogo />
@@ -165,7 +165,7 @@ const ResetPasswordPage: React.FC = (): React.JSX.Element => {
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 {loading ? (
-                  <div className="loading-spinner" />
+                  <span className="loading-spinner" />
                 ) : (
                   'Restablecer Contraseña'
                 )}
@@ -173,7 +173,7 @@ const ResetPasswordPage: React.FC = (): React.JSX.Element => {
             </form>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 };

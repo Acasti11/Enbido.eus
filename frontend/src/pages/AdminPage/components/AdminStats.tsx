@@ -89,7 +89,7 @@ const AdminStats = (): React.JSX.Element => {
       <div className="stats-grid">
         {statCards.map((card) => (
           <div key={card.label} className="stat-card" style={{ borderTopColor: card.color }}>
-            <h3 className="stat-card__label">{card.label}</h3>
+            <h2 className="stat-card__label">{card.label}</h2>
             <p className="stat-card__value" style={{ color: card.color }}>
               {card.value}
             </p>

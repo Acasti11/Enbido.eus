@@ -79,7 +79,7 @@ const ShopPageContent: React.FC<ShopPageContentProps> = ({
 }): React.JSX.Element => (
   <div className="shop-page">
     <ShopToast toast={toast} />
-    <main className="shop-page__content">
+    <div className="shop-page__content">
       <ShopHero coins={coins} />
       <ShopSummary totals={categoryTotals} />
       <ShopToolbar
@@ -95,7 +95,7 @@ const ShopPageContent: React.FC<ShopPageContentProps> = ({
         onEquip={onEquip}
         onUnequip={onUnequip}
       />
-    </main>
+    </div>
   </div>
 );
 

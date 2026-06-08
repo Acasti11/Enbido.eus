@@ -26,7 +26,7 @@ const TournamentCard = ({ tournamentData, isAdmin, onDelete }: TournamentCardPro
           <span className={`card-tag tournament-card-tag ${isOnline ? 'badge-online' : 'badge-presencial'}`}>
             {isOnline ? '🌐 Online' : t('tournament.inPerson')}
           </span>
-          <h3 className="card-title tournament-card-title">{tournamentData.tournamentName}</h3>
+          <h2 className="card-title tournament-card-title">{tournamentData.tournamentName}</h2>
         </div>
 
         <div className="card-body tournament-card-body">

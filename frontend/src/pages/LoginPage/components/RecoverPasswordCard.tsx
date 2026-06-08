@@ -138,7 +138,7 @@ const RecoverPasswordCard: React.FC<RecoverPasswordCardProps> = ({ onSwitchToLog
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               {loading ? (
-                <div 
+                <span 
                   className="loading-spinner" 
                   style={{
                     width: '20px',
@@ -146,7 +146,8 @@ const RecoverPasswordCard: React.FC<RecoverPasswordCardProps> = ({ onSwitchToLog
                     border: '2px solid rgba(255,255,255,0.3)',
                     borderTopColor: '#fff',
                     borderRadius: '50%',
-                    animation: 'spin 0.8s linear infinite'
+                    animation: 'spin 0.8s linear infinite',
+                    display: 'inline-block'
                   }}
                 />
               ) : (

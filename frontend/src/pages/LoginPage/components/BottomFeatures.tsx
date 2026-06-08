@@ -12,7 +12,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description }): 
   <div className="bottom-features__item">
     <div className="bottom-features__icon">{icon}</div>
     <div>
-      <h3 className="bottom-features__title">{title}</h3>
+      <h2 className="bottom-features__title">{title}</h2>
       <p className="bottom-features__desc">{description}</p>
     </div>
   </div>

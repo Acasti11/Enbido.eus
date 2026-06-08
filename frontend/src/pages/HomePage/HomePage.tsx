@@ -183,7 +183,7 @@ const HowToPlayCard: React.FC<HowToPlayCardProps> = ({ icon, titleKey, descKey }
   return (
     <div className="home-step-card">
       <div className="home-step-icon">{icon}</div>
-      <h3 className="home-step-title">{t(titleKey)}</h3>
+      <h2 className="home-step-title">{t(titleKey)}</h2>
       <p className="home-step-desc">{t(descKey)}</p>
     </div>
   );

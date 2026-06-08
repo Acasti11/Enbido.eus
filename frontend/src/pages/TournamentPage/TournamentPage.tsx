@@ -188,7 +188,7 @@ const TournamentPage = (): React.JSX.Element => {
 
   return (
     <div className="tournament-app-wrapper">
-      <main className="page-content">
+      <div className="page-content">
         {loading ? (
           <div className="tourney-list-loading-box">
             <div className="lobby-loader tourney-list-loading-spinner"></div>
@@ -212,7 +212,7 @@ const TournamentPage = (): React.JSX.Element => {
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 };

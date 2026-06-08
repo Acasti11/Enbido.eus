@@ -31,7 +31,7 @@ const ProfilePageContent: React.FC<ProfilePageContentProps> = ({
 }): React.JSX.Element => (
   <div className="profile-page">
     <BackgroundCards />
-    <main className="profile-page__main">
+    <div className="profile-page__main">
       <ProfileCard
         username={username}
         initials={initials}
@@ -39,7 +39,7 @@ const ProfilePageContent: React.FC<ProfilePageContentProps> = ({
         equippedAvatarItemId={profile?.equippedAvatarItemId}
         equippedTitleItemId={profile?.equippedTitleItemId}
       />
-    </main>
+    </div>
     <ChatWidget />
   </div>
 );

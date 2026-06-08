@@ -49,7 +49,7 @@ const TournamentList = ({ tournaments, onPublish, isAdmin, onDelete }: Tournamen
         </button>
       </div>
 
-      <section className="tournament-grid">
+      <div className="tournament-grid">
         {tournaments.length === 0 ? (
           <p className="empty-msg">{t('tournament.empty')}</p>
         ) : (
@@ -62,7 +62,7 @@ const TournamentList = ({ tournaments, onPublish, isAdmin, onDelete }: Tournamen
             />
           ))
         )}
-      </section>
+      </div>
     </div>
   );
 };

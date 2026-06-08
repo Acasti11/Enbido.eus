@@ -163,7 +163,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
     <div className="account-page">
       <BackgroundCards />
       
-      <main className="account-page__main">
+      <div className="account-page__main">
         <div className="account-layout">
           
           {/* LEFT COLUMN: Summary card */}
@@ -316,7 +316,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
           </div>
           
         </div>
-      </main>
+      </div>
     </div>
   );
 };

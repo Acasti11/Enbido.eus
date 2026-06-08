@@ -32,7 +32,7 @@ const ShopToolbar: React.FC<ShopToolbarProps> = ({
     const categories: ShopCategory[] = ['profiles', 'decks', 'aliases'];
 
     return (
-            <section className="shop-toolbar" aria-label={t('shop.gridAriaLabel')}>
+            <div className="shop-toolbar" aria-label={t('shop.gridAriaLabel')}>
             <div className="shop-toolbar__tabs" role="tablist" aria-label={t('shop.gridAriaLabel')}>
                 {categories.map((category) => (
                 <button
@@ -52,7 +52,7 @@ const ShopToolbar: React.FC<ShopToolbarProps> = ({
             >
                 {sortByPrice === 'none' ? t('shop.sortPrice') : `↕️ ${sortLabel}`}
             </button>
-            </section>
+            </div>
         );
 };
 

@@ -19,7 +19,7 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({ onClose, t }): React.
       </svg>
     </div>
     <div>
-      <h3 className="chat-panel__title">{t('common.chatMasterTitle')}</h3>
+      <h2 className="chat-panel__title">{t('common.chatMasterTitle')}</h2>
       <p className="chat-panel__subtitle">{t('common.chatMasterSubtitle')}</p>
     </div>
     <button className="chat-panel__close" onClick={onClose}>

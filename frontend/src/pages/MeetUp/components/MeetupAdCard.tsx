@@ -229,10 +229,10 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
     <article className={`ad-card ${isHighlighted ? 'map-highlighted' : ''}`} id={`ad-card-${adState.adId}`}>
       <div className="ad-card__header">
         <div className="ad-card__header-top">
-          <h3 className="ad-card__location">
+          <h2 className="ad-card__location">
             <span>{getEstablishmentIcon(adState.establishmentType)}</span>
             <span>{adState.location}</span>
-          </h3>
+          </h2>
           <span className="establishment-type-tag">
             {getEstablishmentLabel(adState.establishmentType)}
           </span>
@@ -322,7 +322,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
       </div>
 
       {isChatOpen && (hasJoined || isCreator) && (
-        <section className="meetup-chat-section">
+        <div className="meetup-chat-section">
           <h5 className="meetup-chat-title">{t('meetup.playersInTable')}</h5>
           <div className="meetup-participants-list">
             <span className="participant-chip participant-chip--creator">
@@ -382,7 +382,7 @@ const MeetupAdCard: React.FC<MeetupCardProps> = ({ ad, isHighlighted, onDelete }
               {t('meetup.loginToChat')}
             </div>
           )}
-        </section>
+        </div>
       )}
     </article>
   );

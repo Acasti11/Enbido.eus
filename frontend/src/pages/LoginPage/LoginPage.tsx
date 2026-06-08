@@ -14,7 +14,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
       <BackgroundCards />
 
       {/* Main container that centers the card */}
-      <main className="login-page__main">
+      <div className="login-page__main">
         {view === 'login' && (
           <LoginCard 
             onSwitchToRegister={() => setView('register')} 
@@ -27,7 +27,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
         {view === 'recover' && (
           <RecoverPasswordCard onSwitchToLogin={() => setView('login')} />
         )}
-      </main>
+      </div>
     </div>
   );
 };
