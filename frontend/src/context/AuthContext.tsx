@@ -57,6 +57,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, [checkAuth]);
 
+  // Re-check auth after login events (cookies are set, need to refresh user state)
+  useEffect(() => {
+    const handleLoginEvent = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('enbido_login', handleLoginEvent);
+    return () => {
+      window.removeEventListener('enbido_login', handleLoginEvent);
+    };
+  }, [checkAuth]);
+
   const logout = useCallback(async () => {
     try {
       await api.post('/auth/logout');

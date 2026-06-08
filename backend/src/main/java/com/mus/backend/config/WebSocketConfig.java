@@ -24,11 +24,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(musGameWebSocketHandler, "/ws-mus")
-                .setAllowedOrigins("https://enbido.eus", "https://www.enbido.eus", "http://localhost:5173")
+                .setAllowedOrigins("https://enbido.eus", "https://www.enbido.eus", "http://localhost:5173", "http://localhost:8081")
                 .addInterceptors(jwtHandshakeInterceptor);
 
         registry.addHandler(chatWebSocketHandler, "/ws-chat")
-                .setAllowedOrigins("https://enbido.eus", "https://www.enbido.eus", "http://localhost:5173")
+                .setAllowedOrigins("https://enbido.eus", "https://www.enbido.eus", "http://localhost:5173", "http://localhost:8081")
                 .addInterceptors(jwtHandshakeInterceptor);
     }
 }

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/games")
-@CrossOrigin(origins = "*")
 public class GameMatchController {
 
     @Autowired

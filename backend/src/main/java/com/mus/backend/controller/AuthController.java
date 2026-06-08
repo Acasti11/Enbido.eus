@@ -9,6 +9,7 @@ import com.mus.backend.service.JwtService;
 import com.mus.backend.service.RefreshTokenService;
 import com.mus.backend.service.TokenBlacklistService;
 import com.mus.backend.util.CookieUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -25,15 +26,18 @@ public class AuthController {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final CookieUtil cookieUtil;
 
     public AuthController(AuthService authService,
                           JwtService jwtService,
                           RefreshTokenService refreshTokenService,
-                          TokenBlacklistService tokenBlacklistService) {
+                          TokenBlacklistService tokenBlacklistService,
+                          CookieUtil cookieUtil) {
         this.authService = authService;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.cookieUtil = cookieUtil;
     }
 
     // ============================================================
@@ -85,17 +89,42 @@ public class AuthController {
     // ============================================================
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        // DEBUG: Log all incoming cookies
+        System.out.println("=== REFRESH TOKEN DEBUG ===");
+        System.out.println("Request URI: " + request.getRequestURI());
+        System.out.println("Request Origin: " + request.getHeader("Origin"));
+
         String refreshToken = CookieUtil.extractCookieValue(request, "refresh_token");
+        System.out.println("refresh_token from CookieUtil: " + (refreshToken != null ? "present (len=" + refreshToken.length() + ")" : "NULL"));
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            System.out.println("Total cookies received: " + cookies.length);
+            for (Cookie c : cookies) {
+                String valuePreview = c.getValue() != null
+                        ? c.getValue().substring(0, Math.min(20, c.getValue().length())) + "..."
+                        : "null";
+                System.out.println("  Cookie: " + c.getName() + " = " + valuePreview
+                        + " [path=" + c.getPath() + ", httpOnly=" + c.isHttpOnly() + "]");
+            }
+        } else {
+            System.out.println("NO cookies received in request!");
+        }
+        System.out.println("===========================");
+
         if (refreshToken == null) {
+            System.out.println("[REFRESH] Rejected: no refresh_token cookie found");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "No refresh token"));
         }
 
         try {
             User user = refreshTokenService.validateRefreshToken(refreshToken);
+            System.out.println("[REFRESH] Token validated for user: " + user.getUsername());
 
             // Rotate refresh token
             String newRefreshToken = refreshTokenService.rotateRefreshToken(refreshToken);
+            System.out.println("[REFRESH] Token rotated successfully");
 
             // Generate new access token
             String newAccessToken = jwtService.generateToken(
@@ -104,13 +133,15 @@ public class AuthController {
                     user.getRole().name()
             );
 
-            CookieUtil.addAccessTokenCookie(response, newAccessToken, jwtService.getExpirationMillis(newAccessToken) - System.currentTimeMillis());
-            CookieUtil.addRefreshTokenCookie(response, newRefreshToken);
+            cookieUtil.addAccessTokenCookie(response, newAccessToken, jwtService.getExpirationMillis(newAccessToken) - System.currentTimeMillis());
+            cookieUtil.addRefreshTokenCookie(response, newRefreshToken);
 
+            System.out.println("[REFRESH] New cookies set, returning 200 OK");
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            CookieUtil.clearAccessTokenCookie(response);
-            CookieUtil.clearRefreshTokenCookie(response);
+            System.out.println("[REFRESH] Failed: " + e.getMessage());
+            cookieUtil.clearAccessTokenCookie(response);
+            cookieUtil.clearRefreshTokenCookie(response);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", e.getMessage()));
         }
@@ -145,8 +176,8 @@ public class AuthController {
             }
         }
 
-        CookieUtil.clearAccessTokenCookie(response);
-        CookieUtil.clearRefreshTokenCookie(response);
+        cookieUtil.clearAccessTokenCookie(response);
+        cookieUtil.clearRefreshTokenCookie(response);
 
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
@@ -176,14 +207,14 @@ public class AuthController {
                 user.getUsername(),
                 user.getRole()
         );
-        CookieUtil.addAccessTokenCookie(response, accessToken, jwtService.getExpirationMillis(accessToken) - System.currentTimeMillis());
+        cookieUtil.addAccessTokenCookie(response, accessToken, jwtService.getExpirationMillis(accessToken) - System.currentTimeMillis());
 
         User userEntity = new User();
         userEntity.setUserId(user.getId());
         userEntity.setUsername(user.getUsername());
         userEntity.setRole(User.Role.valueOf(user.getRole()));
         String refreshToken = refreshTokenService.createRefreshToken(userEntity);
-        CookieUtil.addRefreshTokenCookie(response, refreshToken);
+        cookieUtil.addRefreshTokenCookie(response, refreshToken);
     }
 
     private Long getCurrentUserId(HttpServletRequest request) {

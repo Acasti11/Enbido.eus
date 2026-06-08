@@ -369,8 +369,8 @@ const MusGamePage: React.FC = () => {
     }
   });
 
-  const { user } = useAuth();
-  const currentUserId = user?.userId || 1;
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const currentUserId = user?.userId || 0;
   const [profile, setProfile] = useState<any>(null);
 
   // New states for Game Over Pop-up summary
@@ -642,6 +642,15 @@ const MusGamePage: React.FC = () => {
       }
     }
   };
+
+  if (isAuthLoading || currentUserId === 0) {
+    return (
+      <div className="mus-game__loading">
+        <div className="mus-game__spinner" />
+        <p>{t('common.loading')}</p>
+      </div>
+    );
+  }
 
   if (roomId === '') {
     return (

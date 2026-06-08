@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
@@ -41,6 +40,9 @@ public class UserController {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private CookieUtil cookieUtil;
 
     // ============================================
     // PÚBLICO: Registro (sin token)
@@ -214,6 +216,29 @@ public class UserController {
     }
 
     // ============================================
+    // PROTEGIDO: Buscar usuarios por username (para añadir amigos)
+    // ============================================
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsuarios(@RequestParam String query, HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        List<User> allUsers = userRepository.findAll();
+        List<Map<String, Object>> results = allUsers.stream()
+            .filter(u -> u.getUsername().toLowerCase().contains(query.toLowerCase()))
+            .filter(u -> !u.getUserId().equals(currentUserId))
+            .map(u -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("userId", u.getUserId());
+                map.put("username", u.getUsername());
+                map.put("name", u.getName());
+                map.put("surname", u.getSurname());
+                map.put("profilePicture", u.getProfilePicture());
+                return map;
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(results);
+    }
+
+    // ============================================
     // PROTEGIDO: Activar/Desactivar 2FA
     // ============================================
     @PostMapping("/me/2fa/toggle")
@@ -254,6 +279,19 @@ public class UserController {
         );
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntimeExceptions(RuntimeException ex) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Unknown error";
+        if ("No autenticado".equals(message)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                Map.of("error", message)
+            );
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            Map.of("error", message)
+        );
+    }
+
     // ============================================
     // HELPERS
     // ============================================
@@ -271,9 +309,9 @@ public class UserController {
                 user.getUsername(),
                 user.getRole().name()
         );
-        CookieUtil.addAccessTokenCookie(response, accessToken, jwtService.getExpirationMillis(accessToken) - System.currentTimeMillis());
+        cookieUtil.addAccessTokenCookie(response, accessToken, jwtService.getExpirationMillis(accessToken) - System.currentTimeMillis());
 
         String refreshToken = refreshTokenService.createRefreshToken(user);
-        CookieUtil.addRefreshTokenCookie(response, refreshToken);
+        cookieUtil.addRefreshTokenCookie(response, refreshToken);
     }
 }

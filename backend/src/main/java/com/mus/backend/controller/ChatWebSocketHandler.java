@@ -60,6 +60,43 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         System.out.println(">>> [WS-CHAT] Conexión establecida desde la sesión: " + session.getId());
+
+        // Auth is now from handshake attributes (set by JwtHandshakeInterceptor)
+        Map<String, Object> attributes = session.getAttributes();
+        Boolean authenticated = (Boolean) attributes.get("authenticated");
+
+        if (Boolean.TRUE.equals(authenticated)) {
+            Long userId = (Long) attributes.get("userId");
+            String username = (String) attributes.get("username");
+
+            userSessions.put(userId, session);
+            sessionToUser.put(session.getId(), userId);
+            onlineUsers.add(userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("type", "IDENTIFIED");
+            response.put("userId", userId);
+            response.put("username", username);
+            sendJsonMessage(session, response);
+
+            // Notify friends that this user is online
+            try {
+                List<com.mus.backend.controller.FriendshipController.FriendResponse> friends = friendshipService.getFriends(userId);
+                for (com.mus.backend.controller.FriendshipController.FriendResponse f : friends) {
+                    WebSocketSession friendSession = userSessions.get(f.id);
+                    if (friendSession != null && friendSession.isOpen()) {
+                        Map<String, Object> presenceEvent = new HashMap<>();
+                        presenceEvent.put("type", "PRESENCE_CHANGE");
+                        presenceEvent.put("userId", userId);
+                        presenceEvent.put("username", username);
+                        presenceEvent.put("status", "online");
+                        sendJsonMessage(friendSession, presenceEvent);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error broadcasting online presence: " + e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -70,25 +107,37 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             Map<String, Object> data = mapper.readValue(payload, Map.class);
             String type = (String) data.get("type");
 
-            if ("IDENTIFY".equals(type)) {
-                handleIdentify(session, data);
-            } else {
-                // Verificar si la sesión ya está identificada
-                Long senderId = sessionToUser.get(session.getId());
-                if (senderId == null) {
-                    sendErrorMessage(session, "No identificado. Envía primero una acción IDENTIFY.");
-                    return;
-                }
+            // Get sender from session (set during handshake)
+            Long senderId = sessionToUser.get(session.getId());
 
-                if ("SEND_DM".equals(type)) {
-                    handleSendDm(senderId, session, data);
-                } else if ("JOIN_MEETUP".equals(type)) {
-                    handleJoinMeetup(session, data);
-                } else if ("LEAVE_MEETUP".equals(type)) {
-                    handleLeaveMeetup(session, data);
-                } else if ("SEND_MEETUP_MSG".equals(type)) {
-                    handleSendMeetupMsg(senderId, session, data);
+            if ("IDENTIFY".equals(type)) {
+                // IDENTIFY is no longer needed for auth - auth happens at handshake
+                // But we keep it for backward compatibility or client confirmation
+                if (senderId != null) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("type", "IDENTIFIED");
+                    response.put("userId", senderId);
+                    sendJsonMessage(session, response);
+                } else {
+                    sendErrorMessage(session, "No autenticado. La autenticación se realiza en el handshake.");
                 }
+                return;
+            }
+
+            // All other actions require authentication
+            if (senderId == null) {
+                sendErrorMessage(session, "No identificado. Envía primero una acción IDENTIFY o reconecta.");
+                return;
+            }
+
+            if ("SEND_DM".equals(type)) {
+                handleSendDm(senderId, session, data);
+            } else if ("JOIN_MEETUP".equals(type)) {
+                handleJoinMeetup(session, data);
+            } else if ("LEAVE_MEETUP".equals(type)) {
+                handleLeaveMeetup(session, data);
+            } else if ("SEND_MEETUP_MSG".equals(type)) {
+                handleSendMeetupMsg(senderId, session, data);
             }
         } catch (Exception e) {
             System.err.println("Error en el ChatWebSocketHandler: " + e.getMessage());
@@ -132,48 +181,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     // --- ACCIONES ESPECÍFICAS ---
 
-    private void handleIdentify(WebSocketSession session, Map<String, Object> data) {
-        String token = (String) data.get("token");
-        if (token == null || !jwtService.isTokenValid(token)) {
-            sendErrorMessage(session, "Token inválido o ausente.");
-            try {
-                session.close(CloseStatus.NOT_ACCEPTABLE);
-            } catch (IOException ignored) {}
-            return;
-        }
-
-        Long userId = jwtService.extractUserId(token);
-        String username = jwtService.extractUsername(token);
-
-        userSessions.put(userId, session);
-        sessionToUser.put(session.getId(), userId);
-        onlineUsers.add(userId);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("type", "IDENTIFIED");
-        response.put("userId", userId);
-        response.put("username", username);
-        sendJsonMessage(session, response);
-
-        // Notify friends that this user is online
-        try {
-            List<com.mus.backend.controller.FriendshipController.FriendResponse> friends = friendshipService.getFriends(userId);
-            for (com.mus.backend.controller.FriendshipController.FriendResponse f : friends) {
-                WebSocketSession friendSession = userSessions.get(f.id);
-                if (friendSession != null && friendSession.isOpen()) {
-                    Map<String, Object> presenceEvent = new HashMap<>();
-                    presenceEvent.put("type", "PRESENCE_CHANGE");
-                    presenceEvent.put("userId", userId);
-                    presenceEvent.put("username", username);
-                    presenceEvent.put("status", "online");
-                    sendJsonMessage(friendSession, presenceEvent);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error broadcasting online presence: " + e.getMessage());
-        }
-    }
-
     private void handleSendDm(Long senderId, WebSocketSession session, Map<String, Object> data) {
         Long receiverId = Long.valueOf(data.get("receiverId").toString());
         String content = (String) data.get("content");
@@ -207,7 +214,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         dm.setReceiverId(receiverId);
         dm.setContent(content.trim());
         dm.setSentAt(LocalDateTime.now());
-        
+
         DirectMessage saved = directMessageRepository.save(dm);
 
         // Adjuntar emisor y receptor para el DTO
@@ -233,9 +240,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private void handleJoinMeetup(WebSocketSession session, Map<String, Object> data) {
         Long meetupId = Long.valueOf(data.get("meetupId").toString());
-        
+
         meetupRooms.computeIfAbsent(meetupId, k -> ConcurrentHashMap.newKeySet()).add(session);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("type", "JOINED_MEETUP");
         response.put("meetupId", meetupId);
@@ -244,7 +251,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private void handleLeaveMeetup(WebSocketSession session, Map<String, Object> data) {
         Long meetupId = Long.valueOf(data.get("meetupId").toString());
-        
+
         Set<WebSocketSession> sessions = meetupRooms.get(meetupId);
         if (sessions != null) {
             sessions.remove(session);

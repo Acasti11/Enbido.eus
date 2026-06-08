@@ -5,6 +5,7 @@ com/mus/backend/controller/ShopController.class
 com/mus/backend/controller/DirectMessageController$MessageRequest.class
 com/mus/backend/model/GameMatch.class
 com/mus/backend/repository/GameActionLogRepository.class
+com/mus/backend/config/JwtHandshakeInterceptor.class
 com/mus/backend/repository/PurchaseHistoryRepository.class
 com/mus/backend/model/Category.class
 com/mus/backend/model/PhysicalTournamentParticipant.class

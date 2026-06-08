@@ -102,7 +102,7 @@ const defaultBots: Friend[] = [
 ];
 
 const PremiumLobby: React.FC<PremiumLobbyProps> = ({
-  username,
+  username: _username,
   isSearching,
   queueSize,
   onJoinRoom,
@@ -620,13 +620,10 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
   const handleSearchUsers = async () => {
     if (!searchQuery.trim()) return;
     try {
-      const res = await api.get('/usuarios');
-      // Filtrar la lista de usuarios en base a la query (excluyendo el usuario propio)
-      const matches = res.data.filter((u: { username: string }) =>
-        u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        u.username !== activeUsername
-      );
-      setSearchResults(matches);
+      const res = await api.get('/usuarios/search', {
+        params: { query: searchQuery.trim() }
+      });
+      setSearchResults(res.data);
     } catch (err) {
       console.error('Error searching registered users:', err);
     }
@@ -701,7 +698,7 @@ const PremiumLobby: React.FC<PremiumLobbyProps> = ({
         <header className="lobby-header">
           <div className="welcome-section">
             <span className="welcome-tag">{t('premiumLobby.registeredPlayer')}</span>
-            <h1 className="welcome-title">{t('premiumLobby.hello', { username })}</h1>
+            <h1 className="welcome-title">{t('premiumLobby.hello', { username: activeUsername })}</h1>
           </div>
 
           {/* USER STATS BADGES */}

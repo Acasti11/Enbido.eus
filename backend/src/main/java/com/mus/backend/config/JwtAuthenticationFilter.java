@@ -39,12 +39,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
+        String requestUri = request.getRequestURI();
         String token = extractToken(request);
 
         if (StringUtils.hasText(token)) {
             try {
                 // Check blacklist first
                 if (tokenBlacklistService.isBlacklisted(token)) {
+                    System.out.println("[JWT FILTER] Token blacklisted for: " + requestUri);
                     SecurityContextHolder.clearContext();
                     filterChain.doFilter(request, response);
                     return;
@@ -58,7 +60,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     request.setAttribute("userId", userId);
 
                     // Actualizar actividad de sesión
-                    FriendshipService.updateSessionActivity(userId);
+                    try {
+                        FriendshipService.updateSessionActivity(userId);
+                    } catch (Exception e) {
+                        // Non-critical: log but don't fail auth
+                        System.out.println("[JWT FILTER] updateSessionActivity failed: " + e.getMessage());
+                    }
 
                     // Cargar UserDetails con roles desde la base de datos
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -72,10 +79,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("[JWT FILTER] Auth OK for: " + requestUri + " user=" + username);
+                } else {
+                    System.out.println("[JWT FILTER] Token invalid for: " + requestUri);
                 }
             } catch (Exception e) {
+                System.out.println("[JWT FILTER] Exception for: " + requestUri + " error=" + e.getMessage());
                 SecurityContextHolder.clearContext();
             }
+        } else {
+            System.out.println("[JWT FILTER] No token for: " + requestUri);
         }
 
         filterChain.doFilter(request, response);

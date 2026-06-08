@@ -2,6 +2,7 @@
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/DataSourceConfig.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/JwtAuthenticationFilter.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/JwtEntryPoint.java
+/home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/JwtHandshakeInterceptor.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/SecurityConfig.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/UserDetailsServiceImpl.java
 /home/acasti/MU/2_maila/pbl4/Typescript_prueba/backend/src/main/java/com/mus/backend/config/WebConfig.java
