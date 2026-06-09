@@ -6,7 +6,7 @@ export const useSettingsAudio = (settings: Settings) => {
 
   // Initialize background music
   useEffect(() => {
-    audioRef.current = new Audio('Musica_fondo.mp3');
+    audioRef.current = new Audio('/Musica_fondo.mp3');
     audioRef.current.loop = true;
 
     return () => {
