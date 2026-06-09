@@ -47,6 +47,17 @@ const Navbar: React.FC = (): React.JSX.Element => {
   return (
     <header className={`navbar ${isGameActive ? 'navbar--hidden' : ''}`}>
       <div className="navbar__container">
+        {/* Mobile Hamburger */}
+        <button
+          className={`navbar__hamburger ${isDrawerOpen ? 'navbar__hamburger--open' : ''}`}
+          onClick={handleToggleDrawer}
+          aria-label={t('nav.menu')}
+        >
+          <span className="hamburger-line" />
+          <span className="hamburger-line" />
+          <span className="hamburger-line" />
+        </button>
+
         {/* Logo */}
         <Link to="/" className="navbar__logo" onClick={() => rawPlaySfx('click')}>
           <LogoIcon />
@@ -92,17 +103,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
             </Link>
           )}
         </div>
-
-        {/* Mobile Hamburger */}
-        <button
-          className="navbar__hamburger"
-          onClick={handleToggleDrawer}
-          aria-label={t('nav.menu')}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
       </div>
 
       {/* Mobile Drawer */}
