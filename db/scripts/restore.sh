@@ -21,10 +21,10 @@ if command -v docker &>/dev/null && docker compose version &>/dev/null; then
     CONTAINER_CMD="docker compose"
 elif command -v docker-compose &>/dev/null; then
     CONTAINER_CMD="docker-compose"
-elif command -v podman &>/dev/null && podman compose version &>/dev/null; then
-    CONTAINER_CMD="podman compose"
 elif command -v podman-compose &>/dev/null; then
     CONTAINER_CMD="podman-compose"
+elif command -v podman &>/dev/null && podman compose version &>/dev/null; then
+    CONTAINER_CMD="podman compose"
 else
     echo "Error: No se encontró docker, docker-compose, podman o podman-compose en el PATH."
     exit 1
