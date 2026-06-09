@@ -149,15 +149,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       // Real message via WebSocket
       sendDirectMessage(activeChatUser.id, msgText);
-      
-      // Optimistically add to UI
-      const myMsg: ChatMessage = {
-        senderId: currentUserId,
-        senderName: activeUsername,
-        content: msgText,
-        timestamp: Date.now()
-      };
-      setChatMessages(prev => [...prev, myMsg]);
     }
   }, [activeChatUser, currentUserId, activeUsername, chatMessages, sendDirectMessage]);
 

@@ -6,7 +6,7 @@ import LanguageSwitcher from '@/i18n/LanguageSwitcher';
 import { useNavbar } from './useNavbar';
 import { useNavLinks } from './NavLinks';
 import { NavLinks } from './NavLinks';
-import { LogoIcon, ShopIcon, SettingsIcon } from './NavbarIcons';
+import { LogoIcon, ShopIcon } from './NavbarIcons';
 import { UserDropdown } from './UserDropdown';
 import { MobileDrawer } from './MobileDrawer';
 import { SettingsModal } from './SettingsModal';
@@ -71,17 +71,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
             <ShopIcon />
           </Link>
 
-          <button
-            className="navbar__action-btn"
-            onClick={() => {
-              rawPlaySfx('click');
-              setShowSettingsModal(true);
-            }}
-            title={t('nav.settings')}
-          >
-            <SettingsIcon />
-          </button>
-
           {isAuthenticated ? (
             <UserDropdown
               user={user}
@@ -121,7 +110,6 @@ const Navbar: React.FC = (): React.JSX.Element => {
         isOpen={isDrawerOpen}
         links={links}
         onClose={handleCloseDrawer}
-        onOpenSettings={() => setShowSettingsModal(true)}
       />
 
       {/* Settings Modal */}

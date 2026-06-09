@@ -114,24 +114,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           <div className="settings-section">
-            <h3>{t('settings.gameSection')}</h3>
-            <div className="settings-row flex-column">
-              <label>{t('settings.viewMode')}</label>
-              <select
-                value={settings.viewMode}
-                onChange={(e) => {
-                  playSfx('click');
-                  onUpdateSetting('viewMode', e.target.value as '2d' | '3d');
-                }}
-                className="settings-select"
-              >
-                <option value="2d">{t('settings.view2d')}</option>
-                <option value="3d">{t('settings.view3d')}</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="settings-section">
             <h3>{t('settings.notifSection')}</h3>
             <div className="settings-row">
               <label>{t('settings.notifications')}</label>
@@ -144,21 +126,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onUpdateSetting('notificationsEnabled', e.target.checked);
                 }}
               />
-            </div>
-            <div className="settings-row flex-column">
-              <label>{t('settings.language')}</label>
-              <select
-                value={settings.language}
-                onChange={(e) => {
-                  playSfx('click');
-                  onUpdateSetting('language', e.target.value as 'es' | 'eu' | 'en');
-                }}
-                className="settings-select"
-              >
-                <option value="es">{t('settings.langEs')}</option>
-                <option value="eu">{t('settings.langEu')}</option>
-                <option value="en">{t('settings.langEn')}</option>
-              </select>
             </div>
           </div>
         </div>

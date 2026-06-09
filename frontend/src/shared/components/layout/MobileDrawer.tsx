@@ -3,21 +3,19 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { NavLinks } from './NavLinks';
-import { ShopIcon, SettingsIcon } from './NavbarIcons';
+import { ShopIcon } from './NavbarIcons';
 import type { NavLinkItem } from './navbarTypes';
 
 interface MobileDrawerProps {
   isOpen: boolean;
   links: NavLinkItem[];
   onClose: () => void;
-  onOpenSettings: () => void;
 }
 
 export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   isOpen,
   links,
   onClose,
-  onOpenSettings,
 }) => {
   const { t } = useTranslation();
 
@@ -44,15 +42,6 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           >
             <ShopIcon /> {t('nav.shop')}
           </Link>
-          <button
-            className="navbar__drawer-action-btn"
-            onClick={() => {
-              onClose();
-              onOpenSettings();
-            }}
-          >
-            <SettingsIcon /> {t('nav.settings')}
-          </button>
         </div>
       </div>
       {isOpen && <div className="navbar__overlay" onClick={onClose} />}
