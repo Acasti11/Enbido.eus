@@ -6,7 +6,7 @@ export const useSettingsAudio = (settings: Settings) => {
 
   // Initialize background music
   useEffect(() => {
-    audioRef.current = new Audio('Musica_fondo.mp3');
+    audioRef.current = new Audio('/Musica_fondo.mp3');
     audioRef.current.loop = true;
 
     return () => {
@@ -17,7 +17,7 @@ export const useSettingsAudio = (settings: Settings) => {
     };
   }, []);
 
-  // Sync background music state and volume
+  // Sync background smusic state and volume
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -26,7 +26,7 @@ export const useSettingsAudio = (settings: Settings) => {
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          console.log('Autoplay blocked by browser. Music will start on user interaction.');
+          console.log('Autoplay blocked by browpser. Music will start on user interaction.');
         });
       }
     } else {
