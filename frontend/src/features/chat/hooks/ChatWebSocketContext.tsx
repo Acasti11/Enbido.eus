@@ -26,6 +26,7 @@ export const useChatWebSocket = () => {
 };
 
 export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('[ChatWebSocketProvider] rendering');
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);

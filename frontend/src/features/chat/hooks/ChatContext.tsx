@@ -42,6 +42,7 @@ export const useChat = () => {
 };
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('[ChatProvider] rendering');
   const [activeChatUser, setActiveChatUser] = useState<ChatUser | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');

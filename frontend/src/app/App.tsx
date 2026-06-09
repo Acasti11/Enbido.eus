@@ -6,6 +6,7 @@ import { AppProviders } from './providers';
 import { AppRouter } from './router';
 
 const App: React.FC = (): React.JSX.Element => {
+  console.log('[App.tsx] rendering');
   return (
     <BrowserRouter>
       <AppProviders>

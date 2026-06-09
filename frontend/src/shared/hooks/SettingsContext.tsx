@@ -43,6 +43,7 @@ export const useSettings = () => {
 };
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('[SettingsProvider] rendering');
   const [settings, setSettings] = useState<Settings>(() => {
     const local = localStorage.getItem('enbido_settings');
     if (local) {
