@@ -1,0 +1,89 @@
+/* Toast Notification Popup UI */
+.toast-notification {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  z-index: 9999;
+  width: 320px;
+  background: rgba(15, 30, 22, 0.95);
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lg), 0 0 15px var(--color-gold-alpha-15);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  cursor: pointer;
+  transition: all var(--transition-normal) ease-in-out;
+  color: var(--color-text-white);
+  font-family: var(--font-sans), sans-serif;
+}
+
+.toast-notification:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl), 0 0 20px var(--color-gold-alpha-30);
+}
+
+.toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toast-title {
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toast-close-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+.toast-close-btn:hover {
+  color: var(--color-text-white);
+}
+
+.toast-body {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gold);
+}
+
+.toast-message {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-white-70);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* UsuariosList styles */
+.usuarios-list-error {
+  color: var(--color-danger);
+}
+
+.usuarios-list-container {
+  list-style: none;
+  padding: 0;
+}
+
+.usuarios-list-item {
+  padding: var(--space-lg);
+  margin: var(--space-sm) 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--color-brand-light);
+}
+
+.usuarios-list-item-email {
+  color: var(--color-text-white-70);
+  margin-left: var(--space-lg);
+}

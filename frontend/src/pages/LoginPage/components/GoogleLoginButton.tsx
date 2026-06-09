@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import api from '../../../services/api';
+import api from '@/shared/lib/api';
 import '../styles/login-form.css';
 
 interface GoogleAuthResponse {

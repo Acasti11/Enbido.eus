@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import api from '../../services/api';
+import api from '@/shared/lib/api';
 import BackgroundCards from '../ProfilePage/components/BackgroundCards';
 import ProfileHeader from '../ProfilePage/components/ProfileHeader';
 import './styles/account-page.css';

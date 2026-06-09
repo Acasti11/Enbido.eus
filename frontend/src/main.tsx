@@ -2,11 +2,11 @@ import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import './i18n/config'
-import './styles/index.css'
+import '@/shared/styles/index.css'
 import App from './App.tsx'
-import { AuthProvider } from './context/AuthContext.tsx'
-import { SettingsProvider } from './context/SettingsContext.tsx'
-import { ChatWebSocketProvider } from './context/ChatWebSocketContext.tsx'
+import { AuthProvider } from '@/features/auth/hooks/AuthContext.tsx'
+import { SettingsProvider } from '@/context/SettingsContext.tsx'
+import { ChatWebSocketProvider } from '@/features/chat/hooks/ChatWebSocketContext.tsx'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 

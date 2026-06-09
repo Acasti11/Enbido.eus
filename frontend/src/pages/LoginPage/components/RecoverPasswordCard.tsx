@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import CardLogo from './CardLogo';
-import api from '../../../services/api';
+import api from '@/shared/lib/api';
 import '../styles/login-card.css';
 import '../styles/login-form.css';
 

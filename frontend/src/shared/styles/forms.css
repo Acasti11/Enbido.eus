@@ -1,0 +1,77 @@
+/* ==========================================================================
+   GLOBAL FORM STYLES — DESIGN SYSTEM
+   ========================================================================== */
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.input-label {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-brand-dark);
+}
+
+.input-label span {
+  color: var(--color-accent-red);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 3.5rem;
+  background-color: var(--color-text-white);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--spacing-md);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-input);
+}
+
+.input-wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(45, 107, 69, 0.15);
+  border-color: var(--color-brand-light);
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  width: 100%;
+}
+
+.input-field::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Error States */
+.input-wrapper--error {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.input-error-text {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+/* Success States */
+.input-wrapper--success {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.input-success-text {
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}

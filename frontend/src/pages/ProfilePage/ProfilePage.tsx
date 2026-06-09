@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
+import { useAuth } from '@/features/auth/hooks/AuthContext';
+import api from '@/shared/lib/api';
 import ProfileCard from './components/ProfileCard';
 import BackgroundCards from './components/BackgroundCards';
 import ChatWidget from './components/ChatWidget';

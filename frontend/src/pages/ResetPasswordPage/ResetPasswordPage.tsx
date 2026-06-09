@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import CardLogo from '../LoginPage/components/CardLogo';
 import BackgroundCards from '../LoginPage/components/BackgroundCards';
-import api from '../../services/api';
+import api from '@/shared/lib/api';
 import '../LoginPage/styles/login-card.css';
 import '../LoginPage/styles/login-form.css';
 import './reset-password.css';

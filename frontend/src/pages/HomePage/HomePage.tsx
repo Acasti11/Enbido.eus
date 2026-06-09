@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './homepage.css';
-import { useSeo } from '../../hooks/useSeo';
+import { useSeo } from '@/shared/hooks/useSeo';
 
 // ========== SVG ICON COMPONENTS ==========
 

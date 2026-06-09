@@ -1,5 +1,5 @@
 import React from 'react';
-import RegisterForm from '../../../components/auth/RegisterForm';
+import RegisterForm from '@/features/auth/components/RegisterForm';
 
 interface CreateUserFormProps {
   onSwitchToLogin: () => void;

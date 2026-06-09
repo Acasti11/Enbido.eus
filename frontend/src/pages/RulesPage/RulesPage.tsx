@@ -1,7 +1,7 @@
 import React from 'react';
 import './rules.css';
 import { useTranslation } from 'react-i18next';
-import { useSeo } from '../../hooks/useSeo';
+import { useSeo } from '@/shared/hooks/useSeo';
 
 const useRulesSeo = () => {
   useSeo({

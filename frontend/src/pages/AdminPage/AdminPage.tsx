@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/features/auth/hooks/AuthContext';
 import AdminUsers from './components/AdminUsers';
 import AdminTournaments from './components/AdminTournaments';
 import AdminStats from './components/AdminStats';

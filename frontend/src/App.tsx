@@ -1,20 +1,20 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Navbar from './components/layout/Navbar';
+import Navbar from '@/shared/components/layout/Navbar';
 import LoginPage from './pages/LoginPage/LoginPage';
-import MeetupPage from './pages/MeetUp/MeetupPage';
-import TournamentPage from './pages/TournamentPage/TournamentPage';
-import MusGamePage from './pages/MusGamePage/MusGamePage';
+import MeetupPage from '@/features/meetup/components/MeetupPage';
+import TournamentPage from '@/features/tournament/components/TournamentPage';
+import MusGamePage from '@/features/game/components/MusGamePage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
-import ShopPage from './pages/ShopPage/ShopPage';
+import ShopPage from '@/features/shop/components/ShopPage';
 import HomePage from './pages/HomePage/HomePage';
 import RulesPage from './pages/RulesPage/RulesPage';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
 import AccountPage from './pages/AccountPage/AccountPage';
 import AdminPage from './pages/AdminPage/AdminPage';
-import GlobalChatWindow from './components/chat/GlobalChatWindow';
-import { ChatProvider } from './context/ChatContext';
+import GlobalChatWindow from '@/features/chat/components/GlobalChatWindow';
+import { ChatProvider } from '@/features/chat/hooks/ChatContext';
 
 const NotFound: React.FC = () => {
   const { t } = useTranslation();

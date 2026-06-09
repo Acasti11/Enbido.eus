@@ -1,5 +1,5 @@
 import React from 'react';
-import LoginFormComponent from '../../../components/auth/LoginForm';
+import LoginFormComponent from '@/features/auth/components/LoginForm';
 
 interface LoginFormProps {
   onSwitchToRecover: () => void;
