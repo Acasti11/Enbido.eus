@@ -5,9 +5,28 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ENV_FILE="$SCRIPT_DIR/../../.env"
 
 if [ -f "$ENV_FILE" ]; then
-    export $(grep -v '^#' "$ENV_FILE" | xargs)
+    # Cargar variables de entorno ignorando comentarios y respetando espacios
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [[ ! "$line" =~ ^# && ! -z "$line" ]]; then
+            export "$line"
+        fi
+    done < "$ENV_FILE"
 else
     echo "Error: No se encontró el archivo .env en $ENV_FILE"
+    exit 1
+fi
+
+# Detectar el comando de contenedores disponible
+if command -v docker &>/dev/null && docker compose version &>/dev/null; then
+    CONTAINER_CMD="docker compose"
+elif command -v docker-compose &>/dev/null; then
+    CONTAINER_CMD="docker-compose"
+elif command -v podman &>/dev/null && podman compose version &>/dev/null; then
+    CONTAINER_CMD="podman compose"
+elif command -v podman-compose &>/dev/null; then
+    CONTAINER_CMD="podman-compose"
+else
+    echo "Error: No se encontró docker, docker-compose, podman o podman-compose en el PATH."
     exit 1
 fi
 
@@ -38,7 +57,7 @@ SELECTED_BACKUP="${files[$index]}"
 echo "Restaurando $SELECTED_BACKUP en la base de datos ${MYSQL_DATABASE}..."
 
 # Restaurar ejecutando el comando mysql en el contenedor docker 'db'
-docker compose -f "$SCRIPT_DIR/../../docker-compose.yml" exec -T db mysql \
+$CONTAINER_CMD -f "$SCRIPT_DIR/../../docker-compose.yml" exec -T db mysql \
   -u root \
   -p"${MYSQL_ROOT_PASSWORD}" \
   "${MYSQL_DATABASE}" < "$SELECTED_BACKUP"

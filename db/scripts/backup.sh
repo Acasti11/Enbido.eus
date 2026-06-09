@@ -5,10 +5,28 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ENV_FILE="$SCRIPT_DIR/../../.env"
 
 if [ -f "$ENV_FILE" ]; then
-    # Cargar variables de entorno ignorando comentarios
-    export $(grep -v '^#' "$ENV_FILE" | xargs)
+    # Cargar variables de entorno ignorando comentarios y respetando espacios
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [[ ! "$line" =~ ^# && ! -z "$line" ]]; then
+            export "$line"
+        fi
+    done < "$ENV_FILE"
 else
     echo "Error: No se encontró el archivo .env en $ENV_FILE"
+    exit 1
+fi
+
+# Detectar el comando de contenedores disponible
+if command -v docker &>/dev/null && docker compose version &>/dev/null; then
+    CONTAINER_CMD="docker compose"
+elif command -v docker-compose &>/dev/null; then
+    CONTAINER_CMD="docker-compose"
+elif command -v podman &>/dev/null && podman compose version &>/dev/null; then
+    CONTAINER_CMD="podman compose"
+elif command -v podman-compose &>/dev/null; then
+    CONTAINER_CMD="podman-compose"
+else
+    echo "Error: No se encontró docker, docker-compose, podman o podman-compose en el PATH."
     exit 1
 fi
 
@@ -20,11 +38,11 @@ BACKUP_FILE="$BACKUP_DIR/backup_${MYSQL_DATABASE}_${TIMESTAMP}.sql"
 
 echo "Iniciando copia de seguridad de la base de datos ${MYSQL_DATABASE}..."
 
-# Ejecutar mysqldump a través del contenedor docker primario 'db'
+# Ejecutar mysqldump a través del contenedor de base de datos primario
 # --routines: incluye procedimientos almacenados
 # --triggers: incluye triggers
 # --single-transaction: consistencia en caliente sin bloquear InnoDB
-docker compose -f "$SCRIPT_DIR/../../docker-compose.yml" exec -T db mysqldump \
+$CONTAINER_CMD -f "$SCRIPT_DIR/../../docker-compose.yml" exec -T db mysqldump \
   -u root \
   -p"${MYSQL_ROOT_PASSWORD}" \
   --routines \
