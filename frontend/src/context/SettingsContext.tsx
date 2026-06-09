@@ -71,7 +71,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Initialize background music
   useEffect(() => {
     // Beautiful, calm acoustic guitar loop track
-    audioRef.current = new Audio('Musica_fondo.mp3');
+    audioRef.current = new Audio('/Musica_fondo.mp3');
     audioRef.current.loop = true;
 
     return () => {
