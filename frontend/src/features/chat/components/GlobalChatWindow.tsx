@@ -4,6 +4,17 @@ import { useAuth } from '@/features/auth/hooks/AuthContext';
 import { useTranslation } from 'react-i18next';
 import './global-chat.css';
 
+const useGameActive = () => {
+  const [isGameActive, setIsGameActive] = React.useState(false);
+  useEffect(() => {
+    const check = () => setIsGameActive(localStorage.getItem('isGameActive') === 'true');
+    check();
+    window.addEventListener('game_state_changed', check);
+    return () => window.removeEventListener('game_state_changed', check);
+  }, []);
+  return isGameActive;
+};
+
 const GlobalChatWindow: React.FC = () => {
   const {
     activeChatUser,
@@ -19,6 +30,9 @@ const GlobalChatWindow: React.FC = () => {
   const { user } = useAuth();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const currentUserId = user?.userId || 0;
+  const isGameActive = useGameActive();
+
+  if (isGameActive) return null;
 
   useEffect(() => {
     if (chatEndRef.current) {

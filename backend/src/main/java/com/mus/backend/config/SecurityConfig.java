@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationEntryPoint jwtEntryPoint;
 
-    @Value("${cors.allowed-origins:https://enbido.eus,https://www.enbido.eus}")
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:8081,https://enbido.eus,https://www.enbido.eus}")
     private String allowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,

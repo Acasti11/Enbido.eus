@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/features/auth/hooks/AuthContext';
 import GameScoreBoard from './GameScoreBoard';
@@ -55,6 +55,19 @@ const MusGamePage: React.FC = () => {
     roundTransition, roundTransitionDeadline,
     leaveVotes, sendLeaveVote
   } = useMusGame(currentUserId);
+
+  useEffect(() => {
+    const wasActive = localStorage.getItem('isGameActive') === 'true';
+    if (isPlaying && !wasActive) {
+      localStorage.setItem('isGameActive', 'true');
+      window.dispatchEvent(new Event('game_state_changed'));
+      console.log('[MusGamePage] Game ACTIVE - navbar/chat hidden');
+    } else if (!isPlaying && wasActive) {
+      localStorage.removeItem('isGameActive');
+      window.dispatchEvent(new Event('game_state_changed'));
+      console.log('[MusGamePage] Game ENDED - navbar/chat visible');
+    }
+  }, [isPlaying]);
 
   const { isPortraitOnMobile } = useOrientation();
   const { isMuted, toggleMute, timeLeft, isSignsOpen, setIsSignsOpen } = useGameAudio({

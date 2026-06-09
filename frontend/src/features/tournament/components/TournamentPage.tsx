@@ -182,7 +182,14 @@ const TournamentPage = (): React.JSX.Element => {
       setCurrentView(CONST_VIEW_LIST);
     } catch (err) {
       console.error('Error saving tournament to DB:', err);
-      alert('Inicia sesión para poder publicar torneos');
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string } | string } };
+      if (axiosErr?.response?.status === 401 || axiosErr?.response?.status === 403) {
+        alert('Inicia sesión para poder publicar torneos');
+      } else {
+        const data = axiosErr?.response?.data;
+        const errorMsg = (typeof data === 'object' && data !== null && 'message' in data ? data.message : data) || 'Error al publicar el torneo. Inténtalo de nuevo.';
+        alert(errorMsg);
+      }
     }
   };
 

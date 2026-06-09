@@ -8,6 +8,16 @@
   background-color: rgba(15, 41, 30, 0.3);
   backdrop-filter: blur(4px);
   flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.navbar--hidden {
+  display: none;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  overflow: hidden;
 }
 
 .navbar__container {

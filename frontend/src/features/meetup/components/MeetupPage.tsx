@@ -94,7 +94,14 @@ const MeetupPage: React.FC = (): React.JSX.Element => {
       handleNavigateToList();
     } catch (err) {
       console.error(t('meetup.errorSave'), err);
-      alert(t('meetup.loginToCreate'));
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string } | string } };
+      if (axiosErr?.response?.status === 401 || axiosErr?.response?.status === 403) {
+        alert(t('meetup.loginToCreate'));
+      } else {
+        const data = axiosErr?.response?.data;
+        const errorMsg = (typeof data === 'object' && data !== null && 'message' in data ? data.message : data) || t('meetup.errorSave');
+        alert(errorMsg);
+      }
     }
   };
 
