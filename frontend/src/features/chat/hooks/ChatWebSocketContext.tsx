@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { useSettings } from '@/context/SettingsContext';
+import { useSettings } from '@/shared/hooks/SettingsContext';
 
 interface ChatWebSocketContextType {
   connected: boolean;
@@ -29,6 +29,7 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);
+  const connectRef = useRef<(() => void) | null>(null);
 
   // Callbacks para los componentes activos
   const dmCallbackRef = useRef<((msg: any) => void) | null>(null);
@@ -215,7 +216,7 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Intentar reconexión automática en 5 segundos
       reconnectTimeoutRef.current = setTimeout(() => {
-        connect();
+        connectRef.current?.();
       }, 5000);
     };
 
@@ -225,6 +226,11 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
   }, []);
+
+  // Keep connectRef up to date to avoid stale closure in socket callbacks
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   useEffect(() => {
     // Escuchar el login/logout del usuario conectándose en consecuencia

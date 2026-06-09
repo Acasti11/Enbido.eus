@@ -20,19 +20,7 @@ const AdminTournaments = (): React.JSX.Element => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'online' | 'finished'>('all');
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => {
-    loadTournaments();
-    // Poll every 10 seconds to see auto-deletions in real-time
-    const pollInterval = setInterval(loadTournaments, 10000);
-    // Update countdown timer every second
-    const timerInterval = setInterval(() => setNow(Date.now()), 1000);
-    return () => {
-      clearInterval(pollInterval);
-      clearInterval(timerInterval);
-    };
-  }, []);
+  const [now, setNow] = useState(() => Date.now());
 
   const loadTournaments = async () => {
     setLoading(true);
@@ -47,6 +35,18 @@ const AdminTournaments = (): React.JSX.Element => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadTournaments();
+    // Poll every 10 seconds to see auto-deletions in real-time
+    const pollInterval = setInterval(loadTournaments, 10000);
+    // Update countdown timer every second
+    const timerInterval = setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      clearInterval(pollInterval);
+      clearInterval(timerInterval);
+    };
+  }, []);
 
   const handleDelete = async (id: number, type?: string) => {
     if (type !== 'ONLINE') {

@@ -44,7 +44,10 @@ export const RoundTransitionOverlay: React.FC<RoundTransitionOverlayProps> = ({
       return Math.max(0, Math.min(5, remaining));
     };
 
-    setCountdown(calculateCountdown());
+    // Avoid synchronous setState in effect body by using a small timeout
+    const timeout = setTimeout(() => {
+      setCountdown(calculateCountdown());
+    }, 0);
 
     const interval = setInterval(() => {
       const remaining = calculateCountdown();
@@ -55,7 +58,10 @@ export const RoundTransitionOverlay: React.FC<RoundTransitionOverlayProps> = ({
       }
     }, 200);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [deadline, onComplete]);
 
   const lanceNames: Record<string, string> = {

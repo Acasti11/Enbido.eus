@@ -124,19 +124,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Bot response after 1.5s
       setTimeout(() => {
-        let botResponseContent = '';
-        if (activeChatUser.id === -1) {
-          const replies = [
-            '¡Hola! ¿Quieres jugar una partida?',
-            '¿Cómo te va el día?',
-            '¡Vamos a ganar!',
-            '¿Conoces algún truco del Mus?',
-            '¡Suerte en tu próxima partida!'
-          ];
-          botResponseContent = replies[Math.floor(Math.random() * replies.length)];
-        } else {
-          botResponseContent = 'Interesante... cuéntame más.';
-        }
+        const botResponseContent = activeChatUser.id === -1
+          ? [
+              '¡Hola! ¿Quieres jugar una partida?',
+              '¿Cómo te va el día?',
+              '¡Vamos a ganar!',
+              '¿Conoces algún truco del Mus?',
+              '¡Suerte en tu próxima partida!'
+            ][Math.floor(Math.random() * 5)]
+          : 'Interesante... cuéntame más.';
 
         const botMsg: ChatMessage = {
           senderId: activeChatUser.id,

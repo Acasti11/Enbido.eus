@@ -24,10 +24,6 @@ const AdminStats = (): React.JSX.Element => {
     error: '',
   });
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
   const loadStats = async () => {
     try {
       const [usersRes, tournamentsRes] = await Promise.all([
@@ -53,6 +49,10 @@ const AdminStats = (): React.JSX.Element => {
       setStats((prev) => ({ ...prev, loading: false, error: 'Error al cargar estadísticas' }));
     }
   };
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   if (stats.loading) {
     return (

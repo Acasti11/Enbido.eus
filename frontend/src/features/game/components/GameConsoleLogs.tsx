@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { LogEntry } from '@/features/game/types/MusGame';
 
 interface GameConsoleLogsProps {
@@ -75,23 +75,32 @@ const parseLogMessage = (msg: string): LogAnalysis => {
 const GameConsoleLogs: React.FC<GameConsoleLogsProps> = ({ logs }) => {
   // Store stable timestamps for each log ID to avoid shifts on re-renders
   const timestampsRef = useRef<{ [id: string]: string }>({});
+  const [timestamps, setTimestamps] = useState<{ [id: string]: string }>({});
 
-  const getTimestamp = (id: string): string => {
-    if (!timestampsRef.current[id]) {
-      timestampsRef.current[id] = new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
+  useEffect(() => {
+    const result: { [id: string]: string } = {};
+    let hasNew = false;
+    logs.forEach((log) => {
+      if (!timestampsRef.current[log.id]) {
+        timestampsRef.current[log.id] = new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+        hasNew = true;
+      }
+      result[log.id] = timestampsRef.current[log.id];
+    });
+    if (hasNew) {
+      setTimestamps(result);
     }
-    return timestampsRef.current[id];
-  };
+  }, [logs]);
 
   return (
     <div className="logs-scroll-box">
       {logs.map((log) => {
         const { icon, colorClass } = parseLogMessage(log.message);
-        const time = getTimestamp(log.id);
+        const time = timestamps[log.id] || '';
 
         return (
           <div key={log.id} className={`log-item-card ${colorClass}`}>

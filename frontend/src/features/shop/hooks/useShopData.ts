@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '@/shared/lib/api';
 import type { ShopCategory, Toast, CategoryTotal, RawShopItem } from '@/features/shop/types/shop';
@@ -42,12 +42,9 @@ export const useShopData = () => {
     }
   }, [showToast, t]);
 
-  const fetchDataRef = useRef(fetchData);
-  fetchDataRef.current = fetchData;
-
   useEffect(() => {
-    fetchDataRef.current();
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   const handleBuy = useCallback(async (itemId: number, price: number, name: string) => {
     if (coins < price) {

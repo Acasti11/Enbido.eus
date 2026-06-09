@@ -18,10 +18,6 @@ const AdminUsers = (): React.JSX.Element => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
   const loadUsers = async () => {
     setLoading(true);
     setError('');
@@ -35,6 +31,10 @@ const AdminUsers = (): React.JSX.Element => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const toggleBan = async (userId: number, currentBanStatus: boolean) => {
     try {

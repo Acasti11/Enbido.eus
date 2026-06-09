@@ -34,6 +34,13 @@ export interface LogEntry {
   message: string;
 }
 
+export interface SeatInfo {
+  chair: number;
+  username: string;
+  isBot: boolean;
+  userId: number | null;
+}
+
 export interface GameMatchDto {
   id?: number;
   userId: number;
